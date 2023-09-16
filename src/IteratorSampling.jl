@@ -1,7 +1,6 @@
 module IteratorSampling
 
-using StatsBase
-using Random
+using StatsBase, Random
 
 include("UnweightedSamplingSingle.jl")
 include("UnweightedSamplingMulti.jl")
@@ -25,11 +24,11 @@ it returns `nothing`.
 
     itsample([rng], iter, [condition::Function], n::Int; [alloc, iter_type])
 
-Return a vector of `n` random elements of the iterator, optionally specifying
-a `rng` (which defaults to `Random.GLOBAL_RNG`) and a condition to restrict 
-the sampling on only those elements for which the function returns `true`. 
-If the iterator has less than `n` elements or less than `n` elements satisfy 
-the condition, it returns a vector of these elements.
+Return a vector of `n` random elements of the iterator without replacement, 
+optionally specifying a `rng` (which defaults to `Random.GLOBAL_RNG`) and 
+a condition to restrict the sampling on only those elements for which the 
+function returns `true`. If the iterator has less than `n` elements or less 
+than `n` elements satisfy the condition, it returns a vector of these elements.
 
 ## Keywords
 * `alloc = true`: when the function returns a vector, it happens to be much
