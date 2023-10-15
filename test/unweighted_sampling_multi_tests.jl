@@ -2,27 +2,44 @@
 @testset "Unweighted sampling multi tests" begin
 	@testset "alloc=$(alloc)" for alloc in [false, true]
 
-		# test values are inrange
 		a, b = 1, 10
-		s = itsample(a:b, 2, alloc=alloc)
+		# test return values of iter with known lengths are inrange
+		iter = a:b
+		s = itsample(iter, 2, alloc=alloc)
 		@test length(s) == 2
 		@test all(x -> a <= x <= b, s)
 
 		@test typeof(s) == Vector{ifelse(alloc, Int, Any)}
-		s = itsample(a:b, 2, alloc=alloc, iter_type=Int)
+		s = itsample(iter, 2, alloc=alloc, iter_type=Int)
 		@test length(s) == 2
 		@test all(x -> a <= x <= b, s)
 		@test typeof(s) == Vector{Int}
-		s = itsample(a:b, 100, alloc=alloc)
+		s = itsample(iter, 100, alloc=alloc)
 		@test length(s) == 10
 		@test length(unique(s)) == 10
 
+		# test return values of iter with unknown lengths are inrange
+		iter = Iterators.filter(x -> x < 5, a:b)
+		s = itsample(iter, 2, alloc=alloc)
+		@test length(s) == 2
+		@test all(x -> a <= x <= b, s)
+
+		@test typeof(s) == Vector{ifelse(alloc, Int, Any)}
+		s = itsample(iter, 2, alloc=alloc, iter_type=Int)
+		@test length(s) == 2
+		@test all(x -> a <= x <= b, s)
+		@test typeof(s) == Vector{Int}
+		s = itsample(iter, 100, alloc=alloc)
+		@test length(s) == 4
+		@test length(unique(s)) == 4
+
 		# create empirical distribution
+		iter = a:b
 		rng = StableRNG(43)
 		reps = 10000
 		dict_res = Dict{Vector, Int}()
 		for _ in 1:reps
-			s = itsample(rng, a:b, 2, alloc=alloc)
+			s = itsample(rng, iter, 2, alloc=alloc)
 			if s in keys(dict_res)
 				dict_res[s] += 1
 			elseif ifelse(alloc, Int, Any)[s[2], s[1]] in keys(dict_res)

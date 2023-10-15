@@ -7,7 +7,8 @@ function itsample(rng::AbstractRNG, iter; alloc = false)
     if alloc 
         unweighted_sampling_single(iter, rng)
     else
-        unweighted_resorvoir_sampling_single(iter, rng)
+        IterHasKnownSize = Base.IteratorSize(iter)
+        unweighted_resorvoir_sampling_single(iter, rng, IterHasKnownSize)
     end
 end
 
@@ -20,10 +21,10 @@ function itsample(rng::AbstractRNG, iter, condition::Function; alloc = false)
         unweighted_sampling_with_condition_single(iter, rng, condition)
     else
         iter_filtered = Iterators.filter(x -> condition(x), iter)
-        unweighted_resorvoir_sampling_single(iter_filtered, rng)
+        IterHasKnownSize = Base.IteratorSize(iter_filtered)
+        unweighted_resorvoir_sampling_single(iter_filtered, rng, IterHasKnownSize)
     end
 end
-
 
 function unweighted_sampling_single(iter, rng)
     pop = collect(iter)
@@ -44,7 +45,7 @@ function unweighted_sampling_with_condition_single(iter, rng, condition)
     return nothing
 end
 
-function unweighted_resorvoir_sampling_single(iter, rng)
+function unweighted_resorvoir_sampling_single(iter, rng, ::Base.SizeUnknown)
     res = iterate(iter)
     isnothing(res) && return nothing
     w = rand(rng)
@@ -62,3 +63,12 @@ function unweighted_resorvoir_sampling_single(iter, rng)
         w *= rand(rng)
     end
 end
+
+function unweighted_resorvoir_sampling_single(iter, rng, ::Union{Base.HasLength, Base.HasShape})
+    k = rand(rng, 1:length(iter))
+    for (i, x) in enumerate(iter)
+        i == k && return x
+    end
+end
+
+

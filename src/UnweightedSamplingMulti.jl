@@ -7,7 +7,8 @@ function itsample(rng::AbstractRNG, iter, n::Int; alloc = true, iter_type = Any)
     if alloc 
         unweighted_sampling_multi(iter, rng, n)
     else
-        unweighted_resorvoir_sampling_multi(iter, rng, n, iter_type)
+        IterHasKnownSize = Base.IteratorSize(iter)
+        unweighted_resorvoir_sampling_multi(iter, rng, n, IterHasKnownSize, iter_type)
     end
 end
 
@@ -20,7 +21,8 @@ function itsample(rng::AbstractRNG, iter, condition::Function, n::Int; alloc = t
         unweighted_sampling_with_condition_multi(iter, rng, n, condition)
     else
         iter_filtered = Iterators.filter(x -> condition(x), iter)
-        unweighted_resorvoir_sampling_multi(iter_filtered, rng, n, iter_type)
+        IterHasKnownSize = Base.IteratorSize(iter_filtered)
+        unweighted_resorvoir_sampling_multi(iter_filtered, rng, n, IterHasKnownSize, iter_type)
     end
 end
 
@@ -50,7 +52,7 @@ function unweighted_sampling_with_condition_multi(iter, rng, n, condition)
     return res[1:i] 
 end
 
-function unweighted_resorvoir_sampling_multi(iter, rng, n, iter_type = Any)
+function unweighted_resorvoir_sampling_multi(iter, rng, n, ::Base.SizeUnknown, iter_type = eltype(iter))
     it = iterate(iter)
     isnothing(it) && return iter_type[]
     el, state = it
@@ -76,5 +78,20 @@ function unweighted_resorvoir_sampling_multi(iter, rng, n, iter_type = Any)
         el, state = it
         reservoir[rand(rng, 1:n)] = el 
         w *= rand(rng)^(1/n)
+    end
+end
+
+function unweighted_resorvoir_sampling_multi(iter, rng, n, ::Union{Base.HasLength, Base.HasShape}, iter_type = eltype(iter))
+    N = length(iter)
+    N <= n && return collect(iter)
+    indices = sort!(sample(rng, 1:N, n; replace=false))
+    reservoir = Vector{iter_type}(undef, n)
+    j = 1
+    for (i, x) in enumerate(iter)
+        if i == indices[j]
+            reservoir[j] = x
+            j == n && return reservoir
+            j += 1
+        end
     end
 end
