@@ -90,7 +90,7 @@ function unweighted_resorvoir_sampling_multi(iter, rng, n, ::Union{Base.HasLengt
     for (i, x) in enumerate(iter)
         if i == indices[j]
             reservoir[j] = x
-            j == n && return reservoir
+            j == n && return shuffle!(reservoir)
             j += 1
         end
     end
