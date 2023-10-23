@@ -1,38 +1,106 @@
 
-function itsample(iter, n::Int; alloc = true, iter_type = Any)
-    return itsample(Random.GLOBAL_RNG, iter, n; alloc = alloc, iter_type = iter_type)
+# UnWeighted
+
+function itsample(
+    iter, n::Int; replace = false, alloc = true, iter_type = Any
+)
+    return itsample(Random.GLOBAL_RNG, iter, n; 
+                    replace = replace, alloc = alloc, iter_type = iter_type)
 end
 
-function itsample(rng::AbstractRNG, iter, n::Int; alloc = true, iter_type = Any)
-    if alloc 
-        unweighted_sampling_multi(iter, rng, n)
+function itsample(
+    rng::AbstractRNG, iter, n::Int; 
+    replace = false, alloc = true, iter_type = Any
+)
+    if alloc
+        if replace
+            error("Not implemented yet")
+        else
+            unweighted_sampling(iter, rng, n)
+        end
     else
-        IterHasKnownSize = Base.IteratorSize(iter)
-        unweighted_resorvoir_sampling_multi(iter, rng, n, IterHasKnownSize, iter_type)
+        if replace
+            error("Not implemented yet")
+        else
+            IterHasKnownSize = Base.IteratorSize(iter)
+            unweighted_resorvoir_sampling(iter, rng, n, IterHasKnownSize, 
+                                          iter_type)
+        end
     end
 end
 
-function itsample(iter, condition::Function, n::Int; alloc = true, iter_type = Any)
-    return itsample(Random.GLOBAL_RNG, iter, condition, n; alloc = alloc, iter_type = iter_type)
+function itsample(
+    condition::Function, iter, n::Int; 
+    replace = false, alloc = true, iter_type = Any
+)
+    return itsample(Random.GLOBAL_RNG, condition, iter, n; 
+                    replace = replace, alloc = alloc, iter_type = iter_type)
+end
+
+
+function itsample(
+    rng::AbstractRNG, condition::Function, iter, n::Int; 
+    replace = false, alloc = true, iter_type = Any
+)
+    if alloc 
+        if replace
+            error("Not implemented yet")
+        else
+            conditioned_unweighted_sampling(iter, rng, n, condition)
+        end
+    else
+        if replace
+            error("Not implemented yet")
+        else
+            iter_filtered = Iterators.filter(x -> condition(x), iter)
+            IterHasKnownSize = Base.IteratorSize(iter_filtered)
+            unweighted_resorvoir_sampling(iter_filtered, rng, n, IterHasKnownSize, 
+                                          iter_type)
+        end
+    end
+end
+
+# Weighted
+
+function itsample(
+    iter, wv::Function, n::Int; 
+    replace = false, alloc = true, iter_type = Any
+)
+    return itsample(Random.GLOBAL_RNG, iter, wv, n; 
+                    replace = replace, alloc = alloc, iter_type = iter_type)
+end
+
+function itsample(
+    rng::AbstractRNG, iter, wv::Function, n::Int; 
+    replace = false, alloc = true, iter_type = Any
+)
+    return error("Not implemented yet")
+end
+
+function itsample(
+    condition::Function, iter, wv::Function, n::Int; 
+    replace = false, alloc = true, iter_type = Any
+)
+    return itsample(Random.GLOBAL_RNG, condition, iter, wv, n; 
+                    replace = replace, alloc = alloc, iter_type = iter_type)
 end 
 
-function itsample(rng::AbstractRNG, iter, condition::Function, n::Int; alloc = true, iter_type = Any)
-    if alloc 
-        unweighted_sampling_with_condition_multi(iter, rng, n, condition)
-    else
-        iter_filtered = Iterators.filter(x -> condition(x), iter)
-        IterHasKnownSize = Base.IteratorSize(iter_filtered)
-        unweighted_resorvoir_sampling_multi(iter_filtered, rng, n, IterHasKnownSize, iter_type)
-    end
+function itsample(
+    rng::AbstractRNG, condition::Function, iter, wv::Function, n::Int; 
+    replace = false, alloc = true, iter_type = Any
+)
+    return error("Not implemented yet")
 end
 
-function unweighted_sampling_multi(iter, rng, n)
+# ALGORITHMS
+
+function unweighted_sampling(iter, rng, n::Int)
     pop = collect(iter)
     length(pop) <= n && return pop
     return sample(rng, pop, n; replace=false)  
 end
 
-function unweighted_sampling_with_condition_multi(iter, rng, n, condition)
+function conditioned_unweighted_sampling(iter, rng, n::Int, condition)
     pop = collect(iter)
     n_p = length(pop)
     n_p <= n && return filter(el -> condition(el), pop)
@@ -52,7 +120,13 @@ function unweighted_sampling_with_condition_multi(iter, rng, n, condition)
     return res[1:i] 
 end
 
-function unweighted_resorvoir_sampling_multi(iter, rng, n, ::Base.SizeUnknown, iter_type = eltype(iter))
+function unweighted_resorvoir_sampling(
+    iter, 
+    rng, 
+    n::Int, 
+    ::NonIndexable, 
+    iter_type = eltype(iter)
+)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
     el, state = it
@@ -81,7 +155,13 @@ function unweighted_resorvoir_sampling_multi(iter, rng, n, ::Base.SizeUnknown, i
     end
 end
 
-function unweighted_resorvoir_sampling_multi(iter, rng, n, ::Union{Base.HasLength, Base.HasShape}, iter_type = eltype(iter))
+function unweighted_resorvoir_sampling(
+    iter, 
+    rng, 
+    n::Int, 
+    ::Indexable, 
+    iter_type = eltype(iter)
+)
     N = length(iter)
     N <= n && return collect(iter)
     indices = sort!(sample(rng, 1:N, n; replace=false))
@@ -95,3 +175,26 @@ function unweighted_resorvoir_sampling_multi(iter, rng, n, ::Union{Base.HasLengt
         end
     end
 end
+
+function unweighted_resorvoir_sampling_multi(
+    iter, 
+    rng, 
+    n::Int, 
+    ::Indexable, 
+    iter_type = eltype(iter), 
+    replace = true
+)
+    N = length(iter)
+    N <= n && return collect(iter)
+    indices = sort!(sample(rng, 1:N, n; replace=false))
+    reservoir = Vector{iter_type}(undef, n)
+    j = 1
+    for (i, x) in enumerate(iter)
+        if i == indices[j]
+            reservoir[j] = x
+            j == n && return shuffle!(reservoir)
+            j += 1
+        end
+    end
+end
+

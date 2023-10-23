@@ -1,38 +1,95 @@
 
-function itsample(iter; alloc = false)
-    return itsample(Random.GLOBAL_RNG, iter; alloc = alloc)
+# UnWeighted
+
+function itsample(iter; replace = false, alloc = false)
+    return itsample(Random.GLOBAL_RNG, iter; 
+                    replace = replace, alloc = alloc)
 end
 
-function itsample(rng::AbstractRNG, iter; alloc = false)
-    if alloc 
-        unweighted_sampling_single(iter, rng)
+function itsample(rng::AbstractRNG, iter; replace = false, alloc = false)
+    if alloc
+        if replace
+            error("Not implemented yet")
+        else
+            unweighted_sampling(iter, rng)
+        end
     else
-        IterHasKnownSize = Base.IteratorSize(iter)
-        unweighted_resorvoir_sampling_single(iter, rng, IterHasKnownSize)
+        if replace
+            error("Not implemented yet")
+        else
+            IterHasKnownSize = Base.IteratorSize(iter)
+            unweighted_resorvoir_sampling(iter, rng, IterHasKnownSize)
+        end
     end
 end
 
-function itsample(iter, condition::Function; alloc = false)
-    return itsample(Random.GLOBAL_RNG, iter, condition; alloc = alloc)
+function itsample(condition::Function, iter, replace = false, alloc = false)
+    return itsample(Random.GLOBAL_RNG, condition, iter; 
+                    replace = replace, alloc = alloc)
 end
 
-function itsample(rng::AbstractRNG, iter, condition::Function; alloc = false)
+function itsample(
+    rng::AbstractRNG, condition::Function, iter; 
+    replace = false, alloc = false
+)
     if alloc 
-        unweighted_sampling_with_condition_single(iter, rng, condition)
+        if replace
+            error("Not implemented yet")
+        else
+            conditioned_unweighted_sampling(iter, rng, condition)
+        end
     else
-        iter_filtered = Iterators.filter(x -> condition(x), iter)
-        IterHasKnownSize = Base.IteratorSize(iter_filtered)
-        unweighted_resorvoir_sampling_single(iter_filtered, rng, IterHasKnownSize)
+        if replace
+            error("Not implemented yet")
+        else
+            iter_filtered = Iterators.filter(x -> condition(x), iter)
+            IterHasKnownSize = Base.IteratorSize(iter_filtered)
+            unweighted_resorvoir_sampling(iter_filtered, rng, IterHasKnownSize)
+        end
     end
 end
 
-function unweighted_sampling_single(iter, rng)
+# Weighted
+
+function itsample(
+    iter, wv::Function; 
+    replace = false, alloc = true, iter_type = Any
+)
+    return itsample(Random.GLOBAL_RNG, iter, wv; 
+                    replace = replace, alloc = alloc, iter_type = iter_type)
+end
+
+function itsample(
+    rng::AbstractRNG, iter, wv::Function; 
+    replace = false, alloc = true, iter_type = Any
+)
+    return error("Not implemented yet")
+end
+
+function itsample(
+    condition::Function, iter, wv::Function; 
+    replace = false, alloc = true, iter_type = Any
+)
+    return itsample(Random.GLOBAL_RNG, condition, iter, wv; 
+                    replace = replace, alloc = alloc, iter_type = iter_type)
+end 
+
+function itsample(
+    rng::AbstractRNG, condition::Function, iter, wv::Function; 
+    replace = false, alloc = true, iter_type = Any
+)
+    return error("Not implemented yet")
+end
+
+# ALGORITHMS
+
+function unweighted_sampling(iter, rng)
     pop = collect(iter)
     isempty(pop) && return nothing
     return rand(rng, pop)
 end
 
-function unweighted_sampling_with_condition_single(iter, rng, condition)
+function conditioned_unweighted_sampling(iter, rng, condition)
     pop = collect(iter)
     n_p = length(pop)
     while n_p != 0
@@ -45,7 +102,7 @@ function unweighted_sampling_with_condition_single(iter, rng, condition)
     return nothing
 end
 
-function unweighted_resorvoir_sampling_single(iter, rng, ::Base.SizeUnknown)
+function unweighted_resorvoir_sampling(iter, rng, ::NonIndexable)
     res = iterate(iter)
     isnothing(res) && return nothing
     w = rand(rng)
@@ -64,7 +121,7 @@ function unweighted_resorvoir_sampling_single(iter, rng, ::Base.SizeUnknown)
     end
 end
 
-function unweighted_resorvoir_sampling_single(iter, rng, ::Union{Base.HasLength, Base.HasShape})
+function unweighted_resorvoir_sampling(iter, rng, ::Indexable)
     k = rand(rng, 1:length(iter))
     for (i, x) in enumerate(iter)
         i == k && return x

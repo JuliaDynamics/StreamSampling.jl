@@ -2,6 +2,11 @@ module IteratorSampling
 
 using StatsBase, Random
 
+
+Indexable = Union{Base.HasLength, Base.HasShape}
+NonIndexable = Base.SizeUnknown
+
+include("SortedRand.jl")
 include("UnweightedSamplingSingle.jl")
 include("UnweightedSamplingMulti.jl")
 
