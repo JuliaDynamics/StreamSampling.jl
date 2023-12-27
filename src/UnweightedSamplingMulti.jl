@@ -16,12 +16,10 @@ function itsample(rng::AbstractRNG, iter, n::Int;
                 unweighted_resorvoir_sampling(rng, iter, n, Val(ordered))
             end
         else
-            unweighted_resorvoir_sampling(rng, iter, n, Val(ordered))
-            #double_scan_sampling(rng, iter, n, replace, ordered)
+            double_scan_sampling(rng, iter, n, replace, ordered)
         end
     else
-        unweighted_resorvoir_sampling(rng, iter, n, Val(ordered))
-        #single_scan_sampling(rng, iter, n, replace, ordered)
+        single_scan_sampling(rng, iter, n, replace, ordered)
     end
 end
 
@@ -95,7 +93,7 @@ end
 
 function double_scan_sampling(rng, iter, n::Int, replace, ordered)
     N = get_population_size(iter)
-    single_scan_sampling(iter, rng, n, N, replace, ordered)
+    single_scan_sampling(rng, iter, n, N, replace, ordered)
 end
 
 function single_scan_sampling(rng, iter, n::Int, replace, ordered)
@@ -103,24 +101,48 @@ function single_scan_sampling(rng, iter, n::Int, replace, ordered)
 end
 
 function single_scan_sampling(rng, iter, n::Int, N::Int, replace, ordered)
-    N <= n && return collect(iter)
-    iter_type = eltype(iter)
-    indices = sort!(sample(rng, 1:N, n; replace=replace))
-    reservoir = Vector{iter_type}(undef, n)
-    j = 1
-    i = 1
-    for (i, x) in enumerate(iter)
-        @inbounds while i == indices[j]
-            reservoir[j] = x
-            if j == n
-                if ordered
-                    return reservoir
-                else
-                    return shuffle!(reservoir)
-                end
-            end
-            j += 1
+    if N <= n
+        reservoir = collect(iter)
+        if ordered
+            return reservoir
+        else
+            return shuffle!(reservoir)
         end
+    end
+    iter_type = eltype(iter)
+    it = iterate(iter)
+    el, state = it
+    reservoir = Vector{iter_type}(undef, n)
+    indices = get_sorted_indices(rng, n, N, replace)
+    @inbounds skip_counter = indices[1] - 2
+    if skip_counter < 0
+        reservoir[1] = el
+    else
+        while skip_counter != 0
+            skip_res = iterate(iter, state)
+            state = skip_res[2]
+            skip_counter -= 1
+        end
+        it = iterate(iter, state)
+        el, state = it
+        @inbounds reservoir[1] = el
+    end
+    i = 2
+    while i <= n
+        @inbounds skip_counter = indices[i] - indices[i-1] - 1
+        if skip_counter < 0
+            @inbounds reservoir[i] = el
+        else
+            while skip_counter != 0
+                skip_res = iterate(iter, state)
+                state = skip_res[2]
+                skip_counter -= 1
+            end
+            it = iterate(iter, state)
+            el, state = it
+            @inbounds reservoir[i] = el
+        end
+        i += 1
     end
     if ordered
         return reservoir
@@ -138,4 +160,12 @@ function get_population_size(iter)
         it = iterate(iter, state)
     end
     return n
+end
+
+function get_sorted_indices(rng, n, N, replace)
+    if replace == true
+        return sortedrandrange(rng, 1:N, n)
+    else
+        return sort!(sample(rng, 1:N, n; replace=replace))
+    end
 end
