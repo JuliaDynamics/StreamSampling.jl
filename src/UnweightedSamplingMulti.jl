@@ -24,7 +24,7 @@ function itsample(rng::AbstractRNG, iter, n::Int;
 end
 
 function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{false})
-    iter_type = eltype(iter)
+    iter_type = Base.@default_eltype(iter)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
     el, state = it
@@ -55,7 +55,7 @@ function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{false})
 end
 
 function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{true})
-    iter_type = eltype(iter)
+    iter_type = Base.@default_eltype(iter)   
     it = iterate(iter)
     isnothing(it) && return iter_type[]
     el, state = it
@@ -109,7 +109,7 @@ function single_scan_sampling(rng, iter, n::Int, N::Int, replace, ordered)
             return shuffle!(reservoir)
         end
     end
-    iter_type = eltype(iter)
+    iter_type = Base.@default_eltype(iter)
     it = iterate(iter)
     el, state = it
     reservoir = Vector{iter_type}(undef, n)
