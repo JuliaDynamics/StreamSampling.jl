@@ -23,8 +23,8 @@ function itsample(rng::AbstractRNG, iter, n::Int;
     end
 end
 
-function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{false})
-    iter_type = Base.@default_eltype(iter)
+function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{false}, 
+        iter_type = Base.@default_eltype(iter))
     it = iterate(iter)
     isnothing(it) && return iter_type[]
     el, state = it
@@ -54,8 +54,8 @@ function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{false})
     end
 end
 
-function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{true})
-    iter_type = Base.@default_eltype(iter)   
+function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{true}, 
+        iter_type = Base.@default_eltype(iter))
     it = iterate(iter)
     isnothing(it) && return iter_type[]
     el, state = it
@@ -100,7 +100,8 @@ function single_scan_sampling(rng, iter, n::Int, replace, ordered)
     return single_scan_sampling(rng, iter, n, length(iter), replace, ordered)
 end
 
-function single_scan_sampling(rng, iter, n::Int, N::Int, replace, ordered)
+function single_scan_sampling(rng, iter, n::Int, N::Int, replace, ordered, 
+        iter_type = Base.@default_eltype(iter))
     if N <= n
         reservoir = collect(iter)
         if ordered
@@ -109,7 +110,6 @@ function single_scan_sampling(rng, iter, n::Int, N::Int, replace, ordered)
             return shuffle!(reservoir)
         end
     end
-    iter_type = Base.@default_eltype(iter)
     it = iterate(iter)
     el, state = it
     reservoir = Vector{iter_type}(undef, n)
