@@ -1,11 +1,11 @@
 
-function itsample(iter, n::Int; 
+function itsample(iter, n::Int, iter_type = Base.@default_eltype(iter); 
         replace = false, ordered = false, is_stateful = false)
     return itsample(Random.GLOBAL_RNG, iter, n; 
                     replace=replace, ordered=ordered, is_stateful=is_stateful)
 end
 
-function itsample(rng::AbstractRNG, iter, n::Int; 
+function itsample(rng::AbstractRNG, iter, n::Int, iter_type = Base.@default_eltype(iter); 
         replace = false, ordered = false, is_stateful = false)
     IterHasKnownSize = Base.IteratorSize(iter)
     if IterHasKnownSize isa NonIndexable
@@ -13,18 +13,17 @@ function itsample(rng::AbstractRNG, iter, n::Int;
             if replace
                 error("Not implemented yet")
             else
-                unweighted_resorvoir_sampling(rng, iter, n, Val(ordered))
+                unweighted_resorvoir_sampling(rng, iter, n, Val(ordered), iter_type)
             end
         else
-            double_scan_sampling(rng, iter, n, replace, ordered)
+            double_scan_sampling(rng, iter, n, replace, ordered, iter_type)
         end
     else
-        single_scan_sampling(rng, iter, n, replace, ordered)
+        single_scan_sampling(rng, iter, n, replace, ordered, iter_type)
     end
 end
 
-function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{false}, 
-        iter_type = Base.@default_eltype(iter))
+function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{false}, iter_type)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
     el, state = it
@@ -54,8 +53,7 @@ function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{false},
     end
 end
 
-function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{true}, 
-        iter_type = Base.@default_eltype(iter))
+function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{true}, iter_type)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
     el, state = it
@@ -91,17 +89,16 @@ function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{true},
     end
 end
 
-function double_scan_sampling(rng, iter, n::Int, replace, ordered)
+function double_scan_sampling(rng, iter, n::Int, replace, ordered, iter_type)
     N = get_population_size(iter)
-    single_scan_sampling(rng, iter, n, N, replace, ordered)
+    single_scan_sampling(rng, iter, n, N, replace, ordered, iter_type)
 end
 
-function single_scan_sampling(rng, iter, n::Int, replace, ordered)
-    return single_scan_sampling(rng, iter, n, length(iter), replace, ordered)
+function single_scan_sampling(rng, iter, n::Int, replace, ordered, iter_type)
+    return single_scan_sampling(rng, iter, n, length(iter), replace, ordered, iter_type)
 end
 
-function single_scan_sampling(rng, iter, n::Int, N::Int, replace, ordered, 
-        iter_type = Base.@default_eltype(iter))
+function single_scan_sampling(rng, iter, n::Int, N::Int, replace, ordered, iter_type)
     if N <= n
         reservoir = collect(iter)
         if ordered
