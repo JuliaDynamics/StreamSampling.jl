@@ -1,22 +1,16 @@
 
-function itsample(iter, n::Int; 
-        replace = false, ordered = false, is_stateful = false)
-    return itsample(Random.GLOBAL_RNG, iter, n; 
-                    replace=replace, ordered=ordered, is_stateful=is_stateful)
+function itsample(iter, n::Int; replace = false, ordered = false)
+    return itsample(Random.default_rng(), iter, n; replace=replace, ordered=ordered)
 end
 
 function itsample(rng::AbstractRNG, iter, n::Int; 
-        replace = false, ordered = false, is_stateful = false)
+        replace = false, ordered = false)
     IterHasKnownSize = Base.IteratorSize(iter)
     if IterHasKnownSize isa NonIndexable
-        if is_stateful
-            if replace
-                error("Not implemented yet")
-            else
-                unweighted_resorvoir_sampling(rng, iter, n, Val(ordered))
-            end
+        if replace
+            error("Not implemented yet")
         else
-            double_scan_sampling(rng, iter, n, replace, ordered)
+            unweighted_resorvoir_sampling(rng, iter, n, Val(ordered))
         end
     else
         single_scan_sampling(rng, iter, n, replace, ordered)

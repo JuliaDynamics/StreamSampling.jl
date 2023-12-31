@@ -1,16 +1,12 @@
 
-function itsample(iter; is_stateful = false)
-    return itsample(Random.GLOBAL_RNG, iter; is_stateful = false)
+function itsample(iter)
+    return itsample(Random.default_rng(), iter)
 end
 
-function itsample(rng::AbstractRNG, iter; is_stateful = false)
+function itsample(rng::AbstractRNG, iter)
     IterHasKnownSize = Base.IteratorSize(iter)
     if IterHasKnownSize isa NonIndexable
-        if is_stateful
-            unweighted_resorvoir_sampling(rng, iter)
-        else
-            double_scan_sampling(rng, iter)
-        end    
+        return unweighted_resorvoir_sampling(rng, iter)
     else 
         return single_scan_sampling(rng, iter)
     end
