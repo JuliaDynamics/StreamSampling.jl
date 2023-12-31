@@ -6,9 +6,13 @@ end
 function itsample(rng::AbstractRNG, iter; is_stateful = false)
     IterHasKnownSize = Base.IteratorSize(iter)
     if IterHasKnownSize isa NonIndexable
-        return unweighted_resorvoir_sampling(rng, iter)
+        if is_stateful
+            unweighted_resorvoir_sampling(rng, iter)
+        else
+            double_scan_sampling(rng, iter)
+        end    
     else 
-        return unweighted_resorvoir_sampling(rng, iter)
+        return single_scan_sampling(rng, iter)
     end
 end
 
@@ -32,8 +36,17 @@ function unweighted_resorvoir_sampling(rng, iter)
     end
 end
 
-function single_scan_sampling(rng, iter)
-    k = rand(rng, 1:length(iter))
+function double_scan_sampling(rng, iter)
+    N = get_population_size(iter)
+    single_scan_sampling(rng, iter, N)
+end
+
+function single_scan_sampling(rng, iter) 
+    return single_scan_sampling(rng, iter, length(iter))
+end
+
+function single_scan_sampling(rng, iter, N)
+    k = rand(rng, 1:N)
     for (i, x) in enumerate(iter)
         i == k && return x
     end
