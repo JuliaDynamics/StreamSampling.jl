@@ -8,7 +8,7 @@ situations because it requires to allocate less memory to do the sampling if the
 is lazy. It turns out that if this is the case the sampling is also much faster, as shown 
 below:
 
-```
+```julia
 julia> using IteratorSampling
 
 julia> using BenchmarkTools, Random, StatsBase
