@@ -34,5 +34,5 @@ jobs:
         with:
           files: lcov.info
         env:
-          CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
