@@ -3,7 +3,7 @@ using IteratorSampling
 
 makedocs(
     modules = [IteratorSampling],
-    sitename = "IteratorSampling.jl"),
+    sitename = "IteratorSampling.jl",
     pages = [
         "API" => "api.md",
     ],
