@@ -1,7 +1,8 @@
 module IteratorSampling
 
-using StatsBase, Random
-
+using Distributions
+using Random
+using StatsBase
 
 Indexable = Union{Base.HasLength, Base.HasShape}
 NonIndexable = Base.SizeUnknown

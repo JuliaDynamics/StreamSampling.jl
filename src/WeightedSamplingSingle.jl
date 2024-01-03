@@ -1,6 +1,6 @@
 
 function itsample(iter, wv::Function; is_stateful = false)
-    return itsample(Random.GLOBAL_RNG, iter, wv; 
+    return itsample(Random.default_rng(), iter, wv; 
                     replace = replace, alloc = alloc, iter_type = iter_type)
 end
 

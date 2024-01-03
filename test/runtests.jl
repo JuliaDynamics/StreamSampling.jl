@@ -1,6 +1,11 @@
 
 using IteratorSampling
-using Distributions, HypothesisTests, Test, StableRNGs
+
+using Distributions
+using HypothesisTests
+using Random
+using StableRNGs
+using Test
 
 @testset "IteratorSampling.jl Tests" begin
 	include("unweighted_sampling_single_tests.jl")

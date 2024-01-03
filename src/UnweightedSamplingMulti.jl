@@ -7,17 +7,13 @@ function itsample(rng::AbstractRNG, iter, n::Int;
         replace = false, ordered = false)
     IterHasKnownSize = Base.IteratorSize(iter)
     if IterHasKnownSize isa NonIndexable
-        if replace
-            error("Not implemented yet")
-        else
-            unweighted_resorvoir_sampling(rng, iter, n, Val(ordered))
-        end
+        unweighted_resorvoir_sampling(rng, iter, n, Val(replace), Val(ordered))
     else
         single_scan_sampling(rng, iter, n, replace, ordered)
     end
 end
 
-function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{false})
+function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{false}, ::Val{false})
     iter_type = Base.@default_eltype(iter)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
@@ -48,7 +44,7 @@ function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{false})
     end
 end
 
-function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{true})
+function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{false}, ::Val{true})
     iter_type = Base.@default_eltype(iter)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
@@ -83,6 +79,102 @@ function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{true})
         @inbounds o[v] = k
         u += randexp(rng)
     end
+end
+
+function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{true}, ::Val{false})
+    iter_type = Base.@default_eltype(iter)
+    it = iterate(iter)
+    isnothing(it) && return iter_type[]
+    el, state = it
+    reservoir = Vector{iter_type}(undef, n)
+    for i in eachindex(reservoir)
+        reservoir[i] = el
+    end
+    i = 1
+    while true
+        t = skip(rng, i, n)
+        skip_counter = t
+        while skip_counter != 0
+            skip_res = iterate(iter, state)
+            isnothing(skip_res) && return shuffle!(reservoir)
+            state = skip_res[2]
+            skip_counter -= 1
+        end
+        it = iterate(iter, state)
+        isnothing(it) && return shuffle!(reservoir)
+        el, state = it
+        i += t + 1
+        p = 1/i
+        q = rand(rng, Uniform((1-p)^n,1))
+        k = choose(n, p, q)
+        if k == 1
+            r = rand(rng, 1:n)
+            @inbounds reservoir[r] = el
+        else
+            @inbounds for j in 1:k
+                r = rand(rng, j:n)
+                reservoir[r] = el
+                reservoir[r], reservoir[j] = reservoir[j], reservoir[r]
+            end
+        end 
+    end
+end
+
+function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{true}, ::Val{true})
+    iter_type = Base.@default_eltype(iter)
+    it = iterate(iter)
+    isnothing(it) && return iter_type[]
+    el, state = it
+    reservoir = Vector{iter_type}(undef, n)
+    o = [1 for i in 1:n]
+    for i in eachindex(reservoir)
+        reservoir[i] = el
+    end
+    i = 1
+    while true
+        t = skip(rng, i, n)
+        skip_counter = t
+        while skip_counter != 0
+            skip_res = iterate(iter, state)
+            isnothing(skip_res) && return reservoir[sortperm(o)]
+            state = skip_res[2]
+            skip_counter -= 1
+        end
+        it = iterate(iter, state)
+        isnothing(it) && return reservoir[sortperm(o)]
+        el, state = it
+        i += t + 1
+        p = 1/i
+        q = rand(rng, Uniform((1-p)^n,1))
+        k = choose(n, p, q)
+        if k == 1
+            r = rand(rng, 1:n)
+            @inbounds reservoir[r] = el
+            @inbounds o[r] = i
+        else
+            @inbounds for j in 1:k
+                r = rand(rng, j:n)
+                reservoir[r] = el
+                reservoir[r], reservoir[j] = reservoir[j], reservoir[r]
+                o[r], o[j] = o[j], i
+            end
+        end 
+    end
+end
+
+function skip(rng, n, m)
+    q = rand(rng)^(1/m)
+    t = ceil(Int, n/q - n - 1)
+    return t
+end
+
+function choose(n, p, q)
+    z = (1-p)^n + n*p*((1-p)^(n-1))
+    z > q && return 1
+    z += n*(n-1)*p*p*((1-p)^(n-2))/2
+    z > q && return 2
+    b = Binomial(n, p)
+    return quantile(b, q)
 end
 
 function double_scan_sampling(rng, iter, n::Int, replace, ordered)
