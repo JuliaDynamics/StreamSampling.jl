@@ -11,6 +11,7 @@ makedocs(
 )
 
 @info "Deploying Documentation"
+CI = get(ENV, "CI", nothing) == "true" || get(ENV, "GITHUB_TOKEN", nothing) !== nothing
 if CI
     deploydocs(
         repo = "github.com/Tortar/IteratorSampling.jl.git",
