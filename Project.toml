@@ -1,6 +1,6 @@
 name = "IteratorSampling"
 uuid = "ef79a3d2-ae9f-5cd2-ab61-e13847810a6e"
-version = "0.0.0"
+version = "0.1.0"
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
