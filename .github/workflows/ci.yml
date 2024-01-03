@@ -60,7 +60,7 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Documenter: doctest
-            using MYPACKAGE
+            using IteratorSampling
             doctest(IteratorSampling)'
       - run: julia --project=docs docs/make.jl
         env:
