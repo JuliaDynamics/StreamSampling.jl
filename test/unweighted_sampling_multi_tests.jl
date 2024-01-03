@@ -56,4 +56,3 @@
 		@test pvalue(chisq_test) > 0.05
 	end
 end
-
