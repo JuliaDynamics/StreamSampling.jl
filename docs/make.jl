@@ -6,7 +6,7 @@ makedocs(
     modules = [IteratorSampling],
     sitename = "IteratorSampling.jl",
     pages = [
-        "API" => "api.md",
+        "API" => "index.md",
     ],
 )
 
