@@ -1,4 +1,10 @@
 using Documenter
 using IteratorSampling
 
-makedocs(sitename="IteratorSampling docs")
+makedocs(
+    modules = [IteratorSampling],
+    sitename = "IteratorSampling.jl"),
+    pages = [
+        "API" => "api.md",
+    ],
+)
