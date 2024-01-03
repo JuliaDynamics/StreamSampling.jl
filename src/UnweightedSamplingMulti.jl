@@ -7,13 +7,13 @@ function itsample(rng::AbstractRNG, iter, n::Int;
         replace = false, ordered = false)
     IterHasKnownSize = Base.IteratorSize(iter)
     if IterHasKnownSize isa NonIndexable
-        unweighted_resorvoir_sampling(rng, iter, n, Val(replace), Val(ordered))
+        reservoir_sample(rng, iter, n, Val(replace), Val(ordered))
     else
-        single_scan_sampling(rng, iter, n, replace, ordered)
+        sortedindices_sample(rng, iter, n, replace, ordered)
     end
 end
 
-function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{false}, ::Val{false})
+function reservoir_sample(rng, iter, n::Int, ::Val{false}, ::Val{false})
     iter_type = Base.@default_eltype(iter)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
@@ -44,7 +44,7 @@ function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{false}, ::Val{fa
     end
 end
 
-function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{false}, ::Val{true})
+function reservoir_sample(rng, iter, n::Int, ::Val{false}, ::Val{true})
     iter_type = Base.@default_eltype(iter)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
@@ -81,7 +81,7 @@ function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{false}, ::Val{tr
     end
 end
 
-function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{true}, ::Val{false})
+function reservoir_sample(rng, iter, n::Int, ::Val{true}, ::Val{false})
     iter_type = Base.@default_eltype(iter)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
@@ -120,7 +120,7 @@ function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{true}, ::Val{fal
     end
 end
 
-function unweighted_resorvoir_sampling(rng, iter, n::Int, ::Val{true}, ::Val{true})
+function reservoir_sample(rng, iter, n::Int, ::Val{true}, ::Val{true})
     iter_type = Base.@default_eltype(iter)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
@@ -179,14 +179,14 @@ end
 
 function double_scan_sampling(rng, iter, n::Int, replace, ordered)
     N = get_population_size(iter)
-    single_scan_sampling(rng, iter, n, N, replace, ordered)
+    sortedindices_sample(rng, iter, n, N, replace, ordered)
 end
 
-function single_scan_sampling(rng, iter, n::Int, replace, ordered)
-    return single_scan_sampling(rng, iter, n, length(iter), replace, ordered)
+function sortedindices_sample(rng, iter, n::Int, replace, ordered)
+    return sortedindices_sample(rng, iter, n, length(iter), replace, ordered)
 end
 
-function single_scan_sampling(rng, iter, n::Int, N::Int, replace, ordered)
+function sortedindices_sample(rng, iter, n::Int, N::Int, replace, ordered)
     if N <= n
         reservoir = collect(iter)
         if ordered

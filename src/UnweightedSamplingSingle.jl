@@ -6,13 +6,13 @@ end
 function itsample(rng::AbstractRNG, iter)
     IterHasKnownSize = Base.IteratorSize(iter)
     if IterHasKnownSize isa NonIndexable
-        return unweighted_resorvoir_sampling(rng, iter)
+        return reservoir_sample(rng, iter)
     else 
-        return single_scan_sampling(rng, iter)
+        return sortedindices_sample(rng, iter)
     end
 end
 
-function unweighted_resorvoir_sampling(rng, iter)
+function reservoir_sample(rng, iter)
     res = iterate(iter)
     isnothing(res) && return nothing
     el, state = res
@@ -34,14 +34,14 @@ end
 
 function double_scan_sampling(rng, iter)
     N = get_population_size(iter)
-    single_scan_sampling(rng, iter, N)
+    sortedindices_sample(rng, iter, N)
 end
 
-function single_scan_sampling(rng, iter) 
-    return single_scan_sampling(rng, iter, length(iter))
+function sortedindices_sample(rng, iter) 
+    return sortedindices_sample(rng, iter, length(iter))
 end
 
-function single_scan_sampling(rng, iter, N)
+function sortedindices_sample(rng, iter, N)
     k = rand(rng, 1:N)
     for (i, x) in enumerate(iter)
         i == k && return x
