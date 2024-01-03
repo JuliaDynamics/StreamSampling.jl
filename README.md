@@ -1,6 +1,6 @@
 # IteratorSampling.jl
 
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://Tortar.github.io/IteratorSampling.jl/stable)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://tortar.github.io/IteratorSampling.jl/stable)
 [![codecov](https://codecov.io/github/Tortar/IteratorSampling.jl/graph/badge.svg?token=F8W0MC53Z0)](https://codecov.io/github/Tortar/IteratorSampling.jl)
 
 This package allows to sample from any iterable in a single pass through the data, 
