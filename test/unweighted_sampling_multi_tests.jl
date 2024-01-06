@@ -15,7 +15,7 @@
 		@test all(x -> a <= x <= b, s)
 		@test typeof(s) == Vector{Int}
 		s = itsample(iter, 100, replace=replace, ordered=ordered)
-		@test length(s) == 10
+		@test replace ? length(s) == 100 : length(s) == 10
 		@test length(unique(s)) == 10
 
 		# test return values of iter with unknown lengths are inrange
