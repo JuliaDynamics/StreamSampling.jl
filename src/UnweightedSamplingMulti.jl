@@ -32,12 +32,12 @@ function reservoir_sample(rng, iter, n::Int, ::Val{false}, ::Val{false})
         skip_counter = ceil(Int, randexp(rng)/log(1-w))
         while skip_counter != 0
             skip_res = iterate(iter, state)
-            isnothing(skip_res) && return shuffle!(reservoir)
+            isnothing(skip_res) && return shuffle!(rng, reservoir)
             state = skip_res[2]
             skip_counter += 1
         end
         it = iterate(iter, state)
-        isnothing(it) && return shuffle!(reservoir)
+        isnothing(it) && return shuffle!(rng, reservoir)
         el, state = it
         @inbounds reservoir[rand(rng, 1:n)] = el 
         u += randexp(rng)
@@ -85,28 +85,34 @@ function reservoir_sample(rng, iter, n::Int, ::Val{true}, ::Val{false})
     iter_type = Base.@default_eltype(iter)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
-    el, state = it
     reservoir = Vector{iter_type}(undef, n)
-    for i in eachindex(reservoir)
+    el, state = it
+    reservoir[1] = el
+    @inbounds for i in 2:n
+        it = iterate(iter, state)
+        isnothing(it) && return sample(rng, resize!(reservoir, i-1), n)
+        el, state = it
         reservoir[i] = el
     end
-    i = 1
+    reservoir = sample(rng, reservoir, n)
+    i = n
     while true
         t = skip(rng, i, n)
         skip_counter = t
         while skip_counter != 0
             skip_res = iterate(iter, state)
-            isnothing(skip_res) && return shuffle!(reservoir)
+            isnothing(skip_res) && return shuffle!(rng, reservoir)
             state = skip_res[2]
             skip_counter -= 1
         end
         it = iterate(iter, state)
-        isnothing(it) && return shuffle!(reservoir)
+        isnothing(it) && return shuffle!(rng, reservoir)
         el, state = it
         i += t + 1
         p = 1/i
-        q = rand(rng, Uniform((1-p)^n,1))
-        k = choose(n, p, q)
+        z = (1-p)^(n-2)
+        q = rand(rng, Uniform(z*(1-p)*(1-p),1))
+        k = choose(n, p, q, z)
         if k == 1
             r = rand(rng, 1:n)
             @inbounds reservoir[r] = el
@@ -145,8 +151,9 @@ function reservoir_sample(rng, iter, n::Int, ::Val{true}, ::Val{true})
         el, state = it
         i += t + 1
         p = 1/i
-        q = rand(rng, Uniform((1-p)^n,1))
-        k = choose(n, p, q)
+        z = (1-p)^(n-3)
+        q = rand(rng, Uniform(z*(1-p)*(1-p)*(1-p),1))
+        k = choose(n, p, q, z)
         if k == 1
             r = rand(rng, 1:n)
             @inbounds reservoir[r] = el
@@ -168,11 +175,15 @@ function skip(rng, n, m)
     return t
 end
 
-function choose(n, p, q)
-    z = (1-p)^n + n*p*((1-p)^(n-1))
+function choose(n, p, q, z)
+    m = 1-p
+    s = z
+    z = s*m*m*(m + n*p)
     z > q && return 1
-    z += n*(n-1)*p*p*((1-p)^(n-2))/2
+    z += n*p*(n-1)*p*s*m/2
     z > q && return 2
+    z += n*p*(n-1)*p*(n-2)*p*s/6
+    z > q && return 3
     b = Binomial(n, p)
     return quantile(b, q)
 end
@@ -189,10 +200,14 @@ end
 function sortedindices_sample(rng, iter, n::Int, N::Int, replace, ordered)
     if N <= n
         reservoir = collect(iter)
-        if ordered
-            return reservoir
+        if replace
+            return sample(rng, reservoir, n, ordered=ordered)
         else
-            return shuffle!(reservoir)
+            if ordered
+                return reservoir
+            else
+                return shuffle!(reservoir)
+            end
         end
     end
     iter_type = Base.@default_eltype(iter)
@@ -233,7 +248,7 @@ function sortedindices_sample(rng, iter, n::Int, N::Int, replace, ordered)
     if ordered
         return reservoir
     else
-        return shuffle!(reservoir)
+        return shuffle!(rng, reservoir)
     end
 end
 
