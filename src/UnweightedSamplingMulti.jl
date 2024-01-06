@@ -22,7 +22,7 @@ function reservoir_sample(rng, iter, n::Int, ::Val{false}, ::Val{false})
     reservoir[1] = el
     for i in 2:n
         it = iterate(iter, state)
-        isnothing(it) && return shuffle!(reservoir[1:i-1])
+        isnothing(it) && return shuffle!(rng, reservoir[1:i-1])
         el, state = it
         @inbounds reservoir[i] = el
     end
@@ -206,7 +206,7 @@ function sortedindices_sample(rng, iter, n::Int, N::Int, replace, ordered)
             if ordered
                 return reservoir
             else
-                return shuffle!(reservoir)
+                return shuffle!(rng, reservoir)
             end
         end
     end
