@@ -265,22 +265,22 @@ end
 
 function skip_ahead_no_end(iter, state, n)
     while n != 0
-        iter = iterate(iter, state)
-        state = iter[2]
+        it = iterate(iter, state)
+        state = it[2]
         n -= 1
     end
-    iter = iterate(iter, state)
-    return iter
+    it = iterate(iter, state)
+    return it
 end
 
 function skip_ahead_unknown_end(iter, state, n)
     while n != 0
-        iter = iterate(iter, state)
-        isnothing(iter) && return nothing
-        state = iter[2]
+        it = iterate(iter, state)
+        isnothing(it) && return nothing
+        state = it[2]
         n -= 1
     end
-    iter = iterate(iter, state)
-    isnothing(iter) && return nothing
-    return iter
+    it = iterate(iter, state)
+    isnothing(it) && return nothing
+    return it
 end
