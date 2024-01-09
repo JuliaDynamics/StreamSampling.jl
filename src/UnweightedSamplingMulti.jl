@@ -56,8 +56,8 @@ function reservoir_sample(rng, iter, n::Int, ::WORSample)
     u = randexp(rng)
     while true
         w = exp(-u/n)
-        skip_counter = -ceil(Int, randexp(rng)/log(1-w))
-        it = skip_ahead_unknown_end(iter, state, skip_counter)
+        skip_k = -ceil(Int, randexp(rng)/log(1-w))
+        it = skip_ahead_unknown_end(iter, state, skip_k)
         isnothing(it) && return shuffle!(rng, reservoir)
         el, state = it
         @inbounds reservoir[rand(rng, 1:n)] = el 
@@ -83,13 +83,13 @@ function reservoir_sample(rng, iter, n::Int, ::OrdWORSample)
     k = n
     while true
         w = exp(-u/n)
-        skip_counter = -ceil(Int, randexp(rng)/log(1-w))
-        it = skip_ahead_unknown_end(iter, state, skip_counter)
+        skip_k = -ceil(Int, randexp(rng)/log(1-w))
+        it = skip_ahead_unknown_end(iter, state, skip_k)
         isnothing(it) && return reservoir[sortperm(o)]
         el, state = it
         q = rand(rng, 1:n)
         @inbounds reservoir[q] = el 
-        k += skip_counter + 1
+        k += skip_k + 1
         @inbounds o[q] = k 
         u += randexp(rng)
     end
@@ -111,12 +111,11 @@ function reservoir_sample(rng, iter, n::Int, ::WRSample)
     reservoir = sample(rng, reservoir, n)
     i = n
     while true
-        t = skip(rng, i, n)
-        skip_counter = t
-        it = skip_ahead_unknown_end(iter, state, skip_counter)
+        skip_k = skip(rng, i, n)
+        it = skip_ahead_unknown_end(iter, state, skip_k)
         isnothing(it) && return shuffle!(rng, reservoir)
         el, state = it
-        i += t + 1
+        i += skip_k + 1
         p = 1/i
         z = (1-p)^(n-3)
         q = rand(rng, Uniform(z*(1-p)*(1-p)*(1-p),1))
@@ -146,12 +145,11 @@ function reservoir_sample(rng, iter, n::Int, ::OrdWRSample)
     end
     i = 1
     while true
-        t = skip(rng, i, n)
-        skip_counter = t
-        it = skip_ahead_unknown_end(iter, state, skip_counter)
+        skip_k = skip(rng, i, n)
+        it = skip_ahead_unknown_end(iter, state, skip_k)
         isnothing(it) && return reservoir[sortperm(o)]
         el, state = it
-        i += t + 1
+        i += skip_k + 1
         p = 1/i
         z = (1-p)^(n-3)
         q = rand(rng, Uniform(z*(1-p)*(1-p)*(1-p),1))
@@ -213,27 +211,25 @@ function sortedindices_sample(rng, iter, n::Int, N::Int, replace, ordered)
         end
     end
     iter_type = Base.@default_eltype(iter)
-    it = iterate(iter)
-    el, state = it
     reservoir = Vector{iter_type}(undef, n)
     indices = get_sorted_indices(rng, n, N, replace)
-    @inbounds skip_counter = indices[1] - 2
-    if skip_counter < 0
-        reservoir[1] = el
-    else
-        it = skip_ahead_no_end(iter, state, skip_counter)
+    first_idx = indices[1]
+    it = iterate(iter)
+    el, state = it
+    if first_idx != 1
+        it = skip_ahead_no_end(iter, state, first_idx - 2)
         el, state = it
-        @inbounds reservoir[1] = el
     end
+    reservoir[1] = el
     i = 2
-    while i <= n
-        @inbounds skip_counter = indices[i] - indices[i-1] - 1
-        if skip_counter < 0
-            @inbounds reservoir[i] = el
+    @inbounds while i <= n
+        skip_k = indices[i] - indices[i-1] - 1
+        if skip_k < 0
+            reservoir[i] = el
         else
-            it = skip_ahead_no_end(iter, state, skip_counter)
+            it = skip_ahead_no_end(iter, state, skip_k)
             el, state = it
-            @inbounds reservoir[i] = el
+            reservoir[i] = el
         end
         i += 1
     end
@@ -264,7 +260,7 @@ function get_sorted_indices(rng, n, N, replace)
 end
 
 function skip_ahead_no_end(iter, state, n)
-    while n != 0
+    while n > 0
         it = iterate(iter, state)
         state = it[2]
         n -= 1
@@ -274,7 +270,7 @@ function skip_ahead_no_end(iter, state, n)
 end
 
 function skip_ahead_unknown_end(iter, state, n)
-    while n != 0
+    while n > 0
         it = iterate(iter, state)
         isnothing(it) && return nothing
         state = it[2]
