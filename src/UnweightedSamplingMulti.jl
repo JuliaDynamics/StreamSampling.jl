@@ -276,7 +276,7 @@ end
 function skip_ahead_unknown_end(iter, state, n)
     while n != 0
         iter = iterate(iter, state)
-        isnothing(it) && return nothing
+        isnothing(iter) && return nothing
         state = iter[2]
         n -= 1
     end
