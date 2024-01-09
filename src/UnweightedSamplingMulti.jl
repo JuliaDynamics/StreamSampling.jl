@@ -57,9 +57,7 @@ function reservoir_sample(rng, iter, n::Int, ::WORSample)
     while true
         w = exp(-u/n)
         skip_counter = -ceil(Int, randexp(rng)/log(1-w))
-        state = skip_ahead_unknown_end(iter, state, skip_counter)
-        isnothing(state) && return shuffle!(rng, reservoir)
-        it = iterate(iter, state)
+        it = skip_ahead_unknown_end(iter, state, skip_counter)
         isnothing(it) && return shuffle!(rng, reservoir)
         el, state = it
         @inbounds reservoir[rand(rng, 1:n)] = el 
@@ -86,9 +84,7 @@ function reservoir_sample(rng, iter, n::Int, ::OrdWORSample)
     while true
         w = exp(-u/n)
         skip_counter = -ceil(Int, randexp(rng)/log(1-w))
-        state = skip_ahead_unknown_end(iter, state, skip_counter)
-        isnothing(state) && return reservoir[sortperm(o)]
-        it = iterate(iter, state)
+        it = skip_ahead_unknown_end(iter, state, skip_counter)
         isnothing(it) && return reservoir[sortperm(o)]
         el, state = it
         q = rand(rng, 1:n)
@@ -117,9 +113,7 @@ function reservoir_sample(rng, iter, n::Int, ::WRSample)
     while true
         t = skip(rng, i, n)
         skip_counter = t
-        state = skip_ahead_unknown_end(iter, state, skip_counter)
-        isnothing(state) && return shuffle!(rng, reservoir)
-        it = iterate(iter, state)
+        it = skip_ahead_unknown_end(iter, state, skip_counter)
         isnothing(it) && return shuffle!(rng, reservoir)
         el, state = it
         i += t + 1
@@ -154,9 +148,7 @@ function reservoir_sample(rng, iter, n::Int, ::OrdWRSample)
     while true
         t = skip(rng, i, n)
         skip_counter = t
-        state = skip_ahead_unknown_end(iter, state, skip_counter)
-        isnothing(state) && return reservoir[sortperm(o)]
-        it = iterate(iter, state)
+        it = skip_ahead_unknown_end(iter, state, skip_counter)
         isnothing(it) && return reservoir[sortperm(o)]
         el, state = it
         i += t + 1
@@ -229,8 +221,7 @@ function sortedindices_sample(rng, iter, n::Int, N::Int, replace, ordered)
     if skip_counter < 0
         reservoir[1] = el
     else
-        state = skip_ahead_no_end(iter, state, skip_counter)
-        it = iterate(iter, state)
+        it = skip_ahead_no_end(iter, state, skip_counter)
         el, state = it
         @inbounds reservoir[1] = el
     end
@@ -240,8 +231,7 @@ function sortedindices_sample(rng, iter, n::Int, N::Int, replace, ordered)
         if skip_counter < 0
             @inbounds reservoir[i] = el
         else
-            state = skip_ahead_no_end(iter, state, skip_counter)
-            it = iterate(iter, state)
+            it = skip_ahead_no_end(iter, state, skip_counter)
             el, state = it
             @inbounds reservoir[i] = el
         end
@@ -275,19 +265,22 @@ end
 
 function skip_ahead_no_end(iter, state, n)
     while n != 0
-        skip_res = iterate(iter, state)
-        state = skip_res[2]
+        iter = iterate(iter, state)
+        state = iter[2]
         n -= 1
     end
-    return state
+    iter = iterate(iter, state)
+    return iter
 end
 
 function skip_ahead_unknown_end(iter, state, n)
     while n != 0
-        skip_res = iterate(iter, state)
-        isnothing(skip_res) && return nothing
-        state = skip_res[2]
+        iter = iterate(iter, state)
+        isnothing(it) && return nothing
+        state = iter[2]
         n -= 1
     end
-    return state
+    iter = iterate(iter, state)
+    isnothing(iter) && return nothing
+    return iter
 end
