@@ -40,7 +40,7 @@
 		reps = 10000
 		dict_res = Dict{Vector, Int}()
 		for _ in 1:reps
-			s = shuffle!(itsample(rng, iter, 2, replace=replace, ordered=ordered))
+			s = shuffle!(rng, itsample(rng, iter, 2, replace=replace, ordered=ordered))
 			if s in keys(dict_res)
 				dict_res[s] += 1
 			else
