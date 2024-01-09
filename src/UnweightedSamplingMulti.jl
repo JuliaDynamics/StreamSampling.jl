@@ -86,16 +86,15 @@ function reservoir_sample(rng, iter, n::Int, ::OrdWORSample)
     while true
         w = exp(-u/n)
         skip_counter = -ceil(Int, randexp(rng)/log(1-w))
-        k += skip_counter
-        state = skip_ahead_unknown_end(iter, state, n)
+        state = skip_ahead_unknown_end(iter, state, skip_counter)
         isnothing(state) && return reservoir[sortperm(o)]
         it = iterate(iter, state)
         isnothing(it) && return reservoir[sortperm(o)]
-        k += 1
         el, state = it
-        v = rand(rng, 1:n)
-        @inbounds reservoir[v] = el
-        @inbounds o[v] = k
+        q = rand(rng, 1:n)
+        @inbounds reservoir[q] = el 
+        k += skip_counter + 1
+        @inbounds o[q] = k 
         u += randexp(rng)
     end
 end
