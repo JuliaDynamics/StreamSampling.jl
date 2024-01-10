@@ -8,7 +8,7 @@ This package allows to sample from any iterable in a single pass through the dat
 even if the number of items in the collection is unknown. 
 
 If the iterable is lazy, the memory required is only that of the sample, instead of the
-all population, which can be useful for data stream processing.
+all population, which can be useful for sampling from big data streams.
 
 Moreover, it turns out that sampling with the techniques implemented in this library is also much faster 
 in some common cases, as shown below:
