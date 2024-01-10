@@ -5,10 +5,14 @@
 [![codecov](https://codecov.io/github/Tortar/IteratorSampling.jl/graph/badge.svg?token=F8W0MC53Z0)](https://codecov.io/github/Tortar/IteratorSampling.jl)
 
 This package allows to sample from any iterable in a single pass through the data, 
-even if the number of items in the collection is unknown. This can be useful in various 
-situations because it requires to allocate less memory to do the sampling if the iterable 
-is lazy. It turns out that if this is the case the sampling is also much faster, as shown 
-below:
+even if the number of items in the collection is unknown. 
+
+If the iterable is lazy, the memory required is only that of the sample, instead of the
+all population, which can be useful for data stream processing.
+
+Moreover, it turns out that sampling with the techniques implemented in this library is also much faster 
+in some common cases, as shown below:
+
 
 ```julia
 julia> using IteratorSampling
