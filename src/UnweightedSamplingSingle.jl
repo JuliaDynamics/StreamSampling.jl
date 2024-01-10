@@ -32,17 +32,8 @@ function reservoir_sample(rng, iter)
     end
 end
 
-function double_scan_sampling(rng, iter)
-    N = get_population_size(iter)
-    sortedindices_sample(rng, iter, N)
-end
-
-function sortedindices_sample(rng, iter) 
-    return sortedindices_sample(rng, iter, length(iter))
-end
-
-function sortedindices_sample(rng, iter, N)
-    k = rand(rng, 1:N)
+function sortedindices_sample(rng, iter)
+    k = rand(rng, 1:length(iter))
     for (i, x) in enumerate(iter)
         i == k && return x
     end
