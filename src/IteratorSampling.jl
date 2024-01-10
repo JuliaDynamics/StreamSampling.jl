@@ -4,8 +4,15 @@ using Distributions
 using Random
 using StatsBase
 
-Indexable = Union{Base.HasLength, Base.HasShape}
-NonIndexable = Base.SizeUnknown
+struct WRSample end
+struct OrdWRSample end
+struct WORSample end
+struct OrdWORSample end
+
+const wrsample = WRSample()
+const ordwrsample = OrdWRSample()
+const worsample = WORSample()
+const ordworsample = OrdWORSample()
 
 include("SortedRand.jl")
 include("UnweightedSamplingSingle.jl")
