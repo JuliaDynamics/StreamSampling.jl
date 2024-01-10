@@ -49,7 +49,7 @@ function reservoir_sample(rng, iter, n::Int, ::WORSample)
     reservoir[1] = el
     @inbounds for i in 2:n
         it = iterate(iter, state)
-        isnothing(it) && return shuffle!(rng, reservoir[1:i-1])
+        isnothing(it) && return shuffle!(rng, resize!(reservoir, i-1))
         el, state = it
         reservoir[i] = el
     end
