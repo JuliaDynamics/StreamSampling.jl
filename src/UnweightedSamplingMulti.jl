@@ -47,20 +47,20 @@ function reservoir_sample(rng, iter, n::Int, ::WORSample)
     el, state = it
     reservoir = Vector{iter_type}(undef, n)
     reservoir[1] = el
-    for i in 2:n
+    @inbounds for i in 2:n
         it = iterate(iter, state)
         isnothing(it) && return shuffle!(rng, reservoir[1:i-1])
         el, state = it
-        @inbounds reservoir[i] = el
+        reservoir[i] = el
     end
     u = randexp(rng)
-    while true
+    @inbounds while true
         w = exp(-u/n)
         skip_k = -ceil(Int, randexp(rng)/log(1-w))
         it = skip_ahead_unknown_end(iter, state, skip_k)
         isnothing(it) && return shuffle!(rng, reservoir)
         el, state = it
-        @inbounds reservoir[rand(rng, 1:n)] = el 
+        reservoir[rand(rng, 1:n)] = el 
         u += randexp(rng)
     end
 end
@@ -72,25 +72,25 @@ function reservoir_sample(rng, iter, n::Int, ::OrdWORSample)
     el, state = it
     reservoir = Vector{iter_type}(undef, n)
     reservoir[1] = el
-    for i in 2:n
+    @inbounds for i in 2:n
         it = iterate(iter, state)
         isnothing(it) && return resize!(reservoir, i-1)
         el, state = it
-        @inbounds reservoir[i] = el
+        reservoir[i] = el
     end
     u = randexp(rng)
     o = [i for i in 1:n]
     k = n
-    while true
+    @inbounds while true
         w = exp(-u/n)
         skip_k = -ceil(Int, randexp(rng)/log(1-w))
         it = skip_ahead_unknown_end(iter, state, skip_k)
         isnothing(it) && return reservoir[sortperm(o)]
         el, state = it
         q = rand(rng, 1:n)
-        @inbounds reservoir[q] = el 
+        reservoir[q] = el 
         k += skip_k + 1
-        @inbounds o[q] = k 
+        o[q] = k 
         u += randexp(rng)
     end
 end
@@ -110,7 +110,7 @@ function reservoir_sample(rng, iter, n::Int, ::WRSample)
     end
     reservoir = sample(rng, reservoir, n)
     i = n
-    while true
+    @inbounds while true
         skip_k = skip(rng, i, n)
         it = skip_ahead_unknown_end(iter, state, skip_k)
         isnothing(it) && return shuffle!(rng, reservoir)
@@ -122,9 +122,9 @@ function reservoir_sample(rng, iter, n::Int, ::WRSample)
         k = choose(n, p, q, z)
         if k == 1
             r = rand(rng, 1:n)
-            @inbounds reservoir[r] = el
+            reservoir[r] = el
         else
-            @inbounds for j in 1:k
+            for j in 1:k
                 r = rand(rng, j:n)
                 reservoir[r] = el
                 reservoir[r], reservoir[j] = reservoir[j], reservoir[r]
@@ -144,7 +144,7 @@ function reservoir_sample(rng, iter, n::Int, ::OrdWRSample)
         reservoir[i] = el
     end
     i = 1
-    while true
+    @inbounds while true
         skip_k = skip(rng, i, n)
         it = skip_ahead_unknown_end(iter, state, skip_k)
         isnothing(it) && return reservoir[sortperm(o)]
@@ -156,10 +156,10 @@ function reservoir_sample(rng, iter, n::Int, ::OrdWRSample)
         k = choose(n, p, q, z)
         if k == 1
             r = rand(rng, 1:n)
-            @inbounds reservoir[r] = el
-            @inbounds o[r] = i
+            reservoir[r] = el
+            o[r] = i
         else
-            @inbounds for j in 1:k
+            for j in 1:k
                 r = rand(rng, j:n)
                 reservoir[r] = el
                 reservoir[r], reservoir[j] = reservoir[j], reservoir[r]
@@ -280,3 +280,4 @@ function skip_ahead_unknown_end(iter, state, n)
     isnothing(it) && return nothing
     return it
 end
+
