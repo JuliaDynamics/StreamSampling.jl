@@ -1,14 +1,4 @@
 
-struct WRSample end
-struct OrdWRSample end
-struct WORSample end
-struct OrdWORSample end
-
-const wrsample = WRSample()
-const ordwrsample = OrdWRSample()
-const worsample = WORSample()
-const ordworsample = OrdWORSample()
-
 function itsample(iter, n::Int; replace = false, ordered = false)
     return itsample(Random.default_rng(), iter, n; replace=replace, ordered=ordered)
 end
