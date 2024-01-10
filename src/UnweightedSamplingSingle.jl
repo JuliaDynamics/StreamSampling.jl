@@ -4,8 +4,7 @@ function itsample(iter)
 end
 
 function itsample(rng::AbstractRNG, iter)
-    IterHasKnownSize = Base.IteratorSize(iter)
-    if IterHasKnownSize isa NonIndexable
+    if Base.IteratorSize(iter) isa Base.SizeUnknown
         return reservoir_sample(rng, iter)
     else 
         return sortedindices_sample(rng, iter)

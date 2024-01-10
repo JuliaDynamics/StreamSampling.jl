@@ -1,23 +1,12 @@
 
-struct WRSample end
-struct OrdWRSample end
-struct WORSample end
-struct OrdWORSample end
-
-const wrsample = WRSample()
-const ordwrsample = OrdWRSample()
-const worsample = WORSample()
-const ordworsample = OrdWORSample()
-
 function itsample(iter, n::Int; replace = false, ordered = false)
     return itsample(Random.default_rng(), iter, n; replace=replace, ordered=ordered)
 end
 
 function itsample(rng::AbstractRNG, iter, n::Int; 
         replace = false, ordered = false)
-    IterHasKnownSize = Base.IteratorSize(iter)
     iter_type = Base.@default_eltype(iter)
-    if IterHasKnownSize isa NonIndexable
+    if Base.IteratorSize(iter) isa Base.SizeUnknown
         reservoir_sample(rng, iter, n; replace, ordered)::Vector{iter_type}
     else
         sortedindices_sample(rng, iter, n, replace, ordered)::Vector{iter_type}
