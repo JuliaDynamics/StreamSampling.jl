@@ -188,16 +188,8 @@ function choose(n, p, q, z)
     return quantile(b, q)
 end
 
-function double_scan_sampling(rng, iter, n::Int, replace, ordered)
-    N = get_population_size(iter)
-    sortedindices_sample(rng, iter, n, N, replace, ordered)
-end
-
 function sortedindices_sample(rng, iter, n::Int, replace, ordered)
-    return sortedindices_sample(rng, iter, n, length(iter), replace, ordered)
-end
-
-function sortedindices_sample(rng, iter, n::Int, N::Int, replace, ordered)
+    N = length(iter)
     if N <= n
         reservoir = collect(iter)
         if replace
@@ -238,17 +230,6 @@ function sortedindices_sample(rng, iter, n::Int, N::Int, replace, ordered)
     else
         return shuffle!(rng, reservoir)
     end
-end
-
-function get_population_size(iter)
-    n = 0
-    it = iterate(iter)
-    while !isnothing(it)
-        n += 1
-        @inbounds state = it[2]
-        it = iterate(iter, state)
-    end
-    return n
 end
 
 function get_sorted_indices(rng, n, N, replace)
