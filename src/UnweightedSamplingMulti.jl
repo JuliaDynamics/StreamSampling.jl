@@ -15,9 +15,8 @@ end
 
 function itsample(rng::AbstractRNG, iter, n::Int; 
         replace = false, ordered = false)
-    IterHasKnownSize = Base.IteratorSize(iter)
     iter_type = Base.@default_eltype(iter)
-    if IterHasKnownSize isa NonIndexable
+    if Base.IteratorSize(iter) isa Base.SizeUnknown
         reservoir_sample(rng, iter, n; replace, ordered)::Vector{iter_type}
     else
         sortedindices_sample(rng, iter, n, replace, ordered)::Vector{iter_type}
