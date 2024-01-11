@@ -1,9 +1,3 @@
-function sortedrand(rng, n)
-	exp_rands = randexp(rng, n)
-	sorted_rands = accumulate!(+, exp_rands, exp_rands)
-	sorted_rands ./= sorted_rands[end] + randexp(rng)
-	return sorted_rands
-end
 
 function sortedrandrange(rng, range, n)
 	exp_rands = randexp(rng, n)
@@ -15,11 +9,6 @@ function sortedrandrange(rng, range, n)
 		sorted_range_rands = informed_binary_search(sorted_rands, cum_step, range_size)
 	else
 		sorted_range_rands = each_divide_and_ceil(sorted_rands, cum_step)
-	end
-	if sorted_range_rands[1] >= a && sorted_range_rands[end] <= b 
-		return sorted_range_rands
-	else
-		return check_inrange(sorted_range_rands, a, b)
 	end
 end
 
@@ -61,20 +50,6 @@ function informed_binary_search(sorted_rands, cum_step, range_size)
 			j += 1
 			start_idx = last_idx + 1
 		end
-	end
-	return sorted_range_rands
-end
-
-function check_inrange(sorted_range_rands, a, b)
-	i = 1
-	while sorted_range_rands[i] < a
-		sorted_range_rands[i] = a
-		i += 1
-	end
-	i = length(sorted_range_rands)
-	while sorted_range_rands[i] > b
-		sorted_range_rands[i] = b
-		i -= 1
 	end
 	return sorted_range_rands
 end

@@ -9,6 +9,11 @@
 		@test length(s) == 2
 		@test all(x -> a <= x <= b, s)
 
+		s = itsample(iter, 10^7, replace=replace, ordered=ordered)
+		@test replace ? length(s) == 10^7 : length(s) == 10
+		@test length(unique(s)) == 10
+		@test all(x -> a <= x <= b, s)
+
 		@test typeof(s) == Vector{Int}
 		s = itsample(iter, 2, replace=replace, ordered=ordered)
 		@test length(s) == 2
