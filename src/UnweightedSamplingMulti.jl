@@ -126,13 +126,18 @@ function reservoir_sample(rng, iter, n::Int, ::OrdWRSample)
     iter_type = Base.@default_eltype(iter)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
-    el, state = it
     reservoir = Vector{iter_type}(undef, n)
-    o = [1 for i in 1:n]
-    for i in eachindex(reservoir)
+    el, state = it
+    reservoir[1] = el
+    @inbounds for i in 2:n
+        it = iterate(iter, state)
+        isnothing(it) && return sample(rng, resize!(reservoir, i-1), n, ordered=true)
+        el, state = it
         reservoir[i] = el
     end
-    i = 1
+    o = [i for i in 1:n]
+    reservoir = sample(rng, reservoir, n, ordered=true)
+    i = n
     @inbounds while true
         skip_k = skip(rng, i, n)
         it = skip_ahead_unknown_end(iter, state, skip_k)
