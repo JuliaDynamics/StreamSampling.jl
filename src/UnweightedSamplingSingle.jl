@@ -17,7 +17,7 @@ function reservoir_sample(rng, iter)
     el, state = it
     w = rand(rng)
     while true
-        skip_k = ceil(Int, randexp(rng)/log(1-w))
+        skip_k = -ceil(Int, randexp(rng)/log(1-w))
         it = skip_ahead_unknown_end(iter, state, skip_k)
         isnothing(it) && return el
         el, state = it
