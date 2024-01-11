@@ -230,24 +230,21 @@ function get_sorted_indices(rng, n, N, replace)
 end
 
 function skip_ahead_no_end(iter, state, n)
-    while n > 0
+    for _ in 1:n
         it = iterate(iter, state)
         state = it[2]
-        n -= 1
     end
     it = iterate(iter, state)
     return it
 end
 
 function skip_ahead_unknown_end(iter, state, n)
-    while n > 0
+    for _ in 1:n
         it = iterate(iter, state)
         isnothing(it) && return nothing
         state = it[2]
-        n -= 1
     end
     it = iterate(iter, state)
     isnothing(it) && return nothing
     return it
 end
-
