@@ -12,21 +12,15 @@ function itsample(rng::AbstractRNG, iter)
 end
 
 function reservoir_sample(rng, iter)
-    res = iterate(iter)
-    isnothing(res) && return nothing
-    el, state = res
+    it = iterate(iter)
+    isnothing(it) && return nothing
+    el, state = it
     w = rand(rng)
     while true
-        skip_counter = ceil(Int, randexp(rng)/log(1-w))
-        while skip_counter != 0
-            skip_res = iterate(iter, state)
-            isnothing(skip_res) && return el
-            state = skip_res[2]
-            skip_counter += 1
-        end
-        res = iterate(iter, state)
-        isnothing(res) && return el
-        el, state = res
+        skip_k = ceil(Int, randexp(rng)/log(1-w))
+        it = skip_ahead_unknown_end(iter, state, skip_k)
+        isnothing(it) && return el
+        el, state = it
         w *= rand(rng)
     end
 end
