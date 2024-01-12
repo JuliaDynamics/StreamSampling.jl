@@ -7,11 +7,11 @@
 This package allows to sample from any iterable in a single pass through the data, 
 even if the number of items in the collection is unknown. 
 
-If the iterable is lazy, the memory required is only that of the sample, instead of the
+If the iterable is lazy, the memory required grows in relation to the size of the sample, instead of the
 all population, which can be useful for sampling from big data streams.
 
 Moreover, it turns out that sampling with the techniques implemented in this library is also much faster 
-in some common cases, as shown below:
+in some common cases, as highlighted below:
 
 
 ```julia
@@ -23,27 +23,15 @@ julia> rng = Xoshiro(42);
 
 julia> iter = Iterators.filter(x -> x != 10, 1:10^7);
 
-julia> @benchmark sample($rng, collect($iter), 10^4; replace=false)
-BenchmarkTools.Trial: 35 samples with 1 evaluation.
- Range (min … max):  140.193 ms … 210.101 ms  ┊ GC (min … max): 3.70% … 34.84%
- Time  (median):     141.008 ms               ┊ GC (median):    3.69%
- Time  (mean ± σ):   144.830 ms ±  15.045 ms  ┊ GC (mean ± σ):  6.19% ±  7.00%
+julia> @btime itsample($rng, $iter, 10^4; replace = true);
+  9.675 ms (4 allocations: 156.34 KiB)
 
-  █▂                                                             
-  ██▅▁▁▅▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▅▁▁▁▁▁▁▁▁▅ ▁
-  140 ms        Histogram: log(frequency) by time        210 ms <
+julia> @btime itsample($rng, $iter, 10^4; replace = false);
+  7.889 ms (2 allocations: 78.17 KiB)
 
- Memory estimate: 147.05 MiB, allocs estimate: 27.
+julia> @btime sample($rng, collect($iter), 10^4; replace=true);
+  137.932 ms (20 allocations: 146.91 MiB)
 
-julia> @benchmark itsample($rng, $iter, 10^4; replace=false)
-BenchmarkTools.Trial: 648 samples with 1 evaluation.
- Range (min … max):  6.823 ms …   9.196 ms  ┊ GC (min … max): 0.00% … 0.00%
- Time  (median):     7.899 ms               ┊ GC (median):    0.00%
- Time  (mean ± σ):   7.724 ms ± 417.797 μs  ┊ GC (mean ± σ):  0.01% ± 0.33%
-
-   ▁▅▁▁                                  ▃▆█▆▄▄▃▁              
-  ██████▄▆▅▅▆▅▄▆▆▄▅▁▄▄▁▁▅▄▄▄▁▅▄▄▁▁▁▄▁▁▁▁▅█████████▅█▅▆▄▄▁▅▁▄▄ ▇
-  6.82 ms      Histogram: log(frequency) by time      8.35 ms <
-
- Memory estimate: 78.22 KiB, allocs estimate: 4.
+julia> @btime sample($rng, collect($iter), 10^4; replace=false);
+  139.212 ms (27 allocations: 147.05 MiB)
 ```
