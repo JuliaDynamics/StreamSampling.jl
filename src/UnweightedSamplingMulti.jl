@@ -85,13 +85,11 @@ function reservoir_sample(rng, iter, n::Int, ::WRSample)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
     reservoir = Vector{iter_type}(undef, n)
-    el, state = it
-    reservoir[1] = el
-    @inbounds for i in 2:n
-        it = iterate(iter, state)
-        isnothing(it) && return sample(rng, resize!(reservoir, i-1), n)
+    @inbounds for i in 1:n
         el, state = it
         reservoir[i] = el
+        it = iterate(iter, state)
+        isnothing(it) && return sample(rng, resize!(reservoir, i), n)
     end
     reservoir = sample(rng, reservoir, n)
     i = n
@@ -123,13 +121,11 @@ function reservoir_sample(rng, iter, n::Int, ::OrdWRSample)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
     reservoir = Vector{iter_type}(undef, n)
-    el, state = it
-    reservoir[1] = el
-    @inbounds for i in 2:n
-        it = iterate(iter, state)
-        isnothing(it) && return sample(rng, resize!(reservoir, i-1), n, ordered=true)
+    @inbounds for i in 1:n
         el, state = it
         reservoir[i] = el
+        it = iterate(iter, state)
+        isnothing(it) && return sample(rng, resize!(reservoir, i), n, ordered=true)
     end
     o = [i for i in 1:n]
     reservoir = sample(rng, reservoir, n, ordered=true)
