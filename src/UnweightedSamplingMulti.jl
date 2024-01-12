@@ -33,14 +33,12 @@ function reservoir_sample(rng, iter, n::Int, ::WORSample)
     iter_type = Base.@default_eltype(iter)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
-    el, state = it
     reservoir = Vector{iter_type}(undef, n)
-    reservoir[1] = el
-    @inbounds for i in 2:n
-        it = iterate(iter, state)
-        isnothing(it) && return shuffle!(rng, resize!(reservoir, i-1))
+    @inbounds for i in 1:n
         el, state = it
         reservoir[i] = el
+        it = iterate(iter, state)
+        isnothing(it) && return shuffle!(rng, resize!(reservoir, i))
     end
     u = randexp(rng)
     @inbounds while true
@@ -58,14 +56,12 @@ function reservoir_sample(rng, iter, n::Int, ::OrdWORSample)
     iter_type = Base.@default_eltype(iter)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
-    el, state = it
     reservoir = Vector{iter_type}(undef, n)
-    reservoir[1] = el
-    @inbounds for i in 2:n
-        it = iterate(iter, state)
-        isnothing(it) && return resize!(reservoir, i-1)
+    @inbounds for i in 1:n
         el, state = it
         reservoir[i] = el
+        it = iterate(iter, state)
+        isnothing(it) && return resize!(reservoir, i)
     end
     u = randexp(rng)
     o = [i for i in 1:n]
