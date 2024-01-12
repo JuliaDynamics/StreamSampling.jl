@@ -23,10 +23,10 @@ julia> rng = Xoshiro(42);
 
 julia> iter = Iterators.filter(x -> x != 10, 1:10^7);
 
-julia> @btime itsample($rng, $iter, 10^4; replace = true);
+julia> @btime itsample($rng, $iter, 10^4; replace=true);
   9.675 ms (4 allocations: 156.34 KiB)
 
-julia> @btime itsample($rng, $iter, 10^4; replace = false);
+julia> @btime itsample($rng, $iter, 10^4; replace=false);
   7.889 ms (2 allocations: 78.17 KiB)
 
 julia> @btime sample($rng, collect($iter), 10^4; replace=true);
