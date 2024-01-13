@@ -9,7 +9,7 @@ function itsample(rng::AbstractRNG, iter, n::Int;
     if Base.IteratorSize(iter) isa Base.SizeUnknown
         reservoir_sample(rng, iter, n; replace, ordered)::Vector{iter_type}
     else
-        sortedindices_sample(rng, iter, n, replace, ordered)::Vector{iter_type}
+        sortedindices_sample(rng, iter, n; replace, ordered)::Vector{iter_type}
     end
 end
 
@@ -118,7 +118,7 @@ function choose(n, p, q, z)
     return quantile(b, q)
 end
 
-function sortedindices_sample(rng, iter, n::Int, replace, ordered)
+function sortedindices_sample(rng, iter, n::Int; replace = false, ordered = false)
     N = length(iter)
     if N <= n
         reservoir = collect(iter)
