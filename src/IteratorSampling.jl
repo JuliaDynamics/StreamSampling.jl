@@ -47,7 +47,7 @@ export itsample
 
 """
     reservoir_sample(rng, iter)
-    reservoir_sample(rng, iter, n, replace, ordered)
+    reservoir_sample(rng, iter, n; replace = false, ordered = false)
 
 Reservoir sampling algorithm with and without replacement.
 
@@ -61,11 +61,11 @@ export reservoir_sample
 
 """
     sortedindices_sample(rng, iter)
-    sortedindices_sample(rng, iter, n, replace, ordered)
+    sortedindices_sample(rng, iter, n; replace = false, ordered = false)
 
-Faster algorithm than reservoir sampling employed when the number of elements
-in the iterable is known. It generates sorted random indices which are used to 
-retrieve the sample from the iterable.
+Algorithm which generates sorted random indices used to retrieve the sample 
+from the iterable. The number of elements in the iterable needs to be known 
+before starting the sampling.
 """
 function sortedindices_sample end
 
