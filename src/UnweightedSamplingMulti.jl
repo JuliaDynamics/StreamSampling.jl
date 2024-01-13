@@ -5,7 +5,7 @@ end
 
 function itsample(rng::AbstractRNG, iter, n::Int; 
         replace = false, ordered = false)
-    iter_type = Base.@default_eltype(iter)
+    iter_type = calculate_eltype(iter)
     if Base.IteratorSize(iter) isa Base.SizeUnknown
         reservoir_sample(rng, iter, n; replace, ordered)::Vector{iter_type}
     else
@@ -30,7 +30,7 @@ function reservoir_sample(rng, iter, n; replace = false, ordered = false)
 end
 
 function reservoir_sample(rng, iter, n::Int, is::Union{WORSample, OrdWORSample})
-    iter_type = Base.@default_eltype(iter)
+    iter_type = calculate_eltype(iter)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
     el, state = it
@@ -58,7 +58,7 @@ function reservoir_sample(rng, iter, n::Int, is::Union{WORSample, OrdWORSample})
 end
 
 function reservoir_sample(rng, iter, n::Int, is::Union{WRSample, OrdWRSample})
-    iter_type = Base.@default_eltype(iter)
+    iter_type = calculate_eltype(iter)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
     reservoir = Vector{iter_type}(undef, n)
@@ -221,3 +221,11 @@ end
 function transform(rng, reservoir, order::Nothing, ::Union{OrdWORSample, OrdWRSample})
     return reservoir
 end
+
+function calculate_eltype(iter)
+    return Base.@default_eltype(iter)
+end
+function calculate_eltype(iter::ResumableFunctions.FiniteStateMachineIterator)
+    return eltype(iter)
+end
+
