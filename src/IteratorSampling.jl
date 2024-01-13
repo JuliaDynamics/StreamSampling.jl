@@ -28,16 +28,15 @@ function SamplingIter(iter)
     return SamplingIter(iter, Ref(0))
 end
 
+function n_elements_seen(iter::SamplingIter)
+    return iter.n_seen[]
+end
+
+Base.iterate(samplingiter::SamplingIter, ::InitialState) = iterate(samplingiter)
 function Base.iterate(samplingiter::SamplingIter)
     samplingiter.n_seen[] += 1
     iterate(samplingiter.iter)
 end
-
-function Base.iterate(samplingiter::SamplingIter, ::InitialState)
-    samplingiter.n_seen[] += 1
-    iterate(samplingiter.iter)
-end
-
 function Base.iterate(samplingiter::SamplingIter, state)
     samplingiter.n_seen[] += 1
     iterate(samplingiter.iter, state)
@@ -74,7 +73,7 @@ replacement, it returns a vector of those elements.
 
     itsample([rng], iter, sample, n_seen; replace = false, ordered = false)
 
-Restart the sampling, from an already collected sample, 
+Resume the sampling process, updating an already collected sample. 
 """
 function itsample end
 
@@ -90,9 +89,9 @@ export SamplingIter
     SamplingIter(iter)
 
 A wrapper around the iterator to sample needed when the sampling could be
-restarted at a later stage, in this case, some state variable needs to be
-mantained, for its use case see [`itsample`](@ref) accepting a previously 
-collected sample as an argument.
+resumed at a later stage. In this case, keeping track of the number of
+already scanned elements is necessary not to bias the sampling process, 
+accessible through `sampling_iter.n_elements_seen`.
 """
 
 """
