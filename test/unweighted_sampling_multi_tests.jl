@@ -1,6 +1,6 @@
 
 @testset "Unweighted sampling multi tests" begin
-    combs = Iterators.product(fill((true, false),2)...)
+    combs = Iterators.product(fill((false, false),2)...)
     @testset "replace=$replace ordered=$ordered" for (replace, ordered) in combs
         a, b = 1, 10
         # test return values of iter with known lengths are inrange

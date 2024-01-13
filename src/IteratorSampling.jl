@@ -9,10 +9,39 @@ struct OrdWRSample end
 struct WORSample end
 struct OrdWORSample end
 
+const initstate = InitialState()
 const wrsample = WRSample()
 const ordwrsample = OrdWRSample()
 const worsample = WORSample()
 const ordworsample = OrdWORSample()
+
+struct InitialState end
+
+const initstate = InitialState()
+
+struct SamplingIter{T}
+    iter::T
+    n_seen::Base.RefValue{Int}
+end
+
+function SamplingIter(iter)
+    return SamplingIter(iter, Ref(0))
+end
+
+function Base.iterate(samplingiter::SamplingIter)
+    samplingiter.n_seen[] += 1
+    iterate(samplingiter.iter)
+end
+
+function Base.iterate(samplingiter::SamplingIter, ::InitialState)
+    samplingiter.n_seen[] += 1
+    iterate(samplingiter.iter)
+end
+
+function Base.iterate(samplingiter::SamplingIter, state)
+    samplingiter.n_seen[] += 1
+    iterate(samplingiter.iter, state)
+end
 
 include("SortedRand.jl")
 include("UnweightedSamplingSingle.jl")
@@ -40,10 +69,31 @@ sample, i.e. a sample where items appear in the same order as in `iter`).
 
 If the iterator has less than `n` elements, in the case of sampling without
 replacement, it returns a vector of those elements.
+
+-----
+
+    itsample([rng], iter, sample, n_seen; replace = false, ordered = false)
+
+Restart the sampling, from an already collected sample, 
 """
 function itsample end
 
 export itsample
+
+function SamplingIter end
+"""
+
+"""
+
+export SamplingIter
+"""
+    SamplingIter(iter)
+
+A wrapper around the iterator to sample needed when the sampling could be
+restarted at a later stage, in this case, some state variable needs to be
+mantained, for its use case see [`itsample`](@ref) accepting a previously 
+collected sample as an argument.
+"""
 
 """
     reservoir_sample(rng, iter)
