@@ -1,5 +1,4 @@
 ```@docs
-
 ## General functionalities
 
 itsample
