@@ -2,6 +2,7 @@ module IteratorSampling
 
 using Distributions
 using Random
+using ResumableFunctions
 using StatsBase
 
 struct WRSample end
