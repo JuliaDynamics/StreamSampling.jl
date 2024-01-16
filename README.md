@@ -35,3 +35,5 @@ julia> @btime sample($rng, collect($iter), 10^4; replace=true);
 julia> @btime sample($rng, collect($iter), 10^4; replace=false);
   139.212 ms (27 allocations: 147.05 MiB)
 ```
+
+More information can be found in the [documentation](https://tortar.github.io/IteratorSampling.jl/dev/).
