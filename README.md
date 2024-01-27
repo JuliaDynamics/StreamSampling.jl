@@ -1,8 +1,8 @@
 # IteratorSampling.jl
 
 [![CI](https://github.com/JuliaDynamics/Agents.jl/workflows/CI/badge.svg)](https://github.com/Tortar/IteratorSampling.jl/actions?query=workflow%3ACI)
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://tortar.github.io/IteratorSampling.jl/dev)
-[![codecov](https://codecov.io/github/Tortar/IteratorSampling.jl/graph/badge.svg?token=F8W0MC53Z0)](https://codecov.io/github/Tortar/IteratorSampling.jl)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/IteratorSampling.jl/stable/)
+[![codecov](https://codecov.io/github/JuliaDynamics/IteratorSampling.jl/graph/badge.svg?token=F8W0MC53Z0)](https://codecov.io/github/Tortar/IteratorSampling.jl)
 
 This package allows to sample from any iterable in a single pass through the data, 
 even if the number of items in the collection is unknown. 
@@ -36,4 +36,4 @@ julia> @btime sample($rng, collect($iter), 10^4; replace=false);
   139.212 ms (27 allocations: 147.05 MiB)
 ```
 
-More information can be found in the [documentation](https://tortar.github.io/IteratorSampling.jl/dev/).
+More information can be found in the [documentation](https://juliadynamics.github.io/IteratorSampling.jl/stable/).
