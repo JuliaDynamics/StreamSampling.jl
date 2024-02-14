@@ -1,40 +1,49 @@
 
 @testset "Unweighted sampling multi tests" begin
-    combs = Iterators.product(fill((true, false),2)...)
-    @testset "replace=$replace ordered=$ordered" for (replace, ordered) in combs
+    combs = collect(Iterators.product(fill((true, false),2)...))
+    combs_with_m = []
+    for c in combs
+        if c[1] == false
+            push!(combs_with_m, (c..., :alg_L))
+            push!(combs_with_m, (c..., :alg_R))
+        else
+            push!(combs_with_m, (c..., nothing))
+        end
+    end
+    @testset "replace=$replace ordered=$ordered method=$method" for (replace, ordered, method) in combs_with_m
         a, b = 1, 10
         # test return values of iter with known lengths are inrange
         iter = a:b
-        s = itsample(iter, 2, replace=replace, ordered=ordered)
+        s = itsample(iter, 2, replace=replace, ordered=ordered, method=method)
         @test length(s) == 2
         @test all(x -> a <= x <= b, s)
 
-        s = itsample(iter, 10^7, replace=replace, ordered=ordered)
+        s = itsample(iter, 10^7, replace=replace, ordered=ordered, method=method)
         @test replace ? length(s) == 10^7 : length(s) == 10
         @test length(unique(s)) == 10
         @test all(x -> a <= x <= b, s)
 
         @test typeof(s) == Vector{Int}
-        s = itsample(iter, 2, replace=replace, ordered=ordered)
+        s = itsample(iter, 2, replace=replace, ordered=ordered, method=method)
         @test length(s) == 2
         @test all(x -> a <= x <= b, s)
         @test typeof(s) == Vector{Int}
-        s = itsample(iter, 100, replace=replace, ordered=ordered)
+        s = itsample(iter, 100, replace=replace, ordered=ordered, method=method)
         @test replace ? length(s) == 100 : length(s) == 10
         @test length(unique(s)) == 10
 
         # test return values of iter with unknown lengths are inrange
         iter = Iterators.filter(x -> x < 5, a:b)
-        s = itsample(iter, 2, replace=replace, ordered=ordered)
+        s = itsample(iter, 2, replace=replace, ordered=ordered, method=method)
         @test length(s) == 2
         @test all(x -> a <= x <= b, s)
 
         @test typeof(s) == Vector{Int}
-        s = itsample(iter, 2, replace=replace, ordered=ordered)
+        s = itsample(iter, 2, replace=replace, ordered=ordered, method=method)
         @test length(s) == 2
         @test all(x -> a <= x <= b, s)
         @test typeof(s) == Vector{Int}
-        s = itsample(iter, 100, replace=replace, ordered=ordered)
+        s = itsample(iter, 100, replace=replace, ordered=ordered, method=method)
         @test replace ? length(s) == 100 : length(s) == 4
         @test length(unique(s)) == 4
         @test ordered ? issorted(s) : true
@@ -47,7 +56,7 @@
                 reps = 10^(size+2)
                 dict_res = Dict{Vector, Int}()
                 for _ in 1:reps
-                    s = shuffle!(rng, itsample(rng, it, size, replace=replace, ordered=ordered))
+                    s = shuffle!(rng, itsample(rng, it, size, replace=replace, ordered=ordered, method=method))
                     if s in keys(dict_res)
                         dict_res[s] += 1
                     else
@@ -64,4 +73,3 @@
         end
     end
 end
-
