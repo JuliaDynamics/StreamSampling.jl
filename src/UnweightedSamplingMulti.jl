@@ -1,35 +1,51 @@
 
-function itsample(iter, n::Int; replace = false, ordered = false)
-    return itsample(Random.default_rng(), iter, n; replace=replace, ordered=ordered)
+function itsample(iter, n::Int; replace = false, ordered = false, kwargs...)
+    return itsample(Random.default_rng(), iter, n; replace=replace, ordered=ordered, kwargs...)
 end
 
 function itsample(rng::AbstractRNG, iter, n::Int; 
-        replace = false, ordered = false)
+        replace = false, ordered = false, kwargs...)
     iter_type = calculate_eltype(iter)
     if Base.IteratorSize(iter) isa Base.SizeUnknown
-        reservoir_sample(rng, iter, n; replace, ordered)::Vector{iter_type}
+        reservoir_sample(rng, iter, n; replace, ordered, kwargs...)::Vector{iter_type}
     else
-        sortedindices_sample(rng, iter, n; replace, ordered)::Vector{iter_type}
+        sortedindices_sample(rng, iter, n; replace, ordered, kwargs...)::Vector{iter_type}
     end
 end
 
-function reservoir_sample(rng, iter, n; replace = false, ordered = false)
+function reservoir_sample(rng, iter, n; replace = false, ordered = false, kwargs...)
     if replace
-        if ordered
-            reservoir_sample(rng, iter, n, ordwrsample)
-        else
-            reservoir_sample(rng, iter, n, wrsample)
-        end
+        reservoir_sample_with_replacement(rng, iter, n; ordered, kwargs...)
     else
-        if ordered
-            reservoir_sample(rng, iter, n, ordworsample)
-        else
-            reservoir_sample(rng, iter, n, worsample)
-        end
+        reservoir_sample_without_replacement(rng, iter, n; ordered, kwargs...)
     end
 end
 
-function reservoir_sample(rng, iter, n::Int, is::Union{WORSample, OrdWORSample})
+function reservoir_sample_with_replacement(rng, iter, n; ordered = false, method = :alg_L)
+    if ordered
+        reservoir_sample_with_replacement(rng, iter, n, ordwrsample)
+    else
+        reservoir_sample_with_replacement(rng, iter, n, wrsample)
+    end
+end
+
+function reservoir_sample_without_replacement(rng, iter, n; ordered = false, method = :alg_L)
+    if ordered
+        if method === :alg_L
+            reservoir_sample_without_replacement(rng, iter, n, ordworsample, algL)
+        else
+            reservoir_sample_without_replacement(rng, iter, n, ordworsample, algR)
+        end
+    else
+        if method === :alg_L
+            reservoir_sample_without_replacement(rng, iter, n, worsample, algL)
+        else
+            reservoir_sample_without_replacement(rng, iter, n, worsample, algR)
+        end    
+    end
+end
+
+function reservoir_sample_without_replacement(rng, iter, n::Int, is::Union{WORSample, OrdWORSample}, alg::AlgL)
     iter_type = calculate_eltype(iter)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
@@ -57,7 +73,34 @@ function reservoir_sample(rng, iter, n::Int, is::Union{WORSample, OrdWORSample})
     end
 end
 
-function reservoir_sample(rng, iter, n::Int, is::Union{WRSample, OrdWRSample})
+function reservoir_sample_without_replacement(rng, iter, n::Int, is::Union{WORSample, OrdWORSample}, alg::AlgR)
+    iter_type = calculate_eltype(iter)
+    it = iterate(iter)
+    isnothing(it) && return iter_type[]
+    el, state = it
+    reservoir = Vector{iter_type}(undef, n)
+    reservoir[1] = el
+    @inbounds for i in 2:n
+        it = iterate(iter, state)
+        isnothing(it) && return transform(rng, resize!(reservoir, i-1), nothing, is)
+        el, state = it
+        reservoir[i] = el
+    end
+    k, order = instantiate_order(n, is)
+    @inbounds while true
+        it = iterate(iter, state)
+        isnothing(it) && return transform(rng, reservoir, order, is)
+        el, state = it
+        k += 1
+        j = rand(rng, 1:k)
+        if j <= n
+            reservoir[j] = el
+            update_order!(k, j, order, is)
+        end
+    end
+end
+
+function reservoir_sample_with_replacement(rng, iter, n::Int, is::Union{WRSample, OrdWRSample})
     iter_type = calculate_eltype(iter)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
@@ -118,7 +161,7 @@ function choose(n, p, q, z)
     return quantile(b, q)
 end
 
-function sortedindices_sample(rng, iter, n::Int; replace = false, ordered = false)
+function sortedindices_sample(rng, iter, n::Int; replace = false, ordered = false, kwargs...)
     N = length(iter)
     if N <= n
         reservoir = collect(iter)
@@ -190,14 +233,19 @@ function skip_ahead_unknown_end(iter, state, n)
     return it
 end
 
-instantiate_order(n, ::Union{WORSample, WRSample}) = nothing, nothing
+instantiate_order(n, ::Union{WORSample, WRSample}) = n, nothing
 function instantiate_order(n, ::Union{OrdWORSample, OrdWRSample})
     return n, [i for i in 1:n]
 end
 
 update_order!(k, skip_k, q, order, ::WORSample) = nothing
+update_order!(k, q, order, ::WORSample) = nothing
 function update_order!(k, skip_k, q, order, ::OrdWORSample)
     k += skip_k + 1
+    order[q] = k
+    return k
+end
+function update_order!(k, q, order, ::OrdWORSample)
     order[q] = k
     return k
 end
@@ -228,4 +276,3 @@ end
 function calculate_eltype(iter::ResumableFunctions.FiniteStateMachineIterator)
     return eltype(iter)
 end
-

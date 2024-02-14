@@ -10,5 +10,7 @@ itsample
 
 ```@docs
 reservoir_sample
+reservoir_sample_without_replacement
+reservoir_sample_with_replacement
 sortedindices_sample
 ```
