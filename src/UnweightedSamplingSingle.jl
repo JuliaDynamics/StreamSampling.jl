@@ -44,7 +44,7 @@ function reservoir_sample(rng, iter, alg::AlgR)
         isnothing(it) && return chosen
         state = it[2]
         k += 1
-        rand(rng, 1:k) == 1 && (chosen = it[1])
+        rand(rng) < 1/k && (chosen = it[1])
     end
 end
 
