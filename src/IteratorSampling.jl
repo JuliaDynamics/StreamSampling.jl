@@ -26,7 +26,7 @@ include("WeightedSamplingSingle.jl")
 include("WeightedSamplingMulti.jl")
 
 """
-    itsample([rng], iter)
+    itsample([rng], iter; kwargs...)
 
 Return a random element of the iterator, optionally specifying a `rng` 
 (which defaults to `Random.default_rng()`). If the iterator is empty, it 
