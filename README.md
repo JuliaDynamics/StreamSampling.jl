@@ -7,11 +7,12 @@
 This package allows to sample from any iterable in a single pass through the data, 
 even if the number of items in the collection is unknown. 
 
-If the iterable is lazy, the memory required grows in relation to the size of the sample, instead of the
-all population, which can be useful for sampling from big data streams.
+If the iterable is lazy, the memory required grows in relation to the size of the 
+sample, instead of the all population, which can be useful for sampling from big 
+data streams.
 
-Moreover, it turns out that sampling with the techniques implemented in this library is also much faster 
-in some common cases, as highlighted below:
+Moreover, it turns out that sampling with the techniques implemented in this library
+is also much faster in some common cases, as highlighted below:
 
 
 ```julia
