@@ -1,9 +1,8 @@
 
-function itsample(iter, wv::Function; is_stateful = false)
-    return itsample(Random.default_rng(), iter, wv; 
-                    replace = replace, alloc = alloc, iter_type = iter_type)
+function itsample(iter, wv::Function; replace = false, ordered = false)
+    return itsample(Random.default_rng(), iter, wv; replace = replace, ordered = ordered)
 end
 
-function itsample(rng::AbstractRNG, iter, wv::Function; is_stateful = false)
+function itsample(rng::AbstractRNG, iter, wv::Function; replace = false, ordered = false)
     return error("Not implemented yet")
 end

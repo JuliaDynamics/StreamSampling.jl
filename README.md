@@ -3,6 +3,8 @@
 [![CI](https://github.com/JuliaDynamics/IteratorSampling.jl/workflows/CI/badge.svg)](https://github.com/JuliaDynamics/IteratorSampling.jl/actions?query=workflow%3ACI)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/IteratorSampling.jl/stable/)
 [![codecov](https://codecov.io/gh/JuliaDynamics/IteratorSampling.jl/graph/badge.svg?token=F8W0MC53Z0)](https://codecov.io/gh/JuliaDynamics/IteratorSampling.jl)
+[![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
+
 
 This package allows to sample from any iterable in a single pass through the data, 
 even if the number of items in the collection is unknown. 
