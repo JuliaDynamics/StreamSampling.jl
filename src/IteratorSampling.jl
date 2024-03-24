@@ -1,5 +1,6 @@
 module IteratorSampling
 
+using DataStructures
 using Distributions
 using Random
 using ResumableFunctions
@@ -9,15 +10,21 @@ struct WRSample end
 struct OrdWRSample end
 struct WORSample end
 struct OrdWORSample end
-struct AlgL end
-struct AlgR end
 
 const wrsample = WRSample()
 const ordwrsample = OrdWRSample()
 const worsample = WORSample()
 const ordworsample = OrdWORSample()
+
+struct AlgL end
+struct AlgR end
+struct AlgARes end
+struct AlgAExpJ end
+
 const algL = AlgL()
 const algR = AlgR()
+const algARes = AlgARes()
+const algAExpJ = AlgAExpJ()
 
 include("SortedRand.jl")
 include("UnweightedSamplingSingle.jl")
@@ -34,7 +41,7 @@ returns `nothing`.
 
 -----
 
-    itsample([rng], iter, n::Int; replace = false, ordered = false, kwargs...)
+    itsample([rng], iter, [weight], n::Int; replace = false, ordered = false, kwargs...)
 
 Return a vector of `n` random elements of the iterator, 
 optionally specifying a `rng` (which defaults to `Random.default_rng()`).
@@ -52,14 +59,14 @@ export itsample
 
 """
     reservoir_sample(rng, iter; method = :alg_L)
-    reservoir_sample(rng, iter, n; replace = false, ordered = false, kwargs...)
+    reservoir_sample(rng, iter, [weight], n; replace = false, ordered = false, kwargs...)
 
 Reservoir sampling algorithm with and without replacement.
 
-
-The `method` keyword can be either `:alg_L` or `:alg_R`. The optional `kwargs` 
-are passed to the more specific methods called internally by this function: 
-[`reservoir_sample_without_replacement`](@ref) and [`reservoir_sample_with_replacement`](@ref).
+The optional `kwargs` are passed to more specific methods called internally by the 
+function, which can either be [`reservoir_sample_without_replacement`](@ref), 
+[`reservoir_sample_with_replacement`](@ref) or [`weighted_reservoir_sample_without_replacement`](@ref),
+depending to the kind of sampling performed.
 """
 function reservoir_sample end
 
@@ -88,6 +95,19 @@ Data Stream, Byung-Hoon Park et al., 2008".
 function reservoir_sample_with_replacement end
 
 export reservoir_sample_with_replacement
+
+"""
+    weighted_reservoir_sampling_without_replacement(rng, iter, wv, n; ordered = false, method = :alg_AExpJ)
+
+Weighted reservoir sampling algorithm without replacement. The `method` keyword can be 
+either `:alg_ARes` or `:alg_AExpJ`. 
+
+Adapted from algorithm A-Res and A-ExpJ described in "Weighted random sampling with a reservoir, 
+Efraimidis et al., 2006". 
+"""
+function weighted_reservoir_sampling_without_replacement end
+
+export weighted_reservoir_sampling_without_replacement
 
 """
     sortedindices_sample(rng, iter)
