@@ -33,14 +33,18 @@ function reservoir_sample_without_replacement(rng, iter, n; ordered = false, met
     if ordered
         if method === :alg_L
             reservoir_sample_without_replacement(rng, iter, n, ordworsample, algL)
-        else
+        elseif method === :alg_R
             reservoir_sample_without_replacement(rng, iter, n, ordworsample, algR)
-        end
+        else
+            error("No implemented algorithm was found for specified method $(method)")
+        end  
     else
         if method === :alg_L
             reservoir_sample_without_replacement(rng, iter, n, worsample, algL)
-        else
+        elseif method === :alg_R
             reservoir_sample_without_replacement(rng, iter, n, worsample, algR)
+        else
+            error("No implemented algorithm was found for specified method $(method)")
         end    
     end
 end
