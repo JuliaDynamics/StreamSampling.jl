@@ -22,16 +22,16 @@ function reservoir_sample(rng, iter, wv, n;
     end
 end
 
-function weighted_reservoir_sampling_without_replacement(rng, iter, wv, n; ordered = false)
+function weighted_reservoir_sampling_without_replacement(rng, iter, wv, n; ordered = false, method = :alg_AExpJ)
     if ordered
         return error("Not implemented yet")
     else
         if method === :alg_AExpJ
-            weighted_reservoir_sampling_without_replacement(rng, iter, wv, n, worsample, AlgAExpJ)
+            weighted_reservoir_sampling_without_replacement(rng, iter, wv, n, worsample, algAExpJ)
         elseif method === :alg_ARes
             weighted_reservoir_sampling_without_replacement(rng, iter, wv, n, worsample, algARes)
         else
-            error("No implemented algorithm is found for $(method)")
+            error("No implemented algorithm was found for specified method $(method)")
         end
     end
 end
@@ -44,20 +44,20 @@ function weighted_reservoir_sampling_without_replacement(rng, iter, wv, n,
     el, state = it
     reservoir = BinaryHeap(Base.By(last), Pair{iter_type, Float64}[])
     sizehint!(reservoir, n)
-    priority = compute_priority(rng, wv(el))
+    priority = compute_priority_b(rng, wv(el))
     push!(reservoir, el => priority)
     for i in 2:n
         it = iterate(iter, state)
         isnothing(it) && return transform(rng, resize!(first.(reservoir.valtree), i-1), is)
         el, state = it
-        priority = compute_priority(rng, wv(el))
+        priority = compute_priority_b(rng, wv(el))
         push!(reservoir, el => priority)
     end
     while true
         it = iterate(iter, state)
         isnothing(it) && return transform(rng, first.(reservoir.valtree), is)
         el, state = it
-        priority = compute_priority(rng, wv(el))
+        priority = compute_priority_b(rng, wv(el))
         min_priority = last(first(reservoir))
         if priority > min_priority
             pop!(reservoir)
@@ -65,6 +65,9 @@ function weighted_reservoir_sampling_without_replacement(rng, iter, wv, n,
         end
     end
 end
+
+compute_priority_b(rng, w_el) = -randexp(rng)/w_el
+
 
 function weighted_reservoir_sampling_without_replacement(rng, iter, wv, n, 
         is::Union{WORSample, OrdWORSample}, alg::AlgAExpJ)
@@ -112,7 +115,7 @@ end
 compute_priority(rng, w_el) = exp(-randexp(rng)/w_el)
 
 function compute_skip_priority(rng, min_priority, w_el)
-    t = exp(log(min_priority)/w_el)
+    t = exp(log(min_priority)*w_el)
     return exp(log(rand(rng, Uniform(t,1)))/w_el)
 end
 
