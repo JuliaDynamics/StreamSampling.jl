@@ -97,7 +97,7 @@ function reservoir_sample_with_replacement end
 export reservoir_sample_with_replacement
 
 """
-    weighted_reservoir_sampling_without_replacement(rng, iter, wv, n; ordered = false, method = :alg_AExpJ)
+    weighted_reservoir_sample_without_replacement(rng, iter, wv, n; ordered = false, method = :alg_AExpJ)
 
 Weighted reservoir sampling algorithm without replacement. The `method` keyword can be 
 either `:alg_ARes` or `:alg_AExpJ`. 
@@ -105,9 +105,9 @@ either `:alg_ARes` or `:alg_AExpJ`.
 Adapted from algorithm A-Res and A-ExpJ described in "Weighted random sampling with a reservoir, 
 Efraimidis et al., 2006". 
 """
-function weighted_reservoir_sampling_without_replacement end
+function weighted_reservoir_sample_without_replacement end
 
-export weighted_reservoir_sampling_without_replacement
+export weighted_reservoir_sample_without_replacement
 
 """
     sortedindices_sample(rng, iter)
