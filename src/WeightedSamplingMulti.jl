@@ -18,25 +18,25 @@ function reservoir_sample(rng, iter, wv, n;
     if replace
         return error("Not implemented yet")
     else
-        weighted_reservoir_sampling_without_replacement(rng, iter, wv, n; ordered, kwargs...)
+        weighted_reservoir_sample_without_replacement(rng, iter, wv, n; ordered, kwargs...)
     end
 end
 
-function weighted_reservoir_sampling_without_replacement(rng, iter, wv, n; ordered = false, method = :alg_AExpJ)
+function weighted_reservoir_sample_without_replacement(rng, iter, wv, n; ordered = false, method = :alg_AExpJ)
     if ordered
         return error("Not implemented yet")
     else
         if method === :alg_AExpJ
-            weighted_reservoir_sampling_without_replacement(rng, iter, wv, n, worsample, algAExpJ)
+            weighted_reservoir_sample_without_replacement(rng, iter, wv, n, worsample, algAExpJ)
         elseif method === :alg_ARes
-            weighted_reservoir_sampling_without_replacement(rng, iter, wv, n, worsample, algARes)
+            weighted_reservoir_sample_without_replacement(rng, iter, wv, n, worsample, algARes)
         else
             error("No implemented algorithm was found for specified method $(method)")
         end
     end
 end
 
-function weighted_reservoir_sampling_without_replacement(rng, iter, wv, n, 
+function weighted_reservoir_sample_without_replacement(rng, iter, wv, n, 
         is::Union{WORSample, OrdWORSample}, alg::AlgARes)
     iter_type = calculate_eltype(iter)
     it = iterate(iter)
@@ -68,8 +68,7 @@ end
 
 compute_priority_b(rng, w_el) = -randexp(rng)/w_el
 
-
-function weighted_reservoir_sampling_without_replacement(rng, iter, wv, n, 
+function weighted_reservoir_sample_without_replacement(rng, iter, wv, n, 
         is::Union{WORSample, OrdWORSample}, alg::AlgAExpJ)
     iter_type = calculate_eltype(iter)
     it = iterate(iter)
