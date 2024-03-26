@@ -16,7 +16,7 @@ function prob_no_replace(k)
 	return num/den
 end
 
-@testset "Unweighted sampling multi tests" begin
+@testset "Weighted sampling multi tests" begin
     combs = [(false, false),]
     combs_with_m = []
     for c in combs
