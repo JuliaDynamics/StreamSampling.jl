@@ -33,11 +33,11 @@ include("WeightedSamplingSingle.jl")
 include("WeightedSamplingMulti.jl")
 
 """
-    itsample([rng], iter; kwargs...)
+    itsample([rng], iter, [weight]; kwargs...)
 
 Return a random element of the iterator, optionally specifying a `rng` 
-(which defaults to `Random.default_rng()`). If the iterator is empty, it 
-returns `nothing`.
+(which defaults to `Random.default_rng()`) and a `weight` function.
+If the iterator is empty, it returns `nothing`.
 
 -----
 
@@ -58,7 +58,7 @@ function itsample end
 export itsample
 
 """
-    reservoir_sample(rng, iter; method = :alg_L)
+    reservoir_sample(rng, iter, [weight]; method = :alg_L)
     reservoir_sample(rng, iter, [weight], n; replace = false, ordered = false, kwargs...)
 
 Reservoir sampling algorithm with and without replacement.
