@@ -110,6 +110,18 @@ function weighted_reservoir_sample_without_replacement end
 export weighted_reservoir_sample_without_replacement
 
 """
+    weighted_reservoir_sample_with_replacement(rng, iter, wv, n; ordered = false)
+
+Weighted reservoir sampling algorithm without replacement. 
+
+Adapted from algorithm WRSWR_SKIP described in "A Skip-based Algorithm for Weighted Reservoir 
+Sampling with Replacement, Meligrana, 2024". 
+"""
+function weighted_reservoir_sample_with_replacement end
+
+export weighted_reservoir_sample_with_replacement
+
+"""
     sortedindices_sample(rng, iter)
     sortedindices_sample(rng, iter, n; replace = false, ordered = false)
 
