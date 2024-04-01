@@ -33,11 +33,11 @@ include("WeightedSamplingSingle.jl")
 include("WeightedSamplingMulti.jl")
 
 """
-    itsample([rng], iter; kwargs...)
+    itsample([rng], iter, [weight]; kwargs...)
 
 Return a random element of the iterator, optionally specifying a `rng` 
-(which defaults to `Random.default_rng()`). If the iterator is empty, it 
-returns `nothing`.
+(which defaults to `Random.default_rng()`) and a `weight` function.
+If the iterator is empty, it returns `nothing`.
 
 -----
 
@@ -58,7 +58,7 @@ function itsample end
 export itsample
 
 """
-    reservoir_sample(rng, iter; method = :alg_L)
+    reservoir_sample(rng, iter, [weight]; method = :alg_L)
     reservoir_sample(rng, iter, [weight], n; replace = false, ordered = false, kwargs...)
 
 Reservoir sampling algorithm with and without replacement.
@@ -108,6 +108,18 @@ Efraimidis et al., 2006".
 function weighted_reservoir_sample_without_replacement end
 
 export weighted_reservoir_sample_without_replacement
+
+"""
+    weighted_reservoir_sample_with_replacement(rng, iter, wv, n; ordered = false)
+
+Weighted reservoir sampling algorithm without replacement. 
+
+Adapted from algorithm WRSWR_SKIP described in "A Skip-based Algorithm for Weighted Reservoir 
+Sampling with Replacement, Meligrana, 2024". 
+"""
+function weighted_reservoir_sample_with_replacement end
+
+export weighted_reservoir_sample_with_replacement
 
 """
     sortedindices_sample(rng, iter)

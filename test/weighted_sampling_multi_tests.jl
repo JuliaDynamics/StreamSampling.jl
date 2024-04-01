@@ -1,4 +1,13 @@
 
+function prob_replace(k)
+    num = 1
+    for x in k
+        v = x <= 5 ? 1 : 2
+        num *= v
+    end
+    return num/15^length(k)
+end
+
 function prob_no_replace(k)
 	num = 1
 	den = 1
@@ -17,7 +26,7 @@ function prob_no_replace(k)
 end
 
 @testset "Weighted sampling multi tests" begin
-    combs = [(false, false),]
+    combs = [(false, false), (true, false)]
     combs_with_m = []
     for c in combs
         push!(combs_with_m, (c..., :alg_ARes))
@@ -80,7 +89,11 @@ end
                 end
                 cases = replace ? 10^size : factorial(10)/factorial(10-size)
                 pairs_dict = collect(pairs(dict_res))
-                ps_exact = [prob_no_replace(k) for (k, v) in pairs_dict if length(unique(k)) == size]
+                if replace
+                    ps_exact = [prob_replace(k) for (k, v) in pairs_dict]
+                else
+                    ps_exact = [prob_no_replace(k) for (k, v) in pairs_dict if length(unique(k)) == size]
+                end
                 count_est = [v for (k, v) in pairs_dict]
                 chisq_test = ChisqTest(count_est, ps_exact)
                 @test pvalue(chisq_test) > 0.05

@@ -16,9 +16,17 @@ function reservoir_sample(rng, iter, wv, n;
         replace = false, ordered = false, kwargs...
 )
     if replace
-        return error("Not implemented yet")
+        weighted_reservoir_sample_with_replacement(rng, iter, wv, n; ordered)
     else
         weighted_reservoir_sample_without_replacement(rng, iter, wv, n; ordered, kwargs...)
+    end
+end
+
+function weighted_reservoir_sample_with_replacement(rng, iter, wv, n; ordered = false)
+    if ordered
+        return error("Not implemented yet")
+    else
+        weighted_reservoir_sample_with_replacement(rng, iter, wv, n, wrsample)
     end
 end
 
@@ -120,4 +128,65 @@ end
 
 function transform(rng, reservoir, ::WORSample)
     return shuffle!(rng, reservoir)
+end
+
+function weighted_reservoir_sample_with_replacement(rng, iter, wv, n, is::Union{WRSample, OrdWRSample})
+    iter_type = IteratorSampling.calculate_eltype(iter)
+    it = iterate(iter)
+    isnothing(it) && return iter_type[]
+    reservoir = Vector{iter_type}(undef, n)
+    ws = Vector{Float64}(undef, n)
+    el, state = it
+    w_el = wv(el)
+    reservoir[1], ws[1] = el, w_el
+    w_sum = wv(el)
+    @inbounds for i in 2:n
+        it = iterate(iter, state)
+        isnothing(it) && return sample(rng, resize!(reservoir, i-1), weights(resize!(ws, i-1)), n)
+        el, state = it
+        w_el = wv(el)
+        reservoir[i], ws[i] = el, w_el
+        w_sum += w_el
+    end
+    reservoir = sample(rng, reservoir, weights(ws), n)
+    empty!(ws)
+    @inbounds while true
+        w_skip = skip(rng, w_sum, n)
+        it, w_sum = skip_ahead_unknown_end(iter, state, wv, w_sum, w_skip)
+        isnothing(it) && return shuffle!(rng, reservoir)
+        el, state = it
+        p = wv(el)/w_sum
+        z = (1-p)^(n-3)
+        q = rand(rng, Uniform(z*(1-p)*(1-p)*(1-p),1))
+        k = choose(n, p, q, z)
+        if k == 1
+            r = rand(rng, 1:n)
+            reservoir[r] = el
+        else
+            for j in 1:k
+                r = rand(rng, j:n)
+                reservoir[r] = el
+                reservoir[r], reservoir[j] = reservoir[j], reservoir[r]
+            end
+        end 
+    end
+end
+
+function skip_ahead_unknown_end(iter, state, wv::Function, w_sum, w_skip)
+    it = iterate(iter, state)
+    isnothing(it) && return nothing, nothing
+    el, state = it
+    w_sum += wv(el)
+    while w_skip > w_sum
+        it = iterate(iter, state)
+        isnothing(it) && return nothing, nothing
+        el, state = it
+        w_sum += wv(el)
+    end
+    return it, w_sum
+end
+
+function skip(rng, w_sum::AbstractFloat, m)
+    q = rand(rng)^(1/m)
+    return w_sum/q
 end
