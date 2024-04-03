@@ -64,8 +64,13 @@ export itsample
 Reservoir sampling algorithm with and without replacement.
 
 The optional `kwargs` are passed to more specific methods called internally by the 
-function, which can either be [`reservoir_sample_without_replacement`](@ref), 
-[`reservoir_sample_with_replacement`](@ref) or [`weighted_reservoir_sample_without_replacement`](@ref),
+function, which can either be 
+
+- [`reservoir_sample_without_replacement`](@ref)
+- [`reservoir_sample_with_replacement`](@ref)
+- [`weighted_reservoir_sample_without_replacement`](@ref)
+- [`weighted_reservoir_sample_with_replacement`](@ref)
+
 depending to the kind of sampling performed.
 """
 function reservoir_sample end
