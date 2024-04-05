@@ -26,17 +26,31 @@ julia> rng = Xoshiro(42);
 
 julia> iter = Iterators.filter(x -> x != 10, 1:10^7);
 
+julia> wv(el) = 1.0
+
 julia> @btime itsample($rng, $iter, 10^4; replace=true);
   9.675 ms (4 allocations: 156.34 KiB)
 
 julia> @btime itsample($rng, $iter, 10^4; replace=false);
   7.889 ms (2 allocations: 78.17 KiB)
 
+julia> @btime itsample($rng, $iter, $wv, 10^4; replace=false);
+  20.281 ms (5 allocations: 234.61 KiB)
+
+julia> @btime itsample($rng, $iter, $wv, 10^4; replace=true);
+  12.493 ms (15 allocations: 547.23 KiB)
+
 julia> @btime sample($rng, collect($iter), 10^4; replace=true);
   137.932 ms (20 allocations: 146.91 MiB)
 
 julia> @btime sample($rng, collect($iter), 10^4; replace=false);
   139.212 ms (27 allocations: 147.05 MiB)
+
+julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=true);
+  315.508 ms (49 allocations: 675.21 MiB)
+
+julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=false);
+  317.230 ms (43 allocations: 370.19 MiB)
 ```
 
 More information can be found in the [documentation](https://juliadynamics.github.io/IteratorSampling.jl/stable/).
