@@ -39,7 +39,7 @@ function weighted_reservoir_sample_without_replacement(rng, iter, wv, n; ordered
         elseif method === :alg_ARes
             weighted_reservoir_sample_without_replacement(rng, iter, wv, n, worsample, algARes)
         else
-            error("No implemented algorithm was found for specified method $(method)")
+            error(lazy"No implemented algorithm was found for specified method $(method)")
         end
     end
 end
