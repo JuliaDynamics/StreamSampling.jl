@@ -33,15 +33,15 @@ include("WeightedSamplingSingle.jl")
 include("WeightedSamplingMulti.jl")
 
 """
-    itsample([rng], iter, [weight]; kwargs...)
+    itsample([rng], iter, [wv]; kwargs...)
 
 Return a random element of the iterator, optionally specifying a `rng` 
-(which defaults to `Random.default_rng()`) and a `weight` function.
+(which defaults to `Random.default_rng()`) and a `wv` function.
 If the iterator is empty, it returns `nothing`.
 
 -----
 
-    itsample([rng], iter, [weight], n::Int; replace = false, ordered = false, kwargs...)
+    itsample([rng], iter, [wv], n::Int; replace = false, ordered = false, kwargs...)
 
 Return a vector of `n` random elements of the iterator, 
 optionally specifying a `rng` (which defaults to `Random.default_rng()`).
@@ -58,8 +58,8 @@ function itsample end
 export itsample
 
 """
-    reservoir_sample(rng, iter, [weight]; method = :alg_L)
-    reservoir_sample(rng, iter, [weight], n; replace = false, ordered = false, kwargs...)
+    reservoir_sample(rng, iter, [wv]; method = :alg_L)
+    reservoir_sample(rng, iter, [wv], n; replace = false, ordered = false, kwargs...)
 
 Reservoir sampling algorithm with and without replacement.
 
@@ -83,7 +83,7 @@ export reservoir_sample
 Reservoir sampling algorithm without replacement. The `method` keyword can be either `:alg_L` or
 `:alg_R`.
 
-Adapted from algorithms R and L described in "Random sampling with a reservoir, Jeffrey S. Vitter, 1985".
+Adapted from algorithms R and L described in "Random sampling with a reservoir, J. S. Vitter, 1985".
 """
 function reservoir_sample_without_replacement end
 
@@ -95,7 +95,7 @@ export reservoir_sample_without_replacement
 Reservoir sampling algorithm with replacement.
 
 Adapted fron algorithm RSWR_SKIP described in "Reservoir-based Random Sampling with Replacement from 
-Data Stream, Byung-Hoon Park et al., 2008".
+Data Stream, B. Park et al., 2008".
 """
 function reservoir_sample_with_replacement end
 
@@ -105,10 +105,11 @@ export reservoir_sample_with_replacement
     weighted_reservoir_sample_without_replacement(rng, iter, wv, n; ordered = false, method = :alg_AExpJ)
 
 Weighted reservoir sampling algorithm without replacement. The `method` keyword can be 
-either `:alg_ARes` or `:alg_AExpJ`. 
+either `:alg_ARes` or `:alg_AExpJ`. `wv` should be a function which accept an element 
+of the iterator and returns a `Float64`.
 
 Adapted from algorithm A-Res and A-ExpJ described in "Weighted random sampling with a reservoir, 
-Efraimidis et al., 2006". 
+P. S. Efraimidis et al., 2006". 
 """
 function weighted_reservoir_sample_without_replacement end
 
@@ -117,10 +118,11 @@ export weighted_reservoir_sample_without_replacement
 """
     weighted_reservoir_sample_with_replacement(rng, iter, wv, n; ordered = false)
 
-Weighted reservoir sampling algorithm without replacement. 
+Weighted reservoir sampling algorithm without replacement. `wv` should be a function 
+which accept an element of the iterator and returns a `Float64`.
 
 Adapted from algorithm WRSWR_SKIP described in "A Skip-based Algorithm for Weighted Reservoir 
-Sampling with Replacement, Meligrana, 2024". 
+Sampling with Replacement, A. Meligrana, 2024". 
 """
 function weighted_reservoir_sample_with_replacement end
 
