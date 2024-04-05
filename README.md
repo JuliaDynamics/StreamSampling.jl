@@ -34,11 +34,11 @@ julia> @btime itsample($rng, $iter, 10^4; replace=true);
 julia> @btime itsample($rng, $iter, 10^4; replace=false);
   7.889 ms (2 allocations: 78.17 KiB)
 
-julia> @btime itsample($rng, $iter, $wv, 10^4; replace=false);
-  20.281 ms (5 allocations: 234.61 KiB)
-
 julia> @btime itsample($rng, $iter, $wv, 10^4; replace=true);
   12.493 ms (15 allocations: 547.23 KiB)
+
+julia> @btime itsample($rng, $iter, $wv, 10^4; replace=false);
+  20.281 ms (5 allocations: 234.61 KiB)
 
 julia> @btime sample($rng, collect($iter), 10^4; replace=true);
   137.932 ms (20 allocations: 146.91 MiB)
