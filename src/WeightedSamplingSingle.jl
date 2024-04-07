@@ -10,6 +10,11 @@ function WeightedReservoirSample(T)
     return WeightedResSampleSingle{T}(0.0, 0.0)
 end
 
+function value(s::ResSampleSingleAlgR)
+    s.state === 0.0 && return nothing
+    return s.value
+end
+
 update!(s::WeightedResSampleSingle, el, weight) = update!(Random.default_rng(), s, el, weight)
 function update!(rng, s::WeightedResSampleSingle, el, weight)
     s.state += weight
