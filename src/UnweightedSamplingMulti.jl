@@ -1,4 +1,71 @@
 
+mutable struct ResSampleMultiAlgR{T} <: AbstractReservoirSample
+    state::Int
+    value::Vector{T}
+end
+
+mutable struct OrdResSampleMultiAlgR{T} <: AbstractReservoirSample
+    state::Int
+    value::Vector{T}
+    ord::Vector{Int}
+end
+
+function ReservoirSample(T, n::Integer; ordered = false)
+    if ordered
+        return OrdResSampleMultiAlgR(0, Vector{T}(undef, n), Vector{Int}(undef, n))
+    else
+        return ResSampleMultiAlgR(0, Vector{T}(undef, n))
+    end
+end
+
+update!(s::ResSampleMultiAlgR, el) = update!(Random.default_rng(), s, el)
+function update!(rng, s::ResSampleMultiAlgR, el)
+    n = length(s.value)
+    s.state += 1
+    if s.state <= n
+        s.value[s.state] = el
+    else
+        j = rand(rng, 1:s.state)
+        if j <= n
+            s.value[j] = el
+        end
+    end
+    return s
+end
+
+update!(s::OrdResSampleMultiAlgR, el) = update!(Random.default_rng(), s, el)
+function update!(rng, s::OrdResSampleMultiAlgR, el)
+    n = length(s.value)
+    s.state += 1
+    if s.state <= n
+        s.value[s.state] = el
+        s.ord[s.state] = s.state
+    else
+        j = rand(rng, 1:s.state)
+        if j <= n
+            s.value[j] = el
+            s.ord[j] = s.state
+        end
+    end
+    return s
+end
+
+function value(s::Union{ResSampleMultiAlgR, OrdResSampleMultiAlgR})
+    if s.state < length(s.value)
+        return s.value[1:s.state]
+    else
+        return s.value
+    end
+end
+
+function ordered_value(s::OrdResSampleMultiAlgR)
+    if s.state < length(s.value)
+        return s.value[1:s.state]
+    else
+        return s.value[sortperm(s.ord)]
+    end
+end
+
 function itsample(iter, n::Int; replace = false, ordered = false, kwargs...)
     return itsample(Random.default_rng(), iter, n; replace=replace, ordered=ordered, kwargs...)
 end
@@ -79,29 +146,12 @@ end
 
 function reservoir_sample_without_replacement(rng, iter, n::Int, is::Union{WORSample, OrdWORSample}, alg::AlgR)
     iter_type = calculate_eltype(iter)
-    it = iterate(iter)
-    isnothing(it) && return iter_type[]
-    el, state = it
-    reservoir = Vector{iter_type}(undef, n)
-    reservoir[1] = el
-    @inbounds for i in 2:n
-        it = iterate(iter, state)
-        isnothing(it) && return transform(rng, resize!(reservoir, i-1), nothing, is)
-        el, state = it
-        reservoir[i] = el
+    ordered = is isa OrdWORSample ? true : false
+    s = ReservoirSample(Base.@default_eltype(iter), n; ordered = ordered)
+    for x in iter
+        @inline update!(rng, s, x)
     end
-    k, order = instantiate_order(n, is)
-    @inbounds while true
-        it = iterate(iter, state)
-        isnothing(it) && return transform(rng, reservoir, order, is)
-        el, state = it
-        k += 1
-        j = rand(rng, 1:k)
-        if j <= n
-            reservoir[j] = el
-            update_order!(k, j, order, is)
-        end
-    end
+    return ordered ? ordered_value(s) : shuffle!(rng, value(s))
 end
 
 function reservoir_sample_with_replacement(rng, iter, n::Int, is::Union{WRSample, OrdWRSample})
