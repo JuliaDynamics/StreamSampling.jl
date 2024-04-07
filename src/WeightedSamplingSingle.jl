@@ -10,7 +10,7 @@ function WeightedReservoirSample(T)
     return WeightedResSampleSingle{T}(0.0, 0.0)
 end
 
-function value(s::ResSampleSingleAlgR)
+function value(s::WeightedResSampleSingle)
     s.state === 0.0 && return nothing
     return s.value
 end
