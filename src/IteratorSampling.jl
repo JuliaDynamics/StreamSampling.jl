@@ -16,6 +16,8 @@ const ordwrsample = OrdWRSample()
 const worsample = WORSample()
 const ordworsample = OrdWORSample()
 
+abstract type AbstractReservoirSample end
+
 struct AlgL end
 struct AlgR end
 struct AlgARes end
