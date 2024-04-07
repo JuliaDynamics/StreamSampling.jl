@@ -1,6 +1,6 @@
 name = "IteratorSampling"
 uuid = "ef79a3d2-ae9f-5cd2-ab61-e13847810a6e"
-version = "0.2.8"
+version = "0.2.9"
 
 [deps]
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
