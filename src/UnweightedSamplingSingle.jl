@@ -23,21 +23,16 @@ end
 update!(s::ResSampleSingleAlgR, el) = update!(Random.default_rng(), s, el)
 function update!(rng, s::ResSampleSingleAlgR, el)
     s.state += 1
-    if s.state === 1
+    if rand(rng) <= 1/s.state
         s.value = el
-    else
-        if rand(rng) <= 1/s.state
-            s.value = el
-        end
     end
     return s
 end
 
 update!(s::ResSampleSingleAlgL, el) = update!(Random.default_rng(), s, el)
 function update!(rng, s::ResSampleSingleAlgL, el)
-    if s.skip_k > 0
-        s.skip_k -= 1
-    else
+    s.skip_k -= 1
+    if s.skip_k < 0
         s.value = el
         s.state *= rand(rng)
         s.skip_k = -ceil(Int, randexp(rng)/log(1-s.state))
