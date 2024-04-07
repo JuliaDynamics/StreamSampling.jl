@@ -12,6 +12,15 @@ mutable struct ResSampleSingleAlgR{T} <: AbstractReservoirSample
     ResSampleSingleAlgR{T}(state) where T = new{T}(state)
 end
 
+function value(s::ResSampleSingleAlgL)
+    s.state === 1.0 && return nothing
+    return s.value
+end
+function value(s::ResSampleSingleAlgR)
+    s.state === 0 && return nothing
+    return s.value
+end
+
 function ReservoirSample(T; method = :alg_L)
     if method === :alg_L
         return ResSampleSingleAlgL{T}(1.0, 0)
@@ -31,8 +40,9 @@ end
 
 update!(s::ResSampleSingleAlgL, el) = update!(Random.default_rng(), s, el)
 function update!(rng, s::ResSampleSingleAlgL, el)
-    s.skip_k -= 1
-    if s.skip_k < 0
+    if s.skip_k > 0
+        s.skip_k -= 1
+    else
         s.value = el
         s.state *= rand(rng)
         s.skip_k = -ceil(Int, randexp(rng)/log(1-s.state))
