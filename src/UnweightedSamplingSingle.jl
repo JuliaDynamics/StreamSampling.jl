@@ -1,6 +1,52 @@
 
+mutable struct ResSampleSingleAlgL{T} <: AbstractReservoirSample
+    state::Float64
+    skip_k::Int
+    value::T
+    ResSampleSingleAlgL{T}(state, skip_k) where T = new{T}(state, skip_k)
+end
+
+mutable struct ResSampleSingleAlgR{T} <: AbstractReservoirSample
+    state::Int
+    value::T
+    ResSampleSingleAlgR{T}(state) where T = new{T}(state)
+end
+
+function ReservoirSample(T; method = :alg_L)
+    if method === :alg_L
+        return ResSampleSingleAlgL{T}(1.0, 0)
+    else
+        return ResSampleSingleAlgR{T}(0)
+    end
+end
+
+update!(s::ResSampleSingleAlgR, el) = update!(Random.default_rng(), s, el)
+function update!(rng, s::ResSampleSingleAlgR, el)
+    s.state += 1
+    if s.state === 1
+        s.value = el
+    else
+        if rand(rng) <= 1/s.state
+            s.value = el
+        end
+    end
+    return s
+end
+
+update!(s::ResSampleSingleAlgL, el) = update!(Random.default_rng(), s, el)
+function update!(rng, s::ResSampleSingleAlgL, el)
+    if s.skip_k > 0
+        s.skip_k -= 1
+    else
+        s.value = el
+        s.state *= rand(rng)
+        s.skip_k = -ceil(Int, randexp(rng)/log(1-s.state))
+    end
+    return s
+end
+
 function itsample(iter; kwargs...)
-    return itsample(Random.default_rng(), iter; kwargs...)
+    return itsample(Random.default_rng(), iter)
 end
 
 function itsample(rng::AbstractRNG, iter; kwargs...)
@@ -12,42 +58,12 @@ function itsample(rng::AbstractRNG, iter; kwargs...)
 end
 
 function reservoir_sample(rng, iter; method = :alg_L)
-    if method === :alg_L
-        reservoir_sample(rng, iter, algL)
-    else
-        reservoir_sample(rng, iter, algR)
+    s = ReservoirSample(Base.@default_eltype(iter); method = method)
+    for x in iter
+        @inline update!(rng, s, x)
     end
+    return s.value
 end
-
-function reservoir_sample(rng, iter, alg::AlgL)
-    it = iterate(iter)
-    isnothing(it) && return nothing
-    el, state = it
-    w = rand(rng)
-    while true
-        skip_k = -ceil(Int, randexp(rng)/log(1-w))
-        it = skip_ahead_unknown_end(iter, state, skip_k)
-        isnothing(it) && return el
-        el, state = it
-        w *= rand(rng)
-    end
-end
-
-function reservoir_sample(rng, iter, alg::AlgR)
-    it = iterate(iter)
-    isnothing(it) && return nothing
-    el, state = it
-    chosen = el
-    k = 1
-    while true
-        it = iterate(iter, state)
-        isnothing(it) && return chosen
-        state = it[2]
-        k += 1
-        rand(rng) < 1/k && (chosen = it[1])
-    end
-end
-
 
 function sortedindices_sample(rng, iter; kwargs...)
     k = rand(rng, 1:length(iter))
