@@ -1,24 +1,33 @@
 
+mutable struct WeightedResSampleSingle{T} <: AbstractReservoirSample
+    state::Float64
+    skip_w::Float64
+    value::T
+    WeightedResSampleSingle{T}(state, skip_w) where T = new{T}(state, skip_w)
+end
+
+function WeightedReservoirSample(T)
+    return WeightedResSampleSingle{T}(0.0, 0.0)
+end
+
+update!(s::WeightedResSampleSingle, el, weight) = update!(Random.default_rng(), s, el, weight)
+function update!(rng, s::WeightedResSampleSingle, el, weight)
+    s.state += weight
+    if s.skip_w < s.state
+        s.value = el
+        s.skip_w = skip(rng, s.state, 1)
+    end
+    return s
+end
+
 function itsample(iter, wv::Function)
     return itsample(Random.default_rng(), iter, wv)
 end
 
 function itsample(rng::AbstractRNG, iter, wv::Function)
-    return reservoir_sample(rng, iter, wv)
-end
-
-function reservoir_sample(rng, iter, wv::Function)
-    it = iterate(iter)
-    isnothing(it) && return nothing
-    el, state = it
-    chosen = el
-    w_el = wv(el)
-    w_sum = w_el
-    while true
-        w_skip = skip(rng, w_sum, 1)
-        it, w_sum = skip_ahead_unknown_end(iter, state, wv, w_sum, w_skip)
-        isnothing(it) && return chosen
-        el, state = it
-        chosen = el
+    s = WeightedReservoirSample(Base.@default_eltype(iter))
+    for x in iter
+        @inline update!(rng, s, x, wv(x))
     end
+    return s.value
 end
