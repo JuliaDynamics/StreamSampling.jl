@@ -67,7 +67,7 @@ function reservoir_sample(rng, iter; method = :alg_L)
     for x in iter
         @inline update!(rng, s, x)
     end
-    return s.value
+    return value(s)
 end
 
 function sortedindices_sample(rng, iter; kwargs...)
