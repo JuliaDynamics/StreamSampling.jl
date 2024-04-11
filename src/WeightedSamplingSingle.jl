@@ -34,5 +34,5 @@ function itsample(rng::AbstractRNG, iter, wv::Function)
     for x in iter
         @inline update!(rng, s, x, wv(x))
     end
-    return s.value
+    return value(s)
 end
