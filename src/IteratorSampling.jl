@@ -17,6 +17,8 @@ const worsample = WORSample()
 const ordworsample = OrdWORSample()
 
 abstract type AbstractReservoirSample end
+abstract type AbstractReservoirSampleMulti <: AbstractReservoirSample end
+abstract type AbstractOrdReservoirSampleMulti <: AbstractReservoirSampleMulti end
 
 struct AlgL end
 struct AlgR end

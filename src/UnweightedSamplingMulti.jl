@@ -1,20 +1,44 @@
 
-mutable struct ResSampleMultiAlgR{T} <: AbstractReservoirSample
+mutable struct ResSampleMultiAlgR{T} <: AbstractReservoirSampleMulti
     state::Int
     value::Vector{T}
 end
 
-mutable struct OrdResSampleMultiAlgR{T} <: AbstractReservoirSample
+mutable struct OrdResSampleMultiAlgR{T} <: AbstractOrdReservoirSampleMulti
     state::Int
     value::Vector{T}
     ord::Vector{Int}
 end
 
-function ReservoirSample(T, n::Integer; ordered = false)
-    if ordered
-        return OrdResSampleMultiAlgR(0, Vector{T}(undef, n), Vector{Int}(undef, n))
+mutable struct ResSampleMultiAlgL{T} <: AbstractReservoirSampleMulti
+    state::Float64
+    skip_k::Int
+    seen_k::Int
+    value::Vector{T}
+end
+
+mutable struct OrdResSampleMultiAlgL{T} <: AbstractOrdReservoirSampleMulti
+    state::Float64
+    skip_k::Int
+    seen_k::Int
+    value::Vector{T}
+    ord::Vector{Int}
+end
+
+function ReservoirSample(T, n::Integer; ordered = false, method=:alg_L)
+    value = Vector{T}(undef, n)
+    if method == :alg_R
+        if ordered
+            return OrdResSampleMultiAlgR(0, value, Vector{Int}(undef, n))
+        else
+            return ResSampleMultiAlgR(0, value)
+        end
     else
-        return ResSampleMultiAlgR(0, Vector{T}(undef, n))
+        if ordered
+            return OrdResSampleMultiAlgL(0.0, 0, 0, value, Vector{Int}(undef, n))
+        else
+            return ResSampleMultiAlgL(0.0, 0, 0, value)
+        end
     end
 end
 
@@ -50,21 +74,64 @@ function update!(rng, s::OrdResSampleMultiAlgR, el)
     return s
 end
 
-function value(s::Union{ResSampleMultiAlgR, OrdResSampleMultiAlgR})
-    if s.state < length(s.value)
-        return s.value[1:s.state]
+update!(s::ResSampleMultiAlgL, el) = update!(Random.default_rng(), s, el)
+function update!(rng, s::ResSampleMultiAlgL, el)
+    n = length(s.value)
+    s.seen_k += 1
+    s.skip_k -= 1
+    if s.seen_k <= n
+        s.value[s.seen_k] = el
+        s.seen_k == n && compute_skip(rng, s, n)    
+    elseif s.skip_k < 0
+        j = rand(rng, 1:n)
+        s.value[j] = el
+        compute_skip(rng, s, n)
+    end
+    return s
+end
+
+update!(s::OrdResSampleMultiAlgL, el) = update!(Random.default_rng(), s, el)
+function update!(rng, s::OrdResSampleMultiAlgL, el)
+    n = length(s.value)
+    s.seen_k += 1
+    s.skip_k -= 1
+    if s.seen_k <= n
+        s.value[s.seen_k] = el
+        s.ord[s.seen_k] = s.seen_k
+        s.seen_k == n && compute_skip(rng, s, n)
+    elseif s.skip_k < 0
+        j = rand(rng, 1:n)
+        s.value[j] = el
+        s.ord[j] = s.seen_k
+        compute_skip(rng, s, n)
+    end
+    return s
+end
+
+@inline function compute_skip(rng, s, n)
+    s.state += randexp(rng)
+    w = exp(-s.state/n)
+    s.skip_k = -ceil(Int, randexp(rng)/log(1-w))
+end
+
+function value(s::AbstractReservoirSampleMulti)
+    if n_seen(s) < length(s.value)
+        return s.value[1:n_seen(s)]
     else
         return s.value
     end
 end
 
-function ordered_value(s::OrdResSampleMultiAlgR)
-    if s.state < length(s.value)
-        return s.value[1:s.state]
+function ordered_value(s::AbstractOrdReservoirSampleMulti)
+    if n_seen(s) < length(s.value)
+        return s.value[1:n_seen(s)]
     else
         return s.value[sortperm(s.ord)]
     end
 end
+
+n_seen(s::Union{ResSampleMultiAlgR, OrdResSampleMultiAlgR}) = s.state
+n_seen(s::Union{ResSampleMultiAlgL, OrdResSampleMultiAlgL}) = s.seen_k
 
 function itsample(iter, n::Int; replace = false, ordered = false, kwargs...)
     return itsample(Random.default_rng(), iter, n; replace=replace, ordered=ordered, kwargs...)
@@ -116,38 +183,20 @@ function reservoir_sample_without_replacement(rng, iter, n; ordered = false, met
     end
 end
 
-function reservoir_sample_without_replacement(rng, iter, n::Int, is::Union{WORSample, OrdWORSample}, alg::AlgL)
-    iter_type = calculate_eltype(iter)
-    it = iterate(iter)
-    isnothing(it) && return iter_type[]
-    el, state = it
-    reservoir = Vector{iter_type}(undef, n)
-    reservoir[1] = el
-    @inbounds for i in 2:n
-        it = iterate(iter, state)
-        isnothing(it) && return transform(rng, resize!(reservoir, i-1), nothing, is)
-        el, state = it
-        reservoir[i] = el
-    end
-    u = randexp(rng)
-    k, order = instantiate_order(n, is)
-    @inbounds while true
-        w = exp(-u/n)
-        skip_k = -ceil(Int, randexp(rng)/log(1-w))
-        it = skip_ahead_unknown_end(iter, state, skip_k)
-        isnothing(it) && return transform(rng, reservoir, order, is)
-        el, state = it
-        q = rand(rng, 1:n)
-        reservoir[q] = el
-        k = update_order!(k, skip_k, q, order, is)
-        u += randexp(rng)
-    end
-end
-
 function reservoir_sample_without_replacement(rng, iter, n::Int, is::Union{WORSample, OrdWORSample}, alg::AlgR)
     iter_type = calculate_eltype(iter)
     ordered = is isa OrdWORSample ? true : false
-    s = ReservoirSample(Base.@default_eltype(iter), n; ordered = ordered)
+    s = ReservoirSample(Base.@default_eltype(iter), n; ordered = ordered, method = :alg_R)
+    for x in iter
+        @inline update!(rng, s, x)
+    end
+    return ordered ? ordered_value(s) : shuffle!(rng, value(s))
+end
+
+function reservoir_sample_without_replacement(rng, iter, n::Int, is::Union{WORSample, OrdWORSample}, alg::AlgL)
+    iter_type = calculate_eltype(iter)
+    ordered = is isa OrdWORSample ? true : false
+    s = ReservoirSample(Base.@default_eltype(iter), n; ordered = ordered, method = :alg_L)
     for x in iter
         @inline update!(rng, s, x)
     end
