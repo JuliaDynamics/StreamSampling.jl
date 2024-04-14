@@ -93,12 +93,12 @@ function update!(s::Union{ResSampleMultiAlgL, OrdResSampleMultiAlgL}, el)
     s.skip_k -= 1
     if s.seen_k <= n
         s.value[s.seen_k] = el
-        s.seen_k == n && recompute_skip!(s, n)
+        s.seen_k == n && @inline recompute_skip!(s, n)
     elseif s.skip_k < 0
         j = rand(s.rng, 1:n)
         s.value[j] = el
         update_order!(s, j)
-        recompute_skip!(s, n)
+        @inline recompute_skip!(s, n)
     end
     return s
 end
@@ -110,7 +110,7 @@ function update!(s::AbstractWrReservoirSampleMulti, el)
     if s.seen_k <= n
         s.value[s.seen_k] = el
         if s.seen_k == n
-            recompute_skip!(s, n)   
+            recompute_skip!(s, n)
             s.value = sample(s.rng, s.value, n, ordered=is_ordered(s))
         end
     elseif s.skip_k < 0
@@ -139,14 +139,12 @@ end
 
 function recompute_skip!(s::AbstractWorReservoirSampleMulti, n)
     s.state += randexp(s.rng)
-    w = exp(-s.state/n)
-    s.skip_k = -ceil(Int, randexp(s.rng)/log(1-w))
+    s.skip_k = -ceil(Int, randexp(s.rng)/log(1-exp(-s.state/n)))
 end
 
 function recompute_skip!(s::AbstractWrReservoirSampleMulti, n)
     q = rand(s.rng)^(1/n)
-    m = s.seen_k
-    s.skip_k = ceil(Int, m/q - m - 1)
+    s.skip_k = ceil(Int, s.seen_k/q - s.seen_k - 1)
 end
 
 function choose(n, p, q, z)
