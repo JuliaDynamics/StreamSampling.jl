@@ -43,6 +43,15 @@ function sortedindices_sample(rng, iter, n::Int; replace = false, ordered = fals
     end
 end
 
+function skip_ahead_no_end(iter, state, n)
+    for _ in 1:n
+        it = iterate(iter, state)
+        state = it[2]
+    end
+    it = iterate(iter, state)
+    return it
+end
+
 function get_sorted_indices(rng, n, N, replace)
     if replace == true
         return sortedrandrange(rng, 1:N, n)

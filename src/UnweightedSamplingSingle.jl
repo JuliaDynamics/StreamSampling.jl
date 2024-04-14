@@ -1,15 +1,17 @@
 
-mutable struct ResSampleSingleAlgL{T} <: AbstractReservoirSample
+mutable struct ResSampleSingleAlgL{T,R} <: AbstractReservoirSample
     state::Float64
     skip_k::Int
+    rng::R
     value::T
-    ResSampleSingleAlgL{T}(state, skip_k) where T = new{T}(state, skip_k)
+    ResSampleSingleAlgL{T,R}(state, skip_k, rng) where {T,R} = new{T,R}(state, skip_k, rng)
 end
 
-mutable struct ResSampleSingleAlgR{T} <: AbstractReservoirSample
+mutable struct ResSampleSingleAlgR{T,R} <: AbstractReservoirSample
     state::Int
+    rng::R
     value::T
-    ResSampleSingleAlgR{T}(state) where T = new{T}(state)
+    ResSampleSingleAlgR{T,R}(state, rng) where {T,R} = new{T,R}(state, rng)
 end
 
 function value(s::ResSampleSingleAlgL)
@@ -22,30 +24,31 @@ function value(s::ResSampleSingleAlgR)
 end
 
 function ReservoirSample(T; method = :alg_L)
+    return ReservoirSample(Random.default_rng(), T; method = method)
+end
+function ReservoirSample(rng::AbstractRNG, T; method = :alg_L)
     if method === :alg_L
-        return ResSampleSingleAlgL{T}(1.0, 0)
+        return ResSampleSingleAlgL{T, typeof(rng)}(1.0, 0, rng)
     else
-        return ResSampleSingleAlgR{T}(0)
+        return ResSampleSingleAlgR{T, typeof(rng)}(0, rng)
     end
 end
 
-update!(s::ResSampleSingleAlgR, el) = update!(Random.default_rng(), s, el)
-function update!(rng, s::ResSampleSingleAlgR, el)
+function update!(s::ResSampleSingleAlgR, el)
     s.state += 1
-    if rand(rng) <= 1/s.state
+    if rand(s.rng) <= 1/s.state
         s.value = el
     end
     return s
 end
 
-update!(s::ResSampleSingleAlgL, el) = update!(Random.default_rng(), s, el)
-function update!(rng, s::ResSampleSingleAlgL, el)
+function update!(s::ResSampleSingleAlgL, el)
     if s.skip_k > 0
         s.skip_k -= 1
     else
         s.value = el
-        s.state *= rand(rng)
-        s.skip_k = -ceil(Int, randexp(rng)/log(1-s.state))
+        s.state *= rand(s.rng)
+        s.skip_k = -ceil(Int, randexp(s.rng)/log(1-s.state))
     end
     return s
 end
@@ -63,9 +66,9 @@ function itsample(rng::AbstractRNG, iter; kwargs...)
 end
 
 function reservoir_sample(rng, iter; method = :alg_L)
-    s = ReservoirSample(Base.@default_eltype(iter); method = method)
+    s = ReservoirSample(rng, Base.@default_eltype(iter); method = method)
     for x in iter
-        @inline update!(rng, s, x)
+        @inline update!(s, x)
     end
     return value(s)
 end
