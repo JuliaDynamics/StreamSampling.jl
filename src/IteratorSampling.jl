@@ -18,15 +18,20 @@ const ordworsample = OrdWORSample()
 
 abstract type AbstractReservoirSample end
 abstract type AbstractReservoirSampleMulti <: AbstractReservoirSample end
-abstract type AbstractOrdReservoirSampleMulti <: AbstractReservoirSampleMulti end
+abstract type AbstractWorReservoirSampleMulti <: AbstractReservoirSampleMulti end
+abstract type AbstractOrdWorReservoirSampleMulti <: AbstractWorReservoirSampleMulti end
+abstract type AbstractWrReservoirSampleMulti <: AbstractReservoirSampleMulti end
+abstract type AbstractOrdWrReservoirSampleMulti <: AbstractWrReservoirSampleMulti end
 
 struct AlgL end
 struct AlgR end
+struct AlgWRSKIP end
 struct AlgARes end
 struct AlgAExpJ end
 
 const algL = AlgL()
 const algR = AlgR()
+const algWRSKIP = AlgWRSKIP()
 const algARes = AlgARes()
 const algAExpJ = AlgAExpJ()
 
