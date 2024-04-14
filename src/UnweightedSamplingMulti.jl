@@ -111,7 +111,7 @@ function update!(s::AbstractWrReservoirSampleMulti, el)
         s.value[s.seen_k] = el
         if s.seen_k == n
             recompute_skip!(s, n)   
-            s.value = sample(s.rng, s.value, n, ordered=true)
+            s.value = sample(s.rng, s.value, n, ordered=is_ordered(s))
         end
     elseif s.skip_k < 0
         p = 1/s.seen_k
@@ -176,6 +176,9 @@ update_order_multi!(s::WrResSampleMulti, r, j) = nothing
 function update_order_multi!(s::OrdWrResSampleMulti, r, j)
     s.ord[r], s.ord[j] = s.ord[j], n_seen(s)
 end
+
+is_ordered(s::AbstractOrdWrReservoirSampleMulti) = true
+is_ordered(s::AbstractWrReservoirSampleMulti) = false
 
 function value(s::AbstractWorReservoirSampleMulti)
     if n_seen(s) < length(s.value)
