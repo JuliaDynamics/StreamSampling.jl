@@ -131,7 +131,7 @@ function transform(rng, reservoir, ::WORSample)
 end
 
 function weighted_reservoir_sample_with_replacement(rng, iter, wv, n, is::Union{WRSample, OrdWRSample})
-    iter_type = IteratorSampling.calculate_eltype(iter)
+    iter_type = calculate_eltype(iter)
     it = iterate(iter)
     isnothing(it) && return iter_type[]
     reservoir = Vector{iter_type}(undef, n)
