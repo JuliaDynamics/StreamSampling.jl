@@ -59,8 +59,6 @@
                 ps_exact = [1/cases for _ in 1:cases]
                 count_est = collect(values(dict_res))
 
-                #println(count_est)
-
                 chisq_test = ChisqTest(count_est, ps_exact)
                 @test pvalue(chisq_test) > 0.05
             end
