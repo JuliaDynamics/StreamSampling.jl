@@ -1,13 +1,13 @@
-# IteratorSampling.jl
+# StreamSampling.jl
 
-[![CI](https://github.com/JuliaDynamics/IteratorSampling.jl/workflows/CI/badge.svg)](https://github.com/JuliaDynamics/IteratorSampling.jl/actions?query=workflow%3ACI)
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/IteratorSampling.jl/stable/)
-[![codecov](https://codecov.io/gh/JuliaDynamics/IteratorSampling.jl/graph/badge.svg?token=F8W0MC53Z0)](https://codecov.io/gh/JuliaDynamics/IteratorSampling.jl)
+[![CI](https://github.com/JuliaDynamics/StreamSampling.jl/workflows/CI/badge.svg)](https://github.com/JuliaDynamics/StreamSampling.jl/actions?query=workflow%3ACI)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/StreamSampling.jl/stable/)
+[![codecov](https://codecov.io/gh/JuliaDynamics/StreamSampling.jl/graph/badge.svg?token=F8W0MC53Z0)](https://codecov.io/gh/JuliaDynamics/StreamSampling.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
 
-This package allows to sample from any iterable in a single pass through the data, 
-even if the number of items in the collection is unknown. 
+This package allows to sample from any stream in a single pass through the data, 
+even if the number of items is unknown. 
 
 If the iterable is lazy, the memory required grows in relation to the size of the 
 sample, instead of the all population, which can be useful for sampling from big 
@@ -18,7 +18,7 @@ is also much faster in some common cases, as highlighted below:
 
 
 ```julia
-julia> using IteratorSampling
+julia> using StreamSampling
 
 julia> using BenchmarkTools, Random, StatsBase
 
@@ -53,4 +53,4 @@ julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=f
   317.230 ms (43 allocations: 370.19 MiB)
 ```
 
-More information can be found in the [documentation](https://juliadynamics.github.io/IteratorSampling.jl/stable/).
+More information can be found in the [documentation](https://juliadynamics.github.io/StreamSampling.jl/stable/).
