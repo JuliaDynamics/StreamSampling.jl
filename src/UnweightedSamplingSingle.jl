@@ -23,15 +23,14 @@ function value(s::ResSampleSingleAlgR)
     return s.value
 end
 
-function ReservoirSample(T; method = :alg_L)
-    return ReservoirSample(Random.default_rng(), T; method = method)
+function ReservoirSample(T, method::ReservoirAlgorithm = algL)
+    return ReservoirSample(Random.default_rng(), T, method)
 end
-function ReservoirSample(rng::AbstractRNG, T; method = :alg_L)
-    if method === :alg_L
-        return ResSampleSingleAlgL{T, typeof(rng)}(1.0, 0, rng)
-    else
-        return ResSampleSingleAlgR{T, typeof(rng)}(0, rng)
-    end
+function ReservoirSample(rng::AbstractRNG, T, method::AlgL = algL)
+    return ResSampleSingleAlgL{T, typeof(rng)}(1.0, 0, rng)
+end
+function ReservoirSample(rng::AbstractRNG, T, method::AlgR)
+    return ResSampleSingleAlgR{T, typeof(rng)}(0, rng)
 end
 
 function update!(s::ResSampleSingleAlgR, el)
@@ -53,20 +52,20 @@ function update!(s::ResSampleSingleAlgL, el)
     return s
 end
 
-function itsample(iter; kwargs...)
-    return itsample(Random.default_rng(), iter)
+function itsample(iter, method::ReservoirAlgorithm = algL)
+    return itsample(Random.default_rng(), iter, method)
 end
 
-function itsample(rng::AbstractRNG, iter; kwargs...)
+function itsample(rng::AbstractRNG, iter, method::ReservoirAlgorithm = algL)
     if Base.IteratorSize(iter) isa Base.SizeUnknown
-        return reservoir_sample(rng, iter; kwargs...)
+        return reservoir_sample(rng, iter, method)
     else 
-        return sortedindices_sample(rng, iter; kwargs...)
+        return sortedindices_sample(rng, iter)
     end
 end
 
-function reservoir_sample(rng, iter; method = :alg_L)
-    s = ReservoirSample(rng, Base.@default_eltype(iter); method = method)
+function reservoir_sample(rng, iter, method::ReservoirAlgorithm = algL)
+    s = ReservoirSample(rng, calculate_eltype(iter), method)
     for x in iter
         @inline update!(s, x)
     end
