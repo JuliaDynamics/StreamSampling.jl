@@ -9,11 +9,10 @@ itsample
 # Implemented ALgorithms
 
 ```@docs
-StreamSampling.AlgL
-StreamSampling.AlgR
-StreamSampling.AlgRSWRSKIP
-StreamSampling.AlgAExpJ
-StreamSampling.AlgARes
-StreamSampling.AlgWRSWRSKIP
-StreamSampling.sortedindices_sample
+StreamSampling.algL
+StreamSampling.algR
+StreamSampling.algRSWRSKIP
+StreamSampling.algAExpJ
+StreamSampling.algARes
+StreamSampling.algWRSWRSKIP
 ```

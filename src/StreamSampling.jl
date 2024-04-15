@@ -25,45 +25,45 @@ abstract type AbstractOrdWrReservoirSampleMulti <: AbstractWrReservoirSampleMult
 
 abstract type ReservoirAlgorithm end
 
+struct AlgL <: ReservoirAlgorithm end
+struct AlgR <: ReservoirAlgorithm end
+struct AlgRSWRSKIP <: ReservoirAlgorithm end
+struct AlgARes <: ReservoirAlgorithm end
+struct AlgAExpJ <: ReservoirAlgorithm end
+struct AlgWRSWRSKIP <: ReservoirAlgorithm end
+
 """
 Adapted from algorithm L described in "Random sampling with a reservoir, J. S. Vitter, 1985".
 """
-struct AlgL <: ReservoirAlgorithm end
+const algL = AlgL()
 
 """
 Adapted from algorithm R described in "Random sampling with a reservoir, J. S. Vitter, 1985".
 """
-struct AlgR <: ReservoirAlgorithm end
+const algR = AlgR()
 
 """
 Adapted fron algorithm RSWR_SKIP described in "Reservoir-based Random Sampling with Replacement from 
 Data Stream, B. Park et al., 2008".
 """
-struct AlgRSWRSKIP <: ReservoirAlgorithm end
+const algRSWRSKIP = AlgRSWRSKIP()
 
 """
 Adapted from algorithm A-Res described in "Weighted random sampling with a reservoir, 
 P. S. Efraimidis et al., 2006".
 """
-struct AlgARes <: ReservoirAlgorithm end
+const algARes = AlgARes()
 
 """
 Adapted from algorithm A-ExpJ described in "Weighted random sampling with a reservoir, 
 P. S. Efraimidis et al., 2006".
 """
-struct AlgAExpJ <: ReservoirAlgorithm end
+const algAExpJ = AlgAExpJ()
 
 """
 Adapted from algorithm WRSWR_SKIP described in "A Skip-based Algorithm for Weighted Reservoir 
 Sampling with Replacement, A. Meligrana, 2024". 
 """
-struct AlgWRSWRSKIP <: ReservoirAlgorithm end
-
-const algL = AlgL()
-const algR = AlgR()
-const algRSWRSKIP = AlgRSWRSKIP()
-const algARes = AlgARes()
-const algAExpJ = AlgAExpJ()
 const algWRSWRSKIP = AlgWRSWRSKIP()
 
 export algL, algR, algRSWRSKIP, algARes, algAExpJ, algWRSWRSKIP

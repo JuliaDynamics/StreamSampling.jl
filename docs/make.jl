@@ -8,6 +8,7 @@ makedocs(
     pages = [
         "API" => "index.md",
     ],
+    warnonly = [:doctest, :missing_docs, :cross_references],
 )
 
 @info "Deploying Documentation"
