@@ -44,7 +44,7 @@ mutable struct OrdWrResSampleMulti{T,R} <: AbstractOrdWrReservoirSampleMulti
     ord::Vector{Int}
 end
 
-function ReservoirSample(T, n::Integer, method=alg_L; ordered = false)
+function ReservoirSample(T, n::Integer, method::ReservoirAlgorithm=algL; ordered = false)
     return ReservoirSample(Random.default_rng(), T, n, method; ordered = ordered)
 end
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgL=algL; ordered = false)
@@ -63,7 +63,7 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgR; ordered 
         return ResSampleMultiAlgR(0, rng, value)
     end
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSKIP; ordered = false)
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgRSWRSKIP; ordered = false)
     value = Vector{T}(undef, n)
     if ordered
         return OrdWrResSampleMulti(0, 0, rng, value, collect(1:n))
@@ -209,44 +209,30 @@ n_seen(s::Union{ResSampleMultiAlgR, OrdResSampleMultiAlgR}) = s.state
 n_seen(s::Union{ResSampleMultiAlgL, OrdResSampleMultiAlgL}) = s.seen_k
 n_seen(s::Union{OrdWrResSampleMulti, WrResSampleMulti}) = s.seen_k
 
-function itsample(iter, n::Int; replace = false, ordered = false, method = :alg_L)
-    return itsample(Random.default_rng(), iter, n; replace, ordered, method)
+function itsample(iter, n::Int, method::ReservoirAlgorithm = algL; ordered = false)
+    return itsample(Random.default_rng(), iter, n, method; ordered)
 end
-function itsample(rng::AbstractRNG, iter, n::Int; 
-        replace = false, ordered = false, method = :alg_L)
+function itsample(rng::AbstractRNG, iter, n::Int, method::ReservoirAlgorithm = algL; ordered = false)
     iter_type = calculate_eltype(iter)
     if Base.IteratorSize(iter) isa Base.SizeUnknown
-        reservoir_sample(rng, iter, n; replace, ordered, method)::Vector{iter_type}
+        reservoir_sample(rng, iter, n, method; ordered)::Vector{iter_type}
     else
+        replace = method isa AlgL || method isa AlgR ? false : true
         sortedindices_sample(rng, iter, n; replace, ordered)::Vector{iter_type}
     end
 end
 
-function reservoir_sample(rng, iter, n; replace = false, ordered = false, method = :alg_L)
-    if replace
-        compute_sample(rng, iter, n, ordered, algWRSKIP)
-    else
-        if method === :alg_L
-            compute_sample(rng, iter, n, ordered, algL)
-        elseif method === :alg_R
-            compute_sample(rng, iter, n, ordered, algR)
-        else
-            error(lazy"No implemented algorithm was found for specified method $(method)")
-        end  
-    end
-end
-
-function compute_sample(rng, iter, n::Int, ordered, alg)
+function reservoir_sample(rng, iter, n::Int, method::ReservoirAlgorithm = algL; ordered = false)
     iter_type = calculate_eltype(iter)
-    s = ReservoirSample(rng, iter_type, n, alg; ordered = ordered)
-    return update_sample!(rng, s, iter, ordered)
+    s = ReservoirSample(rng, iter_type, n, method; ordered = ordered)
+    return update_all!(s, iter, ordered)
 end
 
-function update_sample!(rng, s, iter, ordered)
+function update_all!(s, iter, ordered)
     for x in iter
         @inline update!(s, x)
     end
-    return ordered ? ordered_value(s) : shuffle!(rng, value(s))
+    return ordered ? ordered_value(s) : shuffle!(s.rng, value(s))
 end
 
 function calculate_eltype(iter)

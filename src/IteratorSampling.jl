@@ -23,17 +23,22 @@ abstract type AbstractOrdWorReservoirSampleMulti <: AbstractWorReservoirSampleMu
 abstract type AbstractWrReservoirSampleMulti <: AbstractReservoirSampleMulti end
 abstract type AbstractOrdWrReservoirSampleMulti <: AbstractWrReservoirSampleMulti end
 
-struct AlgL end
-struct AlgR end
-struct AlgWRSKIP end
-struct AlgARes end
-struct AlgAExpJ end
+abstract type ReservoirAlgorithm end
+struct AlgL <: ReservoirAlgorithm end
+struct AlgR <: ReservoirAlgorithm end
+struct AlgRSWRSKIP <: ReservoirAlgorithm end
+struct AlgARes <: ReservoirAlgorithm end
+struct AlgAExpJ <: ReservoirAlgorithm end
+struct AlgWRSWRSKIP <: ReservoirAlgorithm end
 
 const algL = AlgL()
 const algR = AlgR()
-const algWRSKIP = AlgWRSKIP()
+const algRSWRSKIP = AlgRSWRSKIP()
 const algARes = AlgARes()
 const algAExpJ = AlgAExpJ()
+const algWRSWRSKIP = AlgWRSWRSKIP()
+
+export algL, algR, algRSWRSKIP, algARes, algAExpJ, algWRSWRSKIP
 
 include("SortedSamplingSingle.jl")
 include("SortedSamplingMulti.jl")

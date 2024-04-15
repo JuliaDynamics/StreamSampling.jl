@@ -1,10 +1,10 @@
 
 @testset "Unweighted sampling single tests" begin
-    @testset "method=$method" for method in (:alg_L, :alg_R)
+    @testset "method=$method" for method in (algL, algR)
         a, b = 1, 100
-        z = itsample(a:b; method = method)
+        z = itsample(a:b, method)
         @test a <= z <= b
-        z = itsample(Iterators.filter(x -> x != b+1, a:b+1); method = method)
+        z = itsample(Iterators.filter(x -> x != b+1, a:b+1), method)
         @test a <= z <= b
         rng = StableRNG(43)
         iters = (a:b, Iterators.filter(x -> x != b + 1, a:b+1))
@@ -12,7 +12,7 @@
             reps = 10000
             dict_res = Dict{Int, Int}()
             for _ in 1:reps
-                s = itsample(rng, it; method = method)
+                s = itsample(rng, it, method)
                 if s in keys(dict_res)
                     dict_res[s] += 1
                 else
