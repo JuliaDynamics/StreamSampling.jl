@@ -1,5 +1,5 @@
 using Documenter
-using IteratorSampling
+using StreamSampling
 
 println("Documentation Build")
 makedocs(
@@ -14,7 +14,7 @@ makedocs(
 CI = get(ENV, "CI", nothing) == "true" || get(ENV, "GITHUB_TOKEN", nothing) !== nothing
 if CI
     deploydocs(
-        repo = "github.com/JuliaDynamics/IteratorSampling.jl.git",
+        repo = "github.com/JuliaDynamics/StreamSampling.jl.git",
         target = "build",
         push_preview = true,
         devbranch = "main",
