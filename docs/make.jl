@@ -1,10 +1,10 @@
 using Documenter
-using IteratorSampling
+using StreamSampling
 
 println("Documentation Build")
 makedocs(
-    modules = [IteratorSampling],
-    sitename = "IteratorSampling.jl",
+    modules = [StreamSampling],
+    sitename = "StreamSampling.jl",
     pages = [
         "API" => "index.md",
     ],
@@ -14,7 +14,7 @@ makedocs(
 CI = get(ENV, "CI", nothing) == "true" || get(ENV, "GITHUB_TOKEN", nothing) !== nothing
 if CI
     deploydocs(
-        repo = "github.com/JuliaDynamics/IteratorSampling.jl.git",
+        repo = "github.com/JuliaDynamics/StreamSampling.jl.git",
         target = "build",
         push_preview = true,
         devbranch = "main",
