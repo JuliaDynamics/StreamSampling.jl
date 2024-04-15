@@ -3,8 +3,8 @@ using StreamSampling
 
 println("Documentation Build")
 makedocs(
-    modules = [IteratorSampling],
-    sitename = "IteratorSampling.jl",
+    modules = [StreamSampling],
+    sitename = "StreamSampling.jl",
     pages = [
         "API" => "index.md",
     ],
