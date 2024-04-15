@@ -12,7 +12,7 @@ function itsample(rng::AbstractRNG, iter, wv::Function, n::Int;
     return reservoir_sample(rng, iter, wv, n; replace, ordered, kwargs...)
 end
 
-function reservoir_sample(rng, iter, wv, n; 
+function reservoir_sample(rng, iter, wv::Function, n; 
         replace = false, ordered = false, kwargs...
 )
     if replace
