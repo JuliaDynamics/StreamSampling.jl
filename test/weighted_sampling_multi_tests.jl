@@ -89,8 +89,6 @@ end
                 else
                     ps_exact = [prob_no_replace(k) for (k, v) in pairs_dict if length(unique(k)) == size]
                 end
-                println(method)
-                println(sum(ps_exact))
                 count_est = [v for (k, v) in pairs_dict]
                 chisq_test = ChisqTest(count_est, ps_exact)
                 @test pvalue(chisq_test) > 0.05

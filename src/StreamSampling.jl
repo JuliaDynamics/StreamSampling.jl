@@ -41,34 +41,46 @@ struct AlgAExpJ <: ReservoirAlgorithm end
 struct AlgWRSWRSKIP <: ReservoirAlgorithm end
 
 """
+Implements random sampling without replacement.
+
 Adapted from algorithm L described in "Random sampling with a reservoir, J. S. Vitter, 1985".
 """
 const algL = AlgL()
 
 """
+Implements random sampling without replacement. 
+
 Adapted from algorithm R described in "Random sampling with a reservoir, J. S. Vitter, 1985".
 """
 const algR = AlgR()
 
 """
+Implements random sampling with replacement.
+
 Adapted fron algorithm RSWR_SKIP described in "Reservoir-based Random Sampling with Replacement from 
 Data Stream, B. Park et al., 2008".
 """
 const algRSWRSKIP = AlgRSWRSKIP()
 
 """
+Implements weighted random sampling without replacement.
+
 Adapted from algorithm A-Res described in "Weighted random sampling with a reservoir, 
 P. S. Efraimidis et al., 2006".
 """
 const algARes = AlgARes()
 
 """
+Implements weighted random sampling without replacement.
+
 Adapted from algorithm A-ExpJ described in "Weighted random sampling with a reservoir, 
 P. S. Efraimidis et al., 2006".
 """
 const algAExpJ = AlgAExpJ()
 
 """
+Implements weighted random sampling with replacement.
+
 Adapted from algorithm WRSWR_SKIP described in "A Skip-based Algorithm for Weighted Reservoir 
 Sampling with Replacement, A. Meligrana, 2024". 
 """
@@ -83,12 +95,62 @@ include("UnweightedSamplingMulti.jl")
 include("WeightedSamplingSingle.jl")
 include("WeightedSamplingMulti.jl")
 
+
+"""
+
+    ReservoirSample([rng], T, method = algL)
+    ReservoirSample([rng], T, n::Int, method = algL; ordered = false)
+
+Initializes a reservoir sample which can then be fitted with [`update!`](@ref).
+The first signature represents a sample where only a single element is collected.
+Look at the [`Algorithms`](@ref) section for the supported methods.
+"""
+function ReservoirSample end
+
+export ReservoirSample
+
+"""
+
+    update!(rs::AbstractReservoirSample, el, [w])
+
+Updates the reservoir sample by scanning the passed element.
+In the case of weighted sampling also the weight of the element
+needs to be passed to the function.
+"""
+function update! end
+
+export update!
+
+"""
+
+    value(rs::AbstractReservoirSample)
+
+Returns the elements collected in the sample at the current 
+sampling stage.
+"""
+function value end
+
+export value
+
+"""
+    ordered_value(rs::AbstractReservoirSample)
+
+Returns the elements collected in the sample at the current 
+sampling stage in the order they were collected. This applies
+only when `ordered = true` is passed in [`ReservoirSample`](@ref).
+"""
+function ordered_value end
+
+export ordered_value
+
+
 """
     itsample([rng], iter, method = algL)
-    itsample([rng], iter, wv, method = algAExpJ)
+    itsample([rng], iter, weight, method = algAExpJ)
 
 Return a random element of the iterator, optionally specifying a `rng` 
-(which defaults to `Random.default_rng()`) and a `wv` function.
+(which defaults to `Random.default_rng()`) and a `weight` function which
+accept each element as input and outputs the corresponding weight.
 If the iterator is empty, it returns `nothing`.
 
 -----
