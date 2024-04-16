@@ -32,7 +32,7 @@ end
 function itsample(rng::AbstractRNG, iter, wv::Function)
     s = ReservoirSample(rng, Base.@default_eltype(iter), algAExpJ)
     for x in iter
-        @inline update!(rng, s, x, wv(x))
+        @inline update!(s, x, wv(x))
     end
     return value(s)
 end
