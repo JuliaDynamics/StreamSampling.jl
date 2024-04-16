@@ -29,28 +29,28 @@ julia> iter = Iterators.filter(x -> x != 10, 1:10^7);
 julia> wv(el) = 1.0
 
 julia> @btime itsample($rng, $iter, 10^4, algRSWRSKIP);
-  14.579 ms (5 allocations: 156.39 KiB)
+  14.578 ms (5 allocations: 156.39 KiB)
 
 julia> @btime sample($rng, collect($iter), 10^4; replace=true);
-  136.973 ms (20 allocations: 146.91 MiB)
+  136.139 ms (20 allocations: 146.91 MiB)
 
 julia> @btime itsample($rng, $iter, 10^4, algL);
-  10.630 ms (3 allocations: 78.22 KiB)
+  10.591 ms (3 allocations: 78.22 KiB)
 
 julia> @btime sample($rng, collect($iter), 10^4; replace=false);
-  138.207 ms (27 allocations: 147.05 MiB)
+  134.352 ms (27 allocations: 147.05 MiB)
 
 julia> @btime itsample($rng, $iter, $wv, 10^4, algWRSWRSKIP);
-  32.756 ms (5 allocations: 156.41 KiB)
+  32.892 ms (12 allocations: 568.83 KiB)
 
 julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=true);
-  548.043 ms (45 allocations: 702.33 MiB)
+  545.058 ms (45 allocations: 702.33 MiB)
 
 julia> @btime itsample($rng, $iter, $wv, 10^4, algAExpJ);
-  40.849 ms (11 allocations: 234.78 KiB)
+  41.092 ms (11 allocations: 234.78 KiB)
 
 julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=false);
-  316.312 ms (43 allocations: 370.19 MiB)
+  312.880 ms (43 allocations: 370.19 MiB)
 ```
 
 More information can be found in the [documentation](https://juliadynamics.github.io/StreamSampling.jl/stable/).

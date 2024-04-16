@@ -90,11 +90,12 @@ function update!(s::SampleMultiAlgWRSWRSKIP, el, w)
     if s.seen_k <= n
         s.value[s.seen_k] = el
         s.weights[s.seen_k] = w
-        if s.seen_k == n 
+        if s.seen_k == n
+            s.value = sample(s.rng, s.value, weights(s.weights), n)
             @inline recompute_skip!(s, n)
             empty!(s.weights)
         end
-    elseif s.skip_w < s.state
+    elseif s.skip_w <= s.state
         p = w/s.state
         z = (1-p)^(n-3)
         q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p),1.0))

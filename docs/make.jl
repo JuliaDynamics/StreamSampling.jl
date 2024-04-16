@@ -5,8 +5,9 @@ println("Documentation Build")
 makedocs(
     modules = [StreamSampling],
     sitename = "StreamSampling.jl",
-    pages = [
-        "API" => "index.md",
+    pages = [    
+        "Introduction" => "index.md",
+        "API" => "api.md",
     ],
     warnonly = [:doctest, :missing_docs, :cross_references],
 )
