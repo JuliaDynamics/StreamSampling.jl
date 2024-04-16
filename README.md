@@ -53,4 +53,4 @@ julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=f
   312.880 ms (43 allocations: 370.19 MiB)
 ```
 
-More information can be found in the [documentation](https://juliadynamics.github.io/StreamSampling.jl/stable/).
+More information can be found in the [documentation](https://juliadynamics.github.io/StreamSampling.jl/dev/).
