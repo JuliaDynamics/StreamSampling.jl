@@ -20,7 +20,7 @@ function update!(s::WeightedResSampleSingle, el, weight)
     s.state += weight
     if s.skip_w < s.state
         s.value = el
-        s.skip_w = skip(rng, s.state, 1)
+        s.skip_w = skip(s.rng, s.state, 1)
     end
     return s
 end
