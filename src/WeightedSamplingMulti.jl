@@ -1,192 +1,178 @@
 
-function itsample(iter, wv::Function, n::Int; 
-        replace = false, ordered = false, kwargs...
-)
-    return itsample(Random.default_rng(), iter, wv, n; 
-                    replace = replace, ordered = ordered)
+mutable struct SampleMultiAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
+    seen_k::Int
+    n::Int
+    rng::R
+    value::BH
 end
 
-function itsample(rng::AbstractRNG, iter, wv::Function, n::Int; 
-        replace = false, ordered = false, kwargs...
-)
-    return reservoir_sample(rng, iter, wv, n; replace, ordered, kwargs...)
+mutable struct SampleMultiAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMulti
+    state::Float64
+    min_priority::Float64
+    seen_k::Int
+    n::Int
+    rng::R
+    value::BH
 end
 
-function reservoir_sample(rng, iter, wv::Function, n; 
-        replace = false, ordered = false, kwargs...
-)
-    if replace
-        weighted_reservoir_sample_with_replacement(rng, iter, wv, n; ordered)
-    else
-        weighted_reservoir_sample_without_replacement(rng, iter, wv, n; ordered, kwargs...)
-    end
+mutable struct SampleMultiAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSampleMulti
+    state::Float64
+    skip_w::Float64
+    seen_k::Int
+    rng::R
+    weights::Vector{Float64}
+    value::Vector{T}
 end
 
-function weighted_reservoir_sample_with_replacement(rng, iter, wv, n; ordered = false)
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgAExpJ; ordered = false)
+    value = BinaryHeap(Base.By(last), Pair{T, Float64}[])
+    sizehint!(value, n)
     if ordered
-        return error("Not implemented yet")
+        error("Not implemented yet")
     else
-        weighted_reservoir_sample_with_replacement(rng, iter, wv, n, wrsample)
+        return SampleMultiAlgAExpJ(0.0, 0.0, 0, n, rng, value)
     end
 end
-
-function weighted_reservoir_sample_without_replacement(rng, iter, wv, n; ordered = false, method = :alg_AExpJ)
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgARes; ordered = false)
+    value = BinaryHeap(Base.By(last), Pair{T, Float64}[])
+    sizehint!(value, n)
     if ordered
-        return error("Not implemented yet")
+        error("Not implemented yet")
     else
-        if method === :alg_AExpJ
-            weighted_reservoir_sample_without_replacement(rng, iter, wv, n, worsample, algAExpJ)
-        elseif method === :alg_ARes
-            weighted_reservoir_sample_without_replacement(rng, iter, wv, n, worsample, algARes)
-        else
-            error(lazy"No implemented algorithm was found for specified method $(method)")
-        end
+        return SampleMultiAlgARes(0, n, rng, value)
+    end
+end
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP; ordered = false)
+    value = Vector{T}(undef, n)
+    weights = Vector{Float64}(undef, n)
+    if ordered
+        error("Not implemented yet")
+    else
+        return SampleMultiAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value)
     end
 end
 
-function weighted_reservoir_sample_without_replacement(rng, iter, wv, n, 
-        is::Union{WORSample, OrdWORSample}, alg::AlgARes)
-    iter_type = calculate_eltype(iter)
-    it = iterate(iter)
-    isnothing(it) && return iter_type[]
-    el, state = it
-    reservoir = BinaryHeap(Base.By(last), Pair{iter_type, Float64}[])
-    sizehint!(reservoir, n)
-    priority = compute_priority_b(rng, wv(el))
-    push!(reservoir, el => priority)
-    for i in 2:n
-        it = iterate(iter, state)
-        isnothing(it) && return transform(rng, resize!(first.(reservoir.valtree), i-1), is)
-        el, state = it
-        priority = compute_priority_b(rng, wv(el))
-        push!(reservoir, el => priority)
-    end
-    while true
-        it = iterate(iter, state)
-        isnothing(it) && return transform(rng, first.(reservoir.valtree), is)
-        el, state = it
-        priority = compute_priority_b(rng, wv(el))
-        min_priority = last(first(reservoir))
+function update!(s::SampleMultiAlgARes, el, w)
+    n = s.n
+    s.seen_k += 1
+    priority = -randexp(s.rng)/w
+    if s.seen_k <= n
+        push!(s.value, el => priority)
+    else
+        min_priority = last(first(s.value))
         if priority > min_priority
-            pop!(reservoir)
-            push!(reservoir, el => priority)
+            pop!(s.value)
+            push!(s.value, el => priority)
         end
     end
+    return s
 end
-
-compute_priority_b(rng, w_el) = -randexp(rng)/w_el
-
-function weighted_reservoir_sample_without_replacement(rng, iter, wv, n, 
-        is::Union{WORSample, OrdWORSample}, alg::AlgAExpJ)
-    iter_type = calculate_eltype(iter)
-    it = iterate(iter)
-    isnothing(it) && return iter_type[]
-    el, state = it
-    reservoir = BinaryHeap(Base.By(last), Pair{iter_type, Float64}[])
-    sizehint!(reservoir, n)
-    priority = compute_priority(rng, wv(el))
-    push!(reservoir, el => priority)
-    for i in 2:n
-        it = iterate(iter, state)
-        isnothing(it) && return transform(rng, resize!(first.(reservoir.valtree), i-1), is)
-        el, state = it
-        priority = compute_priority(rng, wv(el))
-        push!(reservoir, el => priority)
+function update!(s::SampleMultiAlgAExpJ, el, w)
+    n = s.n
+    s.seen_k += 1
+    s.state -= w
+    if s.seen_k <= n
+        priority = exp(-randexp(s.rng)/w)
+        push!(s.value, el => priority)
+        s.seen_k == n && @inline recompute_skip!(s)
+    elseif s.state <= 0.0
+        priority = @inline compute_skip_priority(s, w)
+        pop!(s.value)
+        push!(s.value, el => priority)
+        @inline recompute_skip!(s)
     end
-    while true
-        min_priority = last(first(reservoir))
-        w_skip = -randexp(rng)/log(min_priority)
-        it = skip_ahead_unknown_end(iter, state, wv, w_skip)
-        isnothing(it) && return transform(rng, first.(reservoir.valtree), is)
-        el, state = it
-        priority = compute_skip_priority(rng, min_priority, wv(el))
-        pop!(reservoir)
-        push!(reservoir, el => priority)
-    end
+    return s
 end
-
-function skip_ahead_unknown_end(iter, state, wv::Function, w_skip)
-    it = iterate(iter, state)
-    isnothing(it) && return nothing
-    el, state = it
-    w_skip -= wv(el)
-    while w_skip > 0.0
-        it = iterate(iter, state)
-        isnothing(it) && return nothing
-        el, state = it
-        w_skip -= wv(el)
-    end
-    return it
-end
-
-compute_priority(rng, w_el) = exp(-randexp(rng)/w_el)
-
-function compute_skip_priority(rng, min_priority, w_el)
-    t = exp(log(min_priority)*w_el)
-    return exp(log(rand(rng, Uniform(t,1)))/w_el)
-end
-
-function transform(rng, reservoir, ::WORSample)
-    return shuffle!(rng, reservoir)
-end
-
-function weighted_reservoir_sample_with_replacement(rng, iter, wv, n, is::Union{WRSample, OrdWRSample})
-    iter_type = calculate_eltype(iter)
-    it = iterate(iter)
-    isnothing(it) && return iter_type[]
-    reservoir = Vector{iter_type}(undef, n)
-    ws = Vector{Float64}(undef, n)
-    el, state = it
-    w_el = wv(el)
-    reservoir[1], ws[1] = el, w_el
-    w_sum = wv(el)
-    @inbounds for i in 2:n
-        it = iterate(iter, state)
-        isnothing(it) && return sample(rng, resize!(reservoir, i-1), weights(resize!(ws, i-1)), n)
-        el, state = it
-        w_el = wv(el)
-        reservoir[i], ws[i] = el, w_el
-        w_sum += w_el
-    end
-    reservoir = sample(rng, reservoir, weights(ws), n)
-    empty!(ws)
-    @inbounds while true
-        w_skip = skip(rng, w_sum, n)
-        it, w_sum = skip_ahead_unknown_end(iter, state, wv, w_sum, w_skip)
-        isnothing(it) && return shuffle!(rng, reservoir)
-        el, state = it
-        p = wv(el)/w_sum
+function update!(s::SampleMultiAlgWRSWRSKIP, el, w)
+    n = length(s.value)
+    s.seen_k += 1
+    s.state += w
+    if s.seen_k <= n
+        s.value[s.seen_k] = el
+        s.weights[s.seen_k] = w
+        if s.seen_k == n 
+            @inline recompute_skip!(s, n)
+            empty!(s.weights)
+        end
+    elseif s.skip_w < s.state
+        p = w/s.state
         z = (1-p)^(n-3)
-        q = rand(rng, Uniform(z*(1-p)*(1-p)*(1-p),1))
+        q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p),1.0))
         k = choose(n, p, q, z)
-        if k == 1
-            r = rand(rng, 1:n)
-            reservoir[r] = el
-        else
-            for j in 1:k
-                r = rand(rng, j:n)
-                reservoir[r] = el
-                reservoir[r], reservoir[j] = reservoir[j], reservoir[r]
-            end
-        end 
+        @inbounds begin
+            if k == 1
+                r = rand(s.rng, 1:n)
+                s.value[r] = el
+            else
+                for j in 1:k
+                    r = rand(s.rng, j:n)
+                    s.value[r] = el
+                    s.value[r], s.value[j] = s.value[j], s.value[r]
+                end
+            end 
+        end
+        @inline recompute_skip!(s, n)
+    end
+    return s
+end
+
+function compute_skip_priority(s, w)
+    t = exp(log(s.min_priority)*w)
+    return exp(log(rand(s.rng, Uniform(t,1)))/w)
+end
+
+function recompute_skip!(s::SampleMultiAlgAExpJ)
+    s.min_priority = last(first(s.value))
+    s.state = -randexp(s.rng)/log(s.min_priority)
+end
+function recompute_skip!(s::SampleMultiAlgWRSWRSKIP, n)
+    q = rand(s.rng)^(1/n)
+    s.skip_w = s.state/q
+end
+
+function value(s::AbstractWeightedWorReservoirSampleMulti)
+    if n_seen(s) < s.n
+        return first.(s.value.valtree)[1:n_seen(s)]
+    else
+        return first.(s.value.valtree)
+    end
+end
+function value(s::AbstractWeightedWrReservoirSampleMulti)
+    if n_seen(s) < length(s.value)
+        return sample(s.rng, s.value[1:n_seen(s)], weights(s.weights[1:n_seen(s)]), length(s.value))
+    else
+        return s.value
     end
 end
 
-function skip_ahead_unknown_end(iter, state, wv::Function, w_sum, w_skip)
-    it = iterate(iter, state)
-    isnothing(it) && return nothing, nothing
-    el, state = it
-    w_sum += wv(el)
-    while w_skip > w_sum
-        it = iterate(iter, state)
-        isnothing(it) && return nothing, nothing
-        el, state = it
-        w_sum += wv(el)
-    end
-    return it, w_sum
+function ordered_value(s::AbstractWeightedReservoirSampleMulti)
+    error("Not implemented yet")
 end
 
-function skip(rng, w_sum::AbstractFloat, m)
-    q = rand(rng)^(1/m)
-    return w_sum/q
+n_seen(s::SampleMultiAlgARes) = s.seen_k
+n_seen(s::SampleMultiAlgAExpJ) = s.seen_k
+n_seen(s::SampleMultiAlgWRSWRSKIP) = s.seen_k
+
+function itsample(iter, wv::Function, n::Int, 
+        method::ReservoirAlgorithm=algAExpJ; ordered = false)
+    return itsample(Random.default_rng(), iter, wv, n, method; ordered = ordered)
+end
+
+function itsample(rng::AbstractRNG, iter, wv::Function, n::Int, 
+        method::ReservoirAlgorithm=algAExpJ; ordered = false)
+    return reservoir_sample(rng, iter, wv, n, method; ordered = ordered)
+end
+
+function reservoir_sample(rng, iter, wv::Function, n::Int, 
+        method::ReservoirAlgorithm=algAExpJ; ordered = false)
+    iter_type = calculate_eltype(iter)
+    s = ReservoirSample(rng, iter_type, n, method; ordered = ordered)
+    return update_all!(s, iter, wv, ordered)
+end
+
+function update_all!(s, iter, wv, ordered)
+    for x in iter
+        @inline update!(s, x, wv(x))
+    end
+    return ordered ? ordered_value(s) : shuffle!(s.rng, value(s))
 end

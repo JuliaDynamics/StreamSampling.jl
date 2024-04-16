@@ -114,7 +114,7 @@ function update!(s::AbstractWrReservoirSampleMulti, el)
     elseif s.skip_k < 0
         p = 1/s.seen_k
         z = (1-p)^(n-3)
-        q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p),1))
+        q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p),1.0))
         k = choose(n, p, q, z)
         @inbounds begin
             if k == 1

@@ -18,18 +18,18 @@ end
 
 function update!(s::WeightedResSampleSingle, el, weight)
     s.state += weight
-    if s.skip_w < s.state
+    if s.skip_w <= s.state
         s.value = el
-        s.skip_w = skip(s.rng, s.state, 1)
+        s.skip_w = s.state/rand(s.rng)
     end
     return s
 end
 
-function itsample(iter, wv::Function)
-    return itsample(Random.default_rng(), iter, wv)
+function itsample(iter, wv::Function, method::ReservoirAlgorithm = algAExpJ)
+    return itsample(Random.default_rng(), iter, wv, method)
 end
 
-function itsample(rng::AbstractRNG, iter, wv::Function)
+function itsample(rng::AbstractRNG, iter, wv::Function, method::ReservoirAlgorithm = algAExpJ)
     s = ReservoirSample(rng, Base.@default_eltype(iter), algAExpJ)
     for x in iter
         @inline update!(s, x, wv(x))
