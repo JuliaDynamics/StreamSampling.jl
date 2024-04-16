@@ -9,7 +9,7 @@ If the iterable is lazy, the memory required grows in relation to the size of th
 
 The [`itsample`](@ref) instead allows to consume all the stream at once and return the sample collected:
 
-```
+```julia
 julia> using StreamSampling
 
 julia> st = 1:10;
@@ -25,7 +25,7 @@ julia> itsample(st, 5)
 In some cases, one needs to control the updates the [`ReservoirSample`](@ref) will be subject to. In this case
 you can simply use the [`update!`](@ref) function to fit new values in the reservoir:
 
-```
+```julia
 julia> using StreamSampling
 
 julia> rs = ReservoirSample(Int, 5);
