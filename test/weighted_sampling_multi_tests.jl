@@ -26,7 +26,8 @@ function prob_no_replace(k)
 end
 
 @testset "Weighted sampling multi tests" begin
-    combs = Iterators.product([(algAExpJ, algARes, algWRSWRSKIP), (false, )]...)
+    combs = vec(collect(Iterators.product([(algAExpJ, algARes, algWRSWRSKIP), (false, )]...)))
+    push!(combs, (algWRSWRSKIP, true))
     @testset "method=$method ordered=$ordered" for (method, ordered) in combs
         a, b = 1, 10
         # test return values of iter with known lengths are inrange
@@ -67,7 +68,7 @@ end
         @test ordered ? issorted(s) : true
 
         weight2(el) = el <= 5 ? 1.0 : 2.0
-        rng = StableRNG(43)
+        rng = StableRNG(41)
         iters = (a:b, Iterators.filter(x -> x != b+1, a:b+1))
         sizes = (1, 2)
         for it in iters
