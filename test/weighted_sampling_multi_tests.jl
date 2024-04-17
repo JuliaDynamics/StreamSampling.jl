@@ -68,7 +68,7 @@ end
         @test ordered ? issorted(s) : true
 
         weight2(el) = el <= 5 ? 1.0 : 2.0
-        rng = StableRNG(42)
+        rng = StableRNG(41)
         iters = (a:b, Iterators.filter(x -> x != b+1, a:b+1))
         sizes = (1, 2)
         for it in iters
