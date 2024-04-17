@@ -29,7 +29,7 @@ abstract type AbstractOrdWrReservoirSampleMulti <: AbstractWrReservoirSampleMult
 abstract type AbstractWeightedReservoirSampleMulti <: AbstractReservoirSample end
 abstract type AbstractWeightedWorReservoirSampleMulti <: AbstractReservoirSample end
 abstract type AbstractWeightedWrReservoirSampleMulti <: AbstractReservoirSample end
-
+abstract type AbstractWeightedOrdWrReservoirSampleMulti <: AbstractReservoirSample end
 
 abstract type ReservoirAlgorithm end
 

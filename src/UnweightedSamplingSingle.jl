@@ -1,24 +1,24 @@
 
-mutable struct ResSampleSingleAlgL{T,R} <: AbstractReservoirSample
+mutable struct SampleSingleAlgL{T,R} <: AbstractReservoirSample
     state::Float64
     skip_k::Int
     rng::R
     value::T
-    ResSampleSingleAlgL{T,R}(state, skip_k, rng) where {T,R} = new{T,R}(state, skip_k, rng)
+    SampleSingleAlgL{T,R}(state, skip_k, rng) where {T,R} = new{T,R}(state, skip_k, rng)
 end
 
-mutable struct ResSampleSingleAlgR{T,R} <: AbstractReservoirSample
+mutable struct SampleSingleAlgR{T,R} <: AbstractReservoirSample
     state::Int
     rng::R
     value::T
-    ResSampleSingleAlgR{T,R}(state, rng) where {T,R} = new{T,R}(state, rng)
+    SampleSingleAlgR{T,R}(state, rng) where {T,R} = new{T,R}(state, rng)
 end
 
-function value(s::ResSampleSingleAlgL)
+function value(s::SampleSingleAlgL)
     s.state === 1.0 && return nothing
     return s.value
 end
-function value(s::ResSampleSingleAlgR)
+function value(s::SampleSingleAlgR)
     s.state === 0 && return nothing
     return s.value
 end
@@ -27,13 +27,13 @@ function ReservoirSample(T, method::ReservoirAlgorithm = algL)
     return ReservoirSample(Random.default_rng(), T, method)
 end
 function ReservoirSample(rng::AbstractRNG, T, method::AlgL = algL)
-    return ResSampleSingleAlgL{T, typeof(rng)}(1.0, 0, rng)
+    return SampleSingleAlgL{T, typeof(rng)}(1.0, 0, rng)
 end
 function ReservoirSample(rng::AbstractRNG, T, method::AlgR)
-    return ResSampleSingleAlgR{T, typeof(rng)}(0, rng)
+    return SampleSingleAlgR{T, typeof(rng)}(0, rng)
 end
 
-function update!(s::ResSampleSingleAlgR, el)
+function update!(s::SampleSingleAlgR, el)
     s.state += 1
     if rand(s.rng) <= 1/s.state
         s.value = el
@@ -41,7 +41,7 @@ function update!(s::ResSampleSingleAlgR, el)
     return s
 end
 
-function update!(s::ResSampleSingleAlgL, el)
+function update!(s::SampleSingleAlgL, el)
     if s.skip_k > 0
         s.skip_k -= 1
     else

@@ -1,22 +1,22 @@
 
-mutable struct WeightedResSampleSingle{T,R} <: AbstractReservoirSample
+mutable struct SampleSingleAlgAExpJ{T,R} <: AbstractReservoirSample
     state::Float64
     skip_w::Float64
     rng::R
     value::T
-    WeightedResSampleSingle{T,R}(state, skip_w, rng) where {T,R} = new{T,R}(state, skip_w, rng)
+    SampleSingleAlgAExpJ{T,R}(state, skip_w, rng) where {T,R} = new{T,R}(state, skip_w, rng)
 end
 
 function ReservoirSample(rng::R, T, method::AlgAExpJ) where {R<:AbstractRNG}
-    return WeightedResSampleSingle{T,R}(0.0, 0.0, rng)
+    return SampleSingleAlgAExpJ{T,R}(0.0, 0.0, rng)
 end
 
-function value(s::WeightedResSampleSingle)
+function value(s::SampleSingleAlgAExpJ)
     s.state === 0.0 && return nothing
     return s.value
 end
 
-function update!(s::WeightedResSampleSingle, el, weight)
+function update!(s::SampleSingleAlgAExpJ, el, weight)
     s.state += weight
     if s.skip_w <= s.state
         s.value = el

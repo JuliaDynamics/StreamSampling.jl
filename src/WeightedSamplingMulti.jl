@@ -24,6 +24,16 @@ mutable struct SampleMultiAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSample
     value::Vector{T}
 end
 
+mutable struct SampleMultiOrdAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSampleMulti
+    state::Float64
+    skip_w::Float64
+    seen_k::Int
+    rng::R
+    weights::Vector{Float64}
+    value::Vector{T}
+    ord::Vector{Int}
+end
+
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgAExpJ; ordered = false)
     value = BinaryHeap(Base.By(last), Pair{T, Float64}[])
     sizehint!(value, n)
@@ -46,7 +56,8 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP; 
     value = Vector{T}(undef, n)
     weights = Vector{Float64}(undef, n)
     if ordered
-        error("Not implemented yet")
+        ord = collect(1:n)
+        return SampleMultiOrdAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value, ord)
     else
         return SampleMultiAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value)
     end
@@ -83,7 +94,7 @@ function update!(s::SampleMultiAlgAExpJ, el, w)
     end
     return s
 end
-function update!(s::SampleMultiAlgWRSWRSKIP, el, w)
+function update!(s::Union{SampleMultiAlgWRSWRSKIP, SampleMultiOrdAlgWRSWRSKIP}, el, w)
     n = length(s.value)
     s.seen_k += 1
     s.state += w
@@ -91,7 +102,7 @@ function update!(s::SampleMultiAlgWRSWRSKIP, el, w)
         s.value[s.seen_k] = el
         s.weights[s.seen_k] = w
         if s.seen_k == n
-            s.value = sample(s.rng, s.value, weights(s.weights), n)
+            s.value = sample(s.rng, s.value, weights(s.weights), n; ordered = is_ordered(s))
             @inline recompute_skip!(s, n)
             empty!(s.weights)
         end
@@ -104,11 +115,13 @@ function update!(s::SampleMultiAlgWRSWRSKIP, el, w)
             if k == 1
                 r = rand(s.rng, 1:n)
                 s.value[r] = el
+                update_order_single!(s, r)
             else
                 for j in 1:k
                     r = rand(s.rng, j:n)
                     s.value[r] = el
                     s.value[r], s.value[j] = s.value[j], s.value[r]
+                    update_order_multi!(s, r, j)
                 end
             end 
         end
@@ -126,10 +139,23 @@ function recompute_skip!(s::SampleMultiAlgAExpJ)
     s.min_priority = last(first(s.value))
     s.state = -randexp(s.rng)/log(s.min_priority)
 end
-function recompute_skip!(s::SampleMultiAlgWRSWRSKIP, n)
+function recompute_skip!(s::Union{SampleMultiAlgWRSWRSKIP, SampleMultiOrdAlgWRSWRSKIP}, n)
     q = rand(s.rng)^(1/n)
     s.skip_w = s.state/q
 end
+
+update_order_single!(s::SampleMultiAlgWRSWRSKIP, r) = nothing
+function update_order_single!(s::SampleMultiOrdAlgWRSWRSKIP, r)
+    s.ord[r] = n_seen(s)
+end
+
+update_order_multi!(s::SampleMultiAlgWRSWRSKIP, r, j) = nothing
+function update_order_multi!(s::SampleMultiOrdAlgWRSWRSKIP, r, j)
+    s.ord[r], s.ord[j] = s.ord[j], n_seen(s)
+end
+
+is_ordered(s::SampleMultiOrdAlgWRSWRSKIP) = true
+is_ordered(s::SampleMultiAlgWRSWRSKIP) = false
 
 function value(s::AbstractWeightedWorReservoirSampleMulti)
     if n_seen(s) < s.n
@@ -146,13 +172,15 @@ function value(s::AbstractWeightedWrReservoirSampleMulti)
     end
 end
 
-function ordered_value(s::AbstractWeightedReservoirSampleMulti)
-    error("Not implemented yet")
+function ordered_value(s::SampleMultiOrdAlgWRSWRSKIP)
+    if n_seen(s) < length(s.value)
+        return sample(s.rng, s.value[1:n_seen(s)], weights(s.weights[1:n_seen(s)]), length(s.value); ordered=true)
+    else
+        return s.value[sortperm(s.ord)]
+    end
 end
 
-n_seen(s::SampleMultiAlgARes) = s.seen_k
-n_seen(s::SampleMultiAlgAExpJ) = s.seen_k
-n_seen(s::SampleMultiAlgWRSWRSKIP) = s.seen_k
+n_seen(s::AbstractReservoirSample) = s.seen_k
 
 function itsample(iter, wv::Function, n::Int, 
         method::ReservoirAlgorithm=algAExpJ; ordered = false)
