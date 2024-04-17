@@ -27,6 +27,7 @@ end
 
 @testset "Weighted sampling multi tests" begin
     combs = Iterators.product([(algAExpJ, algARes, algWRSWRSKIP), (false, )]...)
+    push!(combs, (algWRSWRSKIP, true))
     @testset "method=$method ordered=$ordered" for (method, ordered) in combs
         a, b = 1, 10
         # test return values of iter with known lengths are inrange
