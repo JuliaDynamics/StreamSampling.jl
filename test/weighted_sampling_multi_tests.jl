@@ -26,7 +26,7 @@ function prob_no_replace(k)
 end
 
 @testset "Weighted sampling multi tests" begin
-    combs = collect(Iterators.product([(algAExpJ, algARes, algWRSWRSKIP), (false, )]...))
+    combs = vec(collect(Iterators.product([(algAExpJ, algARes, algWRSWRSKIP), (false, )]...)))
     push!(combs, (algWRSWRSKIP, true))
     @testset "method=$method ordered=$ordered" for (method, ordered) in combs
         a, b = 1, 10
