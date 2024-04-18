@@ -7,6 +7,8 @@ This has some advantages over other sampling procedures:
 
 - If the iterable is lazy, the memory required grows in relation to the size of the sample, instead of the all population.
 - The sample collected is a random sample of the portion of the stream seen thus far at any point of the sampling process.
+- In some cases, sampling with the techniques implemented in this library can bring considerable performance gains, since
+  the population of items doesn't need to be previously stored in memory.
 
 ## Brief overview of the functionalities
 
@@ -51,7 +53,7 @@ Consult the [API page](https://juliadynamics.github.io/StreamSampling.jl/stable/
 ## Benchmark
 
 As stated in the first section, using these sampling techniques can bring down considerably the memory usage of the program, 
-but there are cases where they are also more time efficient than others, as demostrated below with a comparison with the 
+but there are cases where they are also more time efficient, as demostrated below with a comparison with the 
 equivalent methods of `StatsBase.sample`:
 
 ```julia
