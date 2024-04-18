@@ -3,7 +3,6 @@ module StreamSampling
 using DataStructures
 using Distributions
 using Random
-using ResumableFunctions
 using StatsBase
 
 struct WRSample end
