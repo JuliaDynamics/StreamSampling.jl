@@ -232,8 +232,6 @@ function update_all!(s, iter, ordered)
 end
 
 function calculate_eltype(iter)
-    return Base.@default_eltype(iter)
-end
-function calculate_eltype(iter::ResumableFunctions.FiniteStateMachineIterator)
-    return eltype(iter)
+    T = eltype(iter)
+    return T === Any ? Base.@default_eltype(iter) : T
 end

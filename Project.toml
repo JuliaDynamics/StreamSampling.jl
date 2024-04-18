@@ -6,7 +6,6 @@ version = "0.3.0"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
-ResumableFunctions = "c5292f4c-5179-55e1-98c5-05642aab7184"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
@@ -14,5 +13,4 @@ julia = "1.8"
 DataStructures = "0.18"
 Distributions = "0.25"
 Random = "1"
-ResumableFunctions = "0.6"
 StatsBase = "0.32, 0.33, 0.34"
