@@ -1,47 +1,47 @@
 
 mutable struct SampleMultiAlgR{T,R} <: AbstractWorReservoirSampleMulti
     seen_k::Int
-    rng::R
-    value::Vector{T}
+    const rng::R
+    const value::Vector{T}
 end
 
 mutable struct SampleMultiOrdAlgR{T,R} <: AbstractOrdWorReservoirSampleMulti
     seen_k::Int
-    rng::R
-    value::Vector{T}
-    ord::Vector{Int}
+    const rng::R
+    const value::Vector{T}
+    const ord::Vector{Int}
 end
 
 mutable struct SampleMultiAlgL{T,R} <: AbstractWorReservoirSampleMulti
     state::Float64
     skip_k::Int
     seen_k::Int
-    rng::R
-    value::Vector{T}
+    const rng::R
+    const value::Vector{T}
 end
 
 mutable struct SampleMultiOrdAlgL{T,R} <: AbstractOrdWorReservoirSampleMulti
     state::Float64
     skip_k::Int
     seen_k::Int
-    rng::R
-    value::Vector{T}
-    ord::Vector{Int}
+    const rng::R
+    const value::Vector{T}
+    const ord::Vector{Int}
 end
 
 mutable struct SampleMultiAlgRSWRSKIP{T,R} <: AbstractWrReservoirSampleMulti
     skip_k::Int
     seen_k::Int
-    rng::R
-    value::Vector{T}
+    const rng::R
+    const value::Vector{T}
 end
 
 mutable struct SampleMultiOrdAlgRSWRSKIP{T,R} <: AbstractOrdWrReservoirSampleMulti
     skip_k::Int
     seen_k::Int
-    rng::R
-    value::Vector{T}
-    ord::Vector{Int}
+    const rng::R
+    const value::Vector{T}
+    const ord::Vector{Int}
 end
 
 function ReservoirSample(T, n::Integer, method::ReservoirAlgorithm=algL; ordered = false)
@@ -109,7 +109,10 @@ end
         @inbounds s.value[s.seen_k] = el
         if s.seen_k == n
             recompute_skip!(s, n)
-            s.value = sample(s.rng, s.value, n, ordered=is_ordered(s))
+            new_values = sample(s.rng, s.value, n, ordered=is_ordered(s))
+            @inbounds for i in 1:n
+                s.value[i] = new_values[i]
+            end
         end
     elseif s.skip_k < 0
         p = 1/s.seen_k
