@@ -13,7 +13,7 @@ function sortedindices_sample(rng, iter, n::Int; replace = false, ordered = fals
             end
         end
     end
-    iter_type = Base.@default_eltype(iter)
+    iter_type = calculate_eltype(iter)
     reservoir = Vector{iter_type}(undef, n)
     indices = get_sorted_indices(rng, n, N, replace)
     first_idx = indices[1]
