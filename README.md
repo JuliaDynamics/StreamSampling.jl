@@ -6,12 +6,12 @@
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
 
-This package allows to sample from any stream in a single pass through the data, 
-even if the number of items is unknown. 
+The scope of this package is providing general methods to sample from any stream in a single pass through the data, even when the number of items contained in the stream is unknown.
 
-If the iterable is lazy, the memory required grows in relation to the size of the 
-sample, instead of the all population, which can be useful for sampling from big 
-data streams.
+This has some advantages over other sampling procedures:
+
+- If the iterable is lazy, the memory required grows in relation to the size of the sample, instead of the all population.
+- The sample collected is a random sample of the portion of the stream seen thus far at any point of the sampling process.
 
 Moreover, it turns out that sampling with the techniques implemented in this library
 is also much faster in some common cases, as highlighted below:
