@@ -2,14 +2,14 @@
 mutable struct SampleSingleAlgL{T,R} <: AbstractReservoirSample
     state::Float64
     skip_k::Int
-    rng::R
+    const rng::R
     value::T
     SampleSingleAlgL{T,R}(state, skip_k, rng) where {T,R} = new{T,R}(state, skip_k, rng)
 end
 
 mutable struct SampleSingleAlgR{T,R} <: AbstractReservoirSample
     state::Int
-    rng::R
+    const rng::R
     value::T
     SampleSingleAlgR{T,R}(state, rng) where {T,R} = new{T,R}(state, rng)
 end
@@ -54,7 +54,6 @@ end
 function itsample(iter, method::ReservoirAlgorithm = algL)
     return itsample(Random.default_rng(), iter, method)
 end
-
 function itsample(rng::AbstractRNG, iter, method::ReservoirAlgorithm = algL)
     if Base.IteratorSize(iter) isa Base.SizeUnknown
         return reservoir_sample(rng, iter, method)

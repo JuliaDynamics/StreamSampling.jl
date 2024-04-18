@@ -2,7 +2,7 @@
 mutable struct SampleSingleAlgAExpJ{T,R} <: AbstractReservoirSample
     state::Float64
     skip_w::Float64
-    rng::R
+    const rng::R
     value::T
     SampleSingleAlgAExpJ{T,R}(state, skip_w, rng) where {T,R} = new{T,R}(state, skip_w, rng)
 end

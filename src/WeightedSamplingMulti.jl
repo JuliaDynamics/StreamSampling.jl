@@ -2,36 +2,36 @@
 mutable struct SampleMultiAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
     seen_k::Int
     n::Int
-    rng::R
-    value::BH
+    const rng::R
+    const value::BH
 end
 
 mutable struct SampleMultiAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMulti
     state::Float64
     min_priority::Float64
     seen_k::Int
-    n::Int
-    rng::R
-    value::BH
+    const n::Int
+    const rng::R
+    const value::BH
 end
 
 mutable struct SampleMultiAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSampleMulti
     state::Float64
     skip_w::Float64
     seen_k::Int
-    rng::R
-    weights::Vector{Float64}
-    value::Vector{T}
+    const rng::R
+    const weights::Vector{Float64}
+    const value::Vector{T}
 end
 
 mutable struct SampleMultiOrdAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSampleMulti
     state::Float64
     skip_w::Float64
     seen_k::Int
-    rng::R
-    weights::Vector{Float64}
-    value::Vector{T}
-    ord::Vector{Int}
+    const rng::R
+    const weights::Vector{Float64}
+    const value::Vector{T}
+    const ord::Vector{Int}
 end
 
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgAExpJ; ordered = false)
@@ -102,7 +102,10 @@ end
         @inbounds s.value[s.seen_k] = el
         @inbounds s.weights[s.seen_k] = w
         if s.seen_k == n
-            s.value = sample(s.rng, s.value, weights(s.weights), n; ordered = is_ordered(s))
+            new_values = sample(s.rng, s.value, weights(s.weights), n; ordered = is_ordered(s))
+            @inbounds for i in 1:n
+                s.value[i] = new_values[i]
+            end
             @inline recompute_skip!(s, n)
             empty!(s.weights)
         end
