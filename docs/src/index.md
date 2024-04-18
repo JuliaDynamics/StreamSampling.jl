@@ -31,7 +31,7 @@ julia> using StreamSampling
 julia> rs = ReservoirSample(Int, 5);
 
 julia> for x in 1:100
-           @inline update!(rs, x)
+           update!(rs, x)
        end
 
 julia> value(rs)

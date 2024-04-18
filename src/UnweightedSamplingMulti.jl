@@ -72,41 +72,41 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgRSWRSKIP; o
     end
 end
 
-function update!(s::Union{SampleMultiAlgR, SampleMultiOrdAlgR}, el)
+@inline function update!(s::Union{SampleMultiAlgR, SampleMultiOrdAlgR}, el)
     n = length(s.value)
     s.seen_k += 1
     if s.seen_k <= n
-        s.value[s.seen_k] = el
+        @inbounds s.value[s.seen_k] = el
     else
         j = rand(s.rng, 1:s.seen_k)
         if j <= n
-            s.value[j] = el
+            @inbounds s.value[j] = el
             update_order!(s, j)
         end
     end
     return s
 end
-function update!(s::Union{SampleMultiAlgL, SampleMultiOrdAlgL}, el)
+@inline function update!(s::Union{SampleMultiAlgL, SampleMultiOrdAlgL}, el)
     n = length(s.value)
     s.seen_k += 1
     s.skip_k -= 1
     if s.seen_k <= n
-        s.value[s.seen_k] = el
+        @inbounds s.value[s.seen_k] = el
         s.seen_k == n && @inline recompute_skip!(s, n)
     elseif s.skip_k < 0
         j = rand(s.rng, 1:n)
-        s.value[j] = el
+        @inbounds s.value[j] = el
         update_order!(s, j)
         @inline recompute_skip!(s, n)
     end
     return s
 end
-function update!(s::AbstractWrReservoirSampleMulti, el)
+@inline function update!(s::AbstractWrReservoirSampleMulti, el)
     n = length(s.value)
     s.seen_k += 1
     s.skip_k -= 1
     if s.seen_k <= n
-        s.value[s.seen_k] = el
+        @inbounds s.value[s.seen_k] = el
         if s.seen_k == n
             recompute_skip!(s, n)
             s.value = sample(s.rng, s.value, n, ordered=is_ordered(s))
@@ -226,7 +226,7 @@ end
 
 function update_all!(s, iter, ordered)
     for x in iter
-        @inline update!(s, x)
+        update!(s, x)
     end
     return ordered ? ordered_value(s) : shuffle!(s.rng, value(s))
 end

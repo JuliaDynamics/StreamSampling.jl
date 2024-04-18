@@ -63,7 +63,7 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP; 
     end
 end
 
-function update!(s::SampleMultiAlgARes, el, w)
+@inline function update!(s::SampleMultiAlgARes, el, w)
     n = s.n
     s.seen_k += 1
     priority = -randexp(s.rng)/w
@@ -78,7 +78,7 @@ function update!(s::SampleMultiAlgARes, el, w)
     end
     return s
 end
-function update!(s::SampleMultiAlgAExpJ, el, w)
+@inline function update!(s::SampleMultiAlgAExpJ, el, w)
     n = s.n
     s.seen_k += 1
     s.state -= w
@@ -94,13 +94,13 @@ function update!(s::SampleMultiAlgAExpJ, el, w)
     end
     return s
 end
-function update!(s::Union{SampleMultiAlgWRSWRSKIP, SampleMultiOrdAlgWRSWRSKIP}, el, w)
+@inline function update!(s::Union{SampleMultiAlgWRSWRSKIP, SampleMultiOrdAlgWRSWRSKIP}, el, w)
     n = length(s.value)
     s.seen_k += 1
     s.state += w
     if s.seen_k <= n
-        s.value[s.seen_k] = el
-        s.weights[s.seen_k] = w
+        @inbounds s.value[s.seen_k] = el
+        @inbounds s.weights[s.seen_k] = w
         if s.seen_k == n
             s.value = sample(s.rng, s.value, weights(s.weights), n; ordered = is_ordered(s))
             @inline recompute_skip!(s, n)
@@ -201,7 +201,7 @@ end
 
 function update_all!(s, iter, wv, ordered)
     for x in iter
-        @inline update!(s, x, wv(x))
+        update!(s, x, wv(x))
     end
     return ordered ? ordered_value(s) : shuffle!(s.rng, value(s))
 end

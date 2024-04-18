@@ -16,7 +16,7 @@ function value(s::SampleSingleAlgAExpJ)
     return s.value
 end
 
-function update!(s::SampleSingleAlgAExpJ, el, weight)
+@inline function update!(s::SampleSingleAlgAExpJ, el, weight)
     s.state += weight
     if s.skip_w <= s.state
         s.value = el
@@ -32,7 +32,7 @@ end
 function itsample(rng::AbstractRNG, iter, wv::Function, method::ReservoirAlgorithm = algAExpJ)
     s = ReservoirSample(rng, Base.@default_eltype(iter), algAExpJ)
     for x in iter
-        @inline update!(s, x, wv(x))
+        update!(s, x, wv(x))
     end
     return value(s)
 end

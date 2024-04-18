@@ -33,15 +33,14 @@ function ReservoirSample(rng::AbstractRNG, T, method::AlgR)
     return SampleSingleAlgR{T, typeof(rng)}(0, rng)
 end
 
-function update!(s::SampleSingleAlgR, el)
+@inline function update!(s::SampleSingleAlgR, el)
     s.state += 1
     if rand(s.rng) <= 1/s.state
         s.value = el
     end
     return s
 end
-
-function update!(s::SampleSingleAlgL, el)
+@inline function update!(s::SampleSingleAlgL, el)
     if s.skip_k > 0
         s.skip_k -= 1
     else
@@ -67,7 +66,7 @@ end
 function reservoir_sample(rng, iter, method::ReservoirAlgorithm = algL)
     s = ReservoirSample(rng, calculate_eltype(iter), method)
     for x in iter
-        @inline update!(s, x)
+        update!(s, x)
     end
     return value(s)
 end
