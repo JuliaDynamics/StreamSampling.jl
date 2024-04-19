@@ -91,5 +91,3 @@ julia> @btime itsample($rng, $iter, $wv, 10^4, algAExpJ);
 julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=false);
   306.039 ms (43 allocations: 370.19 MiB)
 ```
-
-

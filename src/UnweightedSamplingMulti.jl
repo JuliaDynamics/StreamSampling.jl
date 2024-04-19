@@ -178,6 +178,68 @@ end
 is_ordered(s::AbstractOrdWrReservoirSampleMulti) = true
 is_ordered(s::AbstractWrReservoirSampleMulti) = false
 
+function Base.merge(s1::AbstractWorReservoirSampleMulti, s2::AbstractWorReservoirSampleMulti)
+    len1, len2, n1, n2 = check_merging_support(s1, s2)
+    n_tot = n1 + n2
+    p = n2 / n_tot
+    value = create_new_res_vec(s1, s2, p, len1)
+    return SampleSingleAlgR(n_tot, s1.rng, value)
+end
+function Base.merge(s1::AbstractWrReservoirSampleMulti, s2::AbstractWrReservoirSampleMulti)
+    len1, len2, n1, n2 = check_merging_support(s1, s2)
+    n_tot = n1 + n2
+    p = n2 / n_tot
+    value = create_new_res_vec(s1, s2, p, len1)
+    s_merged = SampleMultiAlgRSWRSKIP(n_tot, s1.rng, value)
+    recompute_skip!(s_merged, len1)
+    return s_merged
+end
+
+function Base.merge!(s1::SampleMultiAlgR, s2::AbstractWorReservoirSampleMulti)
+    len1, len2, n1, n2 = check_merging_support(s1, s2)
+    n_tot = n1 + n2
+    p = n2 / n_tot
+    s1 = merge_res_vec!(s1, s2, p, len1, n_tot)
+    return s1
+end
+function Base.merge!(s1::SampleMultiAlgRSWRSKIP, s2::AbstractWrReservoirSampleMulti)
+    len1, len2, n1, n2 = check_merging_support(s1, s2)
+    n_tot = n1 + n2
+    p = n2 / n_tot
+    s1 = merge_res_vec!(s1, s2, p, len1, n_tot)
+    recompute_skip!(s1, len1)
+    return s1
+end
+function Base.merge!(s1::SampleSingleAlgL, s2::AbstractWorReservoirSampleMulti)
+    error("Merging into a ReservoirSample using method algL is not supported")
+end
+
+function check_merging_support(s1, s2)
+    len1, len2 = length(s1.value), length(s2.value)
+    len1 != len2 && error("Merging samples with different sizes is not supported")
+    n1, n2 = n_seen(s1), n_seen(s2)
+    n1 < len1 || n2 < len2 && error("Merging samples with different sizes is not supported")
+    return len1, len2, n1, n2
+end
+
+function create_new_res_vec(s1, s2, p, len1)
+    value = similar(s1.value)
+    @inbounds for j in 1:len1
+        value[j] = rand(s1.rng) < p ? s2.value[j] : s1.value[j]
+    end
+    return value
+end
+
+function merge_res_vec!(s1, s2, p, len1, n_tot)
+    @inbounds for j in 1:len1
+        if rand(s1.rng) < p
+            s1.value[j] = s2.value[j]
+        end
+    end
+    s1.seen_k = n_tot
+    return s1
+end
+
 function value(s::AbstractWorReservoirSampleMulti)
     if n_seen(s) < length(s.value)
         return s.value[1:n_seen(s)]
