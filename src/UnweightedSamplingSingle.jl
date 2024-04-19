@@ -1,17 +1,19 @@
 
-mutable struct SampleSingleAlgL{T,R} <: AbstractReservoirSample
+mutable struct SampleSingleAlgL{T,R} <: AbstractReservoirSampleSingle
     state::Float64
+    seen_k::Int
     skip_k::Int
     const rng::R
     value::T
-    SampleSingleAlgL{T,R}(state, skip_k, rng) where {T,R} = new{T,R}(state, skip_k, rng)
+    SampleSingleAlgL{T,R}(state, seen_k, skip_k, rng) where {T,R} = new{T,R}(state, seen_k, skip_k, rng)
 end
 
-mutable struct SampleSingleAlgR{T,R} <: AbstractReservoirSample
-    state::Int
+mutable struct SampleSingleAlgR{T,R} <: AbstractReservoirSampleSingle
+    seen_k::Int
     const rng::R
     value::T
-    SampleSingleAlgR{T,R}(state, rng) where {T,R} = new{T,R}(state, rng)
+    SampleSingleAlgR{T,R}(seen_k, rng, value) where {T,R} = new{T,R}(seen_k, rng, value)
+    SampleSingleAlgR{T,R}(seen_k, rng) where {T,R} = new{T,R}(seen_k, rng)
 end
 
 function value(s::SampleSingleAlgL)
@@ -19,7 +21,7 @@ function value(s::SampleSingleAlgL)
     return s.value
 end
 function value(s::SampleSingleAlgR)
-    s.state === 0 && return nothing
+    s.seen_k === 0 && return nothing
     return s.value
 end
 
@@ -27,20 +29,21 @@ function ReservoirSample(T, method::ReservoirAlgorithm = algL)
     return ReservoirSample(Random.default_rng(), T, method)
 end
 function ReservoirSample(rng::AbstractRNG, T, method::AlgL = algL)
-    return SampleSingleAlgL{T, typeof(rng)}(1.0, 0, rng)
+    return SampleSingleAlgL{T, typeof(rng)}(1.0, 0, 0, rng)
 end
 function ReservoirSample(rng::AbstractRNG, T, method::AlgR)
     return SampleSingleAlgR{T, typeof(rng)}(0, rng)
 end
 
 @inline function update!(s::SampleSingleAlgR, el)
-    s.state += 1
-    if rand(s.rng) <= 1/s.state
+    s.seen_k += 1
+    if rand(s.rng) <= 1/s.seen_k
         s.value = el
     end
     return s
 end
 @inline function update!(s::SampleSingleAlgL, el)
+    s.seen_k += 1
     if s.skip_k > 0
         s.skip_k -= 1
     else
@@ -49,6 +52,28 @@ end
         s.skip_k = -ceil(Int, randexp(s.rng)/log(1-s.state))
     end
     return s
+end
+
+function Base.merge(s1::AbstractReservoirSampleSingle, s2::AbstractReservoirSampleSingle)
+    n1, n2 = n_seen(s1), n_seen(s2)
+    n_tot = n1 + n2
+    value = rand(s1.rng) < n1/n_tot ? s1.value : s2.value
+    return SampleSingleAlgR{typeof(value), typeof(s1.rng)}(n_tot, s1.rng, value)
+end
+
+function Base.merge!(s1::SampleSingleAlgR, s2::AbstractReservoirSampleSingle)
+    n1, n2 = n_seen(s1), n_seen(s2)
+    n_tot = n1 + n2
+    r = rand(s1.rng)
+    p = n2 / n_tot
+    if r < p
+        s1.value = s2.value
+    end
+    s1.seen_k = n_tot
+    return s1
+end
+function Base.merge!(s1::SampleSingleAlgL, s2::AbstractReservoirSampleSingle)
+    error("Merging into a ReservoirSample using method algL is not supported")
 end
 
 function itsample(iter, method::ReservoirAlgorithm = algL)

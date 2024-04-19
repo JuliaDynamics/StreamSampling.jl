@@ -7,12 +7,12 @@ If the iterable is lazy, the memory required grows in relation to the size of th
 
 # Example Usage
 
-The [`itsample`](@ref) instead allows to consume all the stream at once and return the sample collected:
+The [`itsample`](@ref) allows to consume all the stream at once and return the sample collected:
 
 ```julia
 julia> using StreamSampling
 
-julia> st = 1:10;
+julia> st = 1:100;
 
 julia> itsample(st, 5)
 5-element Vector{Int64}:
@@ -42,5 +42,7 @@ julia> value(rs)
  49
  74
 ```
+
+This approach permits to mantain a random sample of the portion of the stream seen thus far throughout the sampling.
 
 Consult the [API page](https://juliadynamics.github.io/StreamSampling.jl/stable/api/) for more information on the available functionalities.

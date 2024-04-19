@@ -18,6 +18,7 @@ const ordworsample = OrdWORSample()
 abstract type AbstractReservoirSample end
 
 # unweighted cases
+abstract type AbstractReservoirSampleSingle <: AbstractReservoirSample end
 abstract type AbstractReservoirSampleMulti <: AbstractReservoirSample end
 abstract type AbstractWorReservoirSampleMulti <: AbstractReservoirSampleMulti end
 abstract type AbstractOrdWorReservoirSampleMulti <: AbstractWorReservoirSampleMulti end
@@ -25,10 +26,12 @@ abstract type AbstractWrReservoirSampleMulti <: AbstractReservoirSampleMulti end
 abstract type AbstractOrdWrReservoirSampleMulti <: AbstractWrReservoirSampleMulti end
 
 # weighted cases
-abstract type AbstractWeightedReservoirSampleMulti <: AbstractReservoirSample end
-abstract type AbstractWeightedWorReservoirSampleMulti <: AbstractReservoirSample end
-abstract type AbstractWeightedWrReservoirSampleMulti <: AbstractReservoirSample end
-abstract type AbstractWeightedOrdWrReservoirSampleMulti <: AbstractReservoirSample end
+abstract type AbstractWeightedReservoirSample <: AbstractReservoirSample end
+abstract type AbstractWeightedReservoirSampleSingle <: AbstractWeightedReservoirSample end
+abstract type AbstractWeightedReservoirSampleMulti <: AbstractWeightedReservoirSample end
+abstract type AbstractWeightedWorReservoirSampleMulti <: AbstractWeightedReservoirSample end
+abstract type AbstractWeightedWrReservoirSampleMulti <: AbstractWeightedReservoirSample end
+abstract type AbstractWeightedOrdWrReservoirSampleMulti <: AbstractWeightedReservoirSample end
 
 abstract type ReservoirAlgorithm end
 
