@@ -26,8 +26,7 @@ function prob_no_replace(k)
 end
 
 @testset "Weighted sampling multi tests" begin
-    combs = vec(collect(Iterators.product([(algAExpJ, algARes, algWRSWRSKIP), (false, )]...)))
-    push!(combs, (algWRSWRSKIP, true))
+    combs = Iterators.product([(algAExpJ, algARes, algWRSWRSKIP), (false, true)]...)
     @testset "method=$method ordered=$ordered" for (method, ordered) in combs
         a, b = 1, 10
         # test return values of iter with known lengths are inrange
