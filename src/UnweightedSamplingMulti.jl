@@ -178,40 +178,27 @@ end
 is_ordered(s::AbstractOrdWrReservoirSampleMulti) = true
 is_ordered(s::AbstractWrReservoirSampleMulti) = false
 
-function Base.merge(s1::AbstractWorReservoirSampleMulti, s2::AbstractWorReservoirSampleMulti)
-    len1, len2, n1, n2 = check_merging_support(s1, s2)
-    n_tot = n1 + n2
-    p = n2 / n_tot
-    value = create_new_res_vec(s1, s2, p, len1)
-    return SampleSingleAlgR(n_tot, s1.rng, value)
-end
 function Base.merge(s1::AbstractWrReservoirSampleMulti, s2::AbstractWrReservoirSampleMulti)
     len1, len2, n1, n2 = check_merging_support(s1, s2)
+    shuffle!(s1.rng, s1.value)
+    shuffle!(s2.rng, s2.value)
     n_tot = n1 + n2
     p = n2 / n_tot
     value = create_new_res_vec(s1, s2, p, len1)
-    s_merged = SampleMultiAlgRSWRSKIP(n_tot, s1.rng, value)
+    s_merged = SampleMultiAlgRSWRSKIP(0, n_tot, s1.rng, value)
     recompute_skip!(s_merged, len1)
     return s_merged
 end
 
-function Base.merge!(s1::SampleMultiAlgR, s2::AbstractWorReservoirSampleMulti)
-    len1, len2, n1, n2 = check_merging_support(s1, s2)
-    n_tot = n1 + n2
-    p = n2 / n_tot
-    s1 = merge_res_vec!(s1, s2, p, len1, n_tot)
-    return s1
-end
 function Base.merge!(s1::SampleMultiAlgRSWRSKIP, s2::AbstractWrReservoirSampleMulti)
     len1, len2, n1, n2 = check_merging_support(s1, s2)
+    shuffle!(s1.rng, s1.value)
+    shuffle!(s2.rng, s2.value)
     n_tot = n1 + n2
     p = n2 / n_tot
     s1 = merge_res_vec!(s1, s2, p, len1, n_tot)
     recompute_skip!(s1, len1)
     return s1
-end
-function Base.merge!(s1::SampleSingleAlgL, s2::AbstractWorReservoirSampleMulti)
-    error("Merging into a ReservoirSample using method algL is not supported")
 end
 
 function check_merging_support(s1, s2)

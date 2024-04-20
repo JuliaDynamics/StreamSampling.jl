@@ -13,4 +13,5 @@ using Test
     include("unweighted_sampling_multi_tests.jl")
     include("weighted_sampling_single_tests.jl")
     include("weighted_sampling_multi_tests.jl")
+    include("merge_tests.jl")
 end
