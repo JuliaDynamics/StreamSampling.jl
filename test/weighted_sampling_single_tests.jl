@@ -3,9 +3,9 @@
     @testset "method=$method" for method in (algARes, algAExpJ)
     	wv(el) = 1.0
         a, b = 1, 100
-        z = itsample(a:b, wv)
+        z = itsample(a:b, wv, method)
         @test a <= z <= b
-        z = itsample(Iterators.filter(x -> x != b+1, a:b+1), wv)
+        z = itsample(Iterators.filter(x -> x != b+1, a:b+1), wv, method)
         @test a <= z <= b
         rng = StableRNG(43)
         wv2(el) = el <= 50 ? 1.0 : 2.0
@@ -14,7 +14,7 @@
             reps = 10000
             dict_res = Dict{Int, Int}()
             for _ in 1:reps
-                s = itsample(rng, it, wv2)
+                s = itsample(rng, it, wv2, method)
                 if s in keys(dict_res)
                     dict_res[s] += 1
                 else
