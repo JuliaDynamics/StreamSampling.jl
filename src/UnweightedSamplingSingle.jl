@@ -72,9 +72,6 @@ function Base.merge!(s1::SampleSingleAlgR, s2::AbstractReservoirSampleSingle)
     s1.seen_k = n_tot
     return s1
 end
-function Base.merge!(s1::SampleSingleAlgL, s2::AbstractReservoirSampleSingle)
-    error("Merging into a ReservoirSample using method algL is not supported")
-end
 
 function itsample(iter, method::ReservoirAlgorithm = algL)
     return itsample(Random.default_rng(), iter, method)

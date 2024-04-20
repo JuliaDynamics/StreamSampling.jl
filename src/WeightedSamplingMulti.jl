@@ -160,14 +160,6 @@ end
 is_ordered(s::SampleMultiOrdAlgWRSWRSKIP) = true
 is_ordered(s::SampleMultiAlgWRSWRSKIP) = false
 
-function Base.merge(s1::AbstractWeightedReservoirSample, s2::AbstractWeightedReservoirSample)
-   error("Merging is not supported for weighted sampling")
-end
-
-function Base.merge!(s1::AbstractWeightedReservoirSample, s2::AbstractWeightedReservoirSample)
-   error("Merging is not supported for weighted sampling")
-end
-
 function value(s::AbstractWeightedWorReservoirSampleMulti)
     if n_seen(s) < s.n
         return first.(s.value.valtree)[1:n_seen(s)]
