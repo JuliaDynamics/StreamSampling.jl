@@ -1,7 +1,7 @@
 # StreamSampling.jl
 
-[![CI](https://github.com/JuliaDynamics/StreamSampling.jl/workflows/CI/badge.svg)](https://github.com/JuliaDynamics/StreamSampling.jl/actions?query=workflow%3ACI)
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/StreamSampling.jl/dev/)
+[![CI](https://github.com/JuliaDynamics/StreamSampling.jl/workflows/CI/badge.svg)](https://github.com/JuliaDynamics/StreamSampling.jl/actions/workflows/ci.yml)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/StreamSampling.jl/stable/)
 [![codecov](https://codecov.io/gh/JuliaDynamics/StreamSampling.jl/graph/badge.svg?token=F8W0MC53Z0)](https://codecov.io/gh/JuliaDynamics/StreamSampling.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
@@ -15,4 +15,4 @@ This has some advantages over other sampling procedures:
 - In some cases, sampling with the techniques implemented in this library can bring considerable performance gains, since
   the population of items doesn't need to be previously stored in memory.
   
-More information can be found in the [documentation](https://juliadynamics.github.io/StreamSampling.jl/dev/).
+More information can be found in the [documentation](https://juliadynamics.github.io/StreamSampling.jl/stable/).
