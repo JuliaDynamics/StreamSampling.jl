@@ -10,7 +10,7 @@ ordered_value
 itsample
 ```
 
-# Algorithms
+## Sampling algorithms
 
 ```@docs
 StreamSampling.algL
