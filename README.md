@@ -17,7 +17,7 @@ This has some advantages over other sampling procedures:
   
 ## Brief overview of the functionalities
 
-The [`itsample`](@ref) function allows to consume all the stream at once and return the sample collected:
+The `itsample` function allows to consume all the stream at once and return the sample collected:
 
 ```julia
 julia> using StreamSampling
@@ -32,8 +32,8 @@ julia> itsample(st, 5)
  96
  91
 ```
-In some cases, one needs to control the updates the [`ReservoirSample`](@ref) will be subject to. In this case
-you can simply use the [`update!`](@ref) function to fit new values in the reservoir:
+In some cases, one needs to control the updates the `ReservoirSample` will be subject to. In this case
+you can simply use the `update!` function to fit new values in the reservoir:
 
 ```julia
 julia> using StreamSampling
