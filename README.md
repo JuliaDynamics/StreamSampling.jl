@@ -70,8 +70,7 @@ julia> rng = Xoshiro(42);
 
 julia> iter = Iterators.filter(x -> x != 10, 1:10^7);
 
-julia> wv(el) = 1.0
-wv (generic function with 1 method)
+julia> wv(el) = 1.0;
 
 julia> @btime itsample($rng, $iter, 10^4, algRSWRSKIP);
   12.209 ms (8 allocations: 156.47 KiB)
