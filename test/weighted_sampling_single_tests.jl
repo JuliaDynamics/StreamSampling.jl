@@ -11,7 +11,7 @@
         iter = Iterators.filter(x -> x != b + 1, a:b+1)
         rs = ReservoirSample(Int, method)
         for x in iter
-            update!(rs, x)
+            update!(rs, x, wv(x))
         end
         @test a <= value(rs) <= b
         
