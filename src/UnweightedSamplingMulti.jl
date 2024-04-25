@@ -74,7 +74,7 @@ end
 
 @inline function update!(s::Union{SampleMultiAlgR, SampleMultiOrdAlgR}, el)
     n = length(s.value)
-    s.seen_k += 1
+    s = @inline update_state!(s)
     if s.seen_k <= n
         @inbounds s.value[s.seen_k] = el
     else
@@ -88,27 +88,27 @@ end
 end
 @inline function update!(s::Union{SampleMultiAlgL, SampleMultiOrdAlgL}, el)
     n = length(s.value)
-    s.seen_k += 1
-    s.skip_k -= 1
+    s = @inline update_state!(s)
     if s.seen_k <= n
         @inbounds s.value[s.seen_k] = el
-        s.seen_k == n && @inline recompute_skip!(s, n)
+        if s.seen_k == n
+            s = @inline recompute_skip!(s, n)
+        end
     elseif s.skip_k < 0
         j = rand(s.rng, 1:n)
         @inbounds s.value[j] = el
         update_order!(s, j)
-        @inline recompute_skip!(s, n)
+        s = @inline recompute_skip!(s, n)
     end
     return s
 end
 @inline function update!(s::AbstractWrReservoirSampleMulti, el)
     n = length(s.value)
-    s.seen_k += 1
-    s.skip_k -= 1
+    s = @inline update_state!(s)
     if s.seen_k <= n
         @inbounds s.value[s.seen_k] = el
         if s.seen_k == n
-            recompute_skip!(s, n)
+            s = recompute_skip!(s, n)
             new_values = sample(s.rng, s.value, n, ordered=is_ordered(s))
             @inbounds for i in 1:n
                 s.value[i] = new_values[i]
@@ -133,18 +133,35 @@ end
                 end
             end 
         end
-        recompute_skip!(s, n)
+        s = recompute_skip!(s, n)
     end
     return s
 end
 
+function update_state!(s::Union{SampleMultiAlgR, SampleMultiOrdAlgR})
+    @imm_reset s.seen_k += 1
+    return s
+end
+function update_state!(s::Union{SampleMultiAlgL, SampleMultiOrdAlgL})
+    @imm_reset s.seen_k += 1
+    @imm_reset s.skip_k -= 1
+    return s
+end
+function update_state!(s::AbstractWrReservoirSampleMulti)
+    @imm_reset s.seen_k += 1
+    @imm_reset s.skip_k -= 1
+    return s
+end
+
 function recompute_skip!(s::AbstractWorReservoirSampleMulti, n)
-    s.state += randexp(s.rng)
-    s.skip_k = -ceil(Int, randexp(s.rng)/log(1-exp(-s.state/n)))
+    @imm_reset s.state += randexp(s.rng)
+    @imm_reset s.skip_k = -ceil(Int, randexp(s.rng)/log(1-exp(-s.state/n)))
+    return s
 end
 function recompute_skip!(s::AbstractWrReservoirSampleMulti, n)
     q = rand(s.rng)^(1/n)
-    s.skip_k = ceil(Int, s.seen_k/q - s.seen_k - 1)
+    @imm_reset s.skip_k = ceil(Int, s.seen_k/q - s.seen_k - 1)
+    return s
 end
 
 function choose(n, p, q, z)
@@ -196,7 +213,7 @@ function Base.merge!(s1::SampleMultiAlgRSWRSKIP, s2::AbstractWrReservoirSampleMu
     shuffle!(s2.rng, s2.value)
     n_tot = n1 + n2
     p = n2 / n_tot
-    s1 = merge_res_vec!(s1, s2, p, len1, n_tot)
+    merge_res_vec!(s1, s2, p, len1, n_tot)
     recompute_skip!(s1, len1)
     return s1
 end
@@ -278,7 +295,7 @@ end
 
 function update_all!(s, iter, ordered)
     for x in iter
-        update!(s, x)
+        s = update!(s, x)
     end
     return ordered ? ordered_value(s) : shuffle!(s.rng, value(s))
 end

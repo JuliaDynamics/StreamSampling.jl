@@ -1,5 +1,6 @@
 module StreamSampling
 
+using Accessors
 using DataStructures
 using Distributions
 using Random
@@ -41,6 +42,19 @@ struct AlgRSWRSKIP <: ReservoirAlgorithm end
 struct AlgARes <: ReservoirAlgorithm end
 struct AlgAExpJ <: ReservoirAlgorithm end
 struct AlgWRSWRSKIP <: ReservoirAlgorithm end
+
+
+macro imm_reset(e)
+    s = e.args[1].args[1]
+    esc(quote
+        if ismutabletype(typeof($s))
+            $e
+        else
+            StreamSampling.Accessors.@reset $e
+        end
+    end)
+end
+
 
 """
 Implements random sampling without replacement.
@@ -96,7 +110,7 @@ include("UnweightedSamplingSingle.jl")
 include("UnweightedSamplingMulti.jl")
 include("WeightedSamplingSingle.jl")
 include("WeightedSamplingMulti.jl")
-
+include("precompile.jl")
 
 """
 

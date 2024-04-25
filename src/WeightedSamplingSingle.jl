@@ -29,16 +29,16 @@ end
 @inline function update!(s::SampleSingleAlgARes, el, w)
     priority = -randexp(s.rng)/w
     if priority > s.state
-        s.state = priority
-        s.value = el
+        @imm_reset s.state = priority
+        @imm_reset s.value = el
     end
     return s
 end
 @inline function update!(s::SampleSingleAlgAExpJ, el, weight)
-    s.state += weight
+    @imm_reset s.state += weight
     if s.skip_w <= s.state
-        s.value = el
-        s.skip_w = s.state/rand(s.rng)
+        @imm_reset s.value = el
+        @imm_reset s.skip_w = s.state/rand(s.rng)
     end
     return s
 end
@@ -50,7 +50,7 @@ end
 function itsample(rng::AbstractRNG, iter, wv::Function, method::ReservoirAlgorithm = algAExpJ)
     s = ReservoirSample(rng, calculate_eltype(iter), algAExpJ)
     for x in iter
-        update!(s, x, wv(x))
+        s = update!(s, x, wv(x))
     end
     return value(s)
 end

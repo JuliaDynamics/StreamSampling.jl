@@ -1,11 +1,11 @@
 
-using StreamSampling
-
 using Distributions
 using HypothesisTests
 using Random
 using StableRNGs
 using Test
+
+using StreamSampling
 
 @testset "StreamSampling.jl Tests" begin
     include("package_sanity_tests.jl")

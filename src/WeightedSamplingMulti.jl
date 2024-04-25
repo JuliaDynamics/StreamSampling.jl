@@ -85,7 +85,7 @@ end
 
 @inline function update!(s::Union{SampleMultiAlgARes, SampleMultiOrdAlgARes}, el, w)
     n = s.n
-    s.seen_k += 1
+    s = @inline update_state!(s, w)
     priority = -randexp(s.rng)/w
     if s.seen_k <= n
         push_value!(s, el, priority)
@@ -100,24 +100,24 @@ end
 end
 @inline function update!(s::Union{SampleMultiAlgAExpJ, SampleMultiOrdAlgAExpJ}, el, w)
     n = s.n
-    s.seen_k += 1
-    s.state -= w
+    s = @inline update_state!(s, w)
     if s.seen_k <= n
         priority = exp(-randexp(s.rng)/w)
         push_value!(s, el, priority)
-        s.seen_k == n && @inline recompute_skip!(s)
+        if s.seen_k == n 
+            s = @inline recompute_skip!(s)
+        end
     elseif s.state <= 0.0
         priority = @inline compute_skip_priority(s, w)
         pop!(s.value)
         push_value!(s, el, priority)
-        @inline recompute_skip!(s)
+        s = @inline recompute_skip!(s)
     end
     return s
 end
 @inline function update!(s::Union{SampleMultiAlgWRSWRSKIP, SampleMultiOrdAlgWRSWRSKIP}, el, w)
     n = length(s.value)
-    s.seen_k += 1
-    s.state += w
+    s = @inline update_state!(s, w)
     if s.seen_k <= n
         @inbounds s.value[s.seen_k] = el
         @inbounds s.weights[s.seen_k] = w
@@ -126,7 +126,7 @@ end
             @inbounds for i in 1:n
                 s.value[i] = new_values[i]
             end
-            @inline recompute_skip!(s, n)
+            s = @inline recompute_skip!(s, n)
             empty!(s.weights)
         end
     elseif s.skip_w <= s.state
@@ -148,8 +148,23 @@ end
                 end
             end 
         end
-        @inline recompute_skip!(s, n)
+        s = @inline recompute_skip!(s, n)
     end
+    return s
+end
+
+function update_state!(s::Union{SampleMultiAlgARes, SampleMultiOrdAlgARes}, w)
+    @imm_reset s.seen_k += 1
+    return s
+end
+function update_state!(s::Union{SampleMultiAlgAExpJ, SampleMultiOrdAlgAExpJ}, w)
+    @imm_reset s.seen_k += 1
+    @imm_reset s.state -= w
+    return s
+end
+function update_state!(s::Union{SampleMultiAlgWRSWRSKIP, SampleMultiOrdAlgWRSWRSKIP}, w)
+    @imm_reset s.seen_k += 1
+    @imm_reset s.state += w
     return s
 end
 
@@ -159,12 +174,14 @@ function compute_skip_priority(s, w)
 end
 
 function recompute_skip!(s::Union{SampleMultiAlgAExpJ, SampleMultiOrdAlgAExpJ})
-    s.min_priority = last(first(s.value))
-    s.state = -randexp(s.rng)/log(s.min_priority)
+    @imm_reset s.min_priority = last(first(s.value))
+    @imm_reset s.state = -randexp(s.rng)/log(s.min_priority)
+    return s
 end
 function recompute_skip!(s::Union{SampleMultiAlgWRSWRSKIP, SampleMultiOrdAlgWRSWRSKIP}, n)
     q = rand(s.rng)^(1/n)
-    s.skip_w = s.state/q
+    @imm_reset s.skip_w = s.state/q
+    return s
 end
 
 function push_value!(s::Union{SampleMultiAlgARes, SampleMultiAlgAExpJ}, el, priority)
@@ -238,7 +255,7 @@ end
 
 function update_all!(s, iter, wv, ordered)
     for x in iter
-        update!(s, x, wv(x))
+        s = update!(s, x, wv(x))
     end
     return ordered ? ordered_value(s) : shuffle!(s.rng, value(s))
 end
