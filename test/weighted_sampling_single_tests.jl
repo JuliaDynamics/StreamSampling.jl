@@ -7,9 +7,18 @@
         @test a <= z <= b
         z = itsample(Iterators.filter(x -> x != b+1, a:b+1), wv, method)
         @test a <= z <= b
+        
+        iter = Iterators.filter(x -> x != b + 1, a:b+1)
+        rs = ReservoirSample(Int, method; ordered = ordered)
+        for x in iter
+            update!(rs, x)
+        end
+        @test a <= value(rs) <= b
+        
         rng = StableRNG(43)
         wv2(el) = el <= 50 ? 1.0 : 2.0
         iters = (a:b, Iterators.filter(x -> x != b + 1, a:b+1))
+
         for it in iters
             reps = 10000
             dict_res = Dict{Int, Int}()

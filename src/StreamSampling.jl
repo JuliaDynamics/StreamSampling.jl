@@ -6,15 +6,11 @@ using Distributions
 using Random
 using StatsBase
 
-struct WRSample end
-struct OrdWRSample end
-struct WORSample end
-struct OrdWORSample end
+struct ImmutSample end
+struct MutSample end
 
-const wrsample = WRSample()
-const ordwrsample = OrdWRSample()
-const worsample = WORSample()
-const ordworsample = OrdWORSample()
+const ims = ImmutSample()
+const ms = MutSample()
 
 abstract type AbstractReservoirSample end
 

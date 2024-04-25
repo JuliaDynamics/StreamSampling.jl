@@ -40,6 +40,14 @@
         @test length(unique(s)) == 4
         @test ordered ? issorted(s) : true
 
+        iter = Iterators.filter(x -> x != b + 1, a:b+1)
+        rs = ReservoirSample(Int, 5, method; ordered = ordered)
+        for x in iter
+            update!(rs, x)
+        end
+        @test length(value(rs)) == 5
+        @test all(x -> a <= x <= b, value(rs))
+
         rng = StableRNG(42)
         iters = (a:b, Iterators.filter(x -> x != b + 1, a:b+1))
         sizes = (2, 3)

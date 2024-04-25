@@ -44,10 +44,16 @@ mutable struct SampleMultiOrdAlgRSWRSKIP{T,R} <: AbstractOrdWrReservoirSampleMul
     const ord::Vector{Int}
 end
 
-function ReservoirSample(T, n::Integer, method::ReservoirAlgorithm=algL; ordered = false)
-    return ReservoirSample(Random.default_rng(), T, n, method; ordered = ordered)
+function ReservoirSample(T, n::Integer, method::ReservoirAlgorithm=algL; 
+        ordered = false)
+    return ReservoirSample(Random.default_rng(), T, n, method, ms; ordered = ordered)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgL=algL; ordered = false)
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::ReservoirAlgorithm=algL; 
+        ordered = false)
+    return ReservoirSample(rng, T, n, method, ms; ordered = ordered)
+end
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgL, ::MutSample; 
+        ordered = false)
     value = Vector{T}(undef, n)
     if ordered
         return SampleMultiOrdAlgL(0.0, 0, 0, rng, value, collect(1:n))
@@ -55,7 +61,8 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgL=algL; ord
         return SampleMultiAlgL(0.0, 0, 0, rng, value)
     end
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgR; ordered = false)
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgR, ::MutSample; 
+        ordered = false)
     value = Vector{T}(undef, n)
     if ordered
         return SampleMultiOrdAlgR(0, rng, value, collect(1:n))
@@ -63,7 +70,8 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgR; ordered 
         return SampleMultiAlgR(0, rng, value)
     end
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgRSWRSKIP; ordered = false)
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgRSWRSKIP, ::MutSample; 
+        ordered = false)
     value = Vector{T}(undef, n)
     if ordered
         return SampleMultiOrdAlgRSWRSKIP(0, 0, rng, value, collect(1:n))
@@ -139,28 +147,28 @@ end
 end
 
 function update_state!(s::Union{SampleMultiAlgR, SampleMultiOrdAlgR})
-    @imm_reset s.seen_k += 1
+    s.seen_k += 1
     return s
 end
 function update_state!(s::Union{SampleMultiAlgL, SampleMultiOrdAlgL})
-    @imm_reset s.seen_k += 1
-    @imm_reset s.skip_k -= 1
+    s.seen_k += 1
+    s.skip_k -= 1
     return s
 end
 function update_state!(s::AbstractWrReservoirSampleMulti)
-    @imm_reset s.seen_k += 1
-    @imm_reset s.skip_k -= 1
+    s.seen_k += 1
+    s.skip_k -= 1
     return s
 end
 
 function recompute_skip!(s::AbstractWorReservoirSampleMulti, n)
-    @imm_reset s.state += randexp(s.rng)
-    @imm_reset s.skip_k = -ceil(Int, randexp(s.rng)/log(1-exp(-s.state/n)))
+    s.state += randexp(s.rng)
+    s.skip_k = -ceil(Int, randexp(s.rng)/log(1-exp(-s.state/n)))
     return s
 end
 function recompute_skip!(s::AbstractWrReservoirSampleMulti, n)
     q = rand(s.rng)^(1/n)
-    @imm_reset s.skip_k = ceil(Int, s.seen_k/q - s.seen_k - 1)
+    s.skip_k = ceil(Int, s.seen_k/q - s.seen_k - 1)
     return s
 end
 
@@ -274,22 +282,23 @@ function ordered_value(s::AbstractOrdWrReservoirSampleMulti)
     end
 end
 
-function itsample(iter, n::Int, method::ReservoirAlgorithm = algL; ordered = false)
+function itsample(iter, n::Int, method::ReservoirAlgorithm = algL; 
+        iter_type = infer_eltype(iter), ordered = false)
     return itsample(Random.default_rng(), iter, n, method; ordered)
 end
-function itsample(rng::AbstractRNG, iter, n::Int, method::ReservoirAlgorithm = algL; ordered = false)
-    iter_type = calculate_eltype(iter)
+function itsample(rng::AbstractRNG, iter, n::Int, method::ReservoirAlgorithm = algL;
+        iter_type = infer_eltype(iter), ordered = false)
     if Base.IteratorSize(iter) isa Base.SizeUnknown
-        reservoir_sample(rng, iter, n, method; ordered)::Vector{iter_type}
+        reservoir_sample(rng, iter, n, method; iter_type, ordered)::Vector{iter_type}
     else
         replace = method isa AlgL || method isa AlgR ? false : true
-        sortedindices_sample(rng, iter, n; replace, ordered)::Vector{iter_type}
+        sortedindices_sample(rng, iter, n; iter_type, replace, ordered)::Vector{iter_type}
     end
 end
 
-function reservoir_sample(rng, iter, n::Int, method::ReservoirAlgorithm = algL; ordered = false)
-    iter_type = calculate_eltype(iter)
-    s = ReservoirSample(rng, iter_type, n, method; ordered = ordered)
+function reservoir_sample(rng, iter, n::Int, method::ReservoirAlgorithm = algL;
+        iter_type = infer_eltype(iter), ordered = false)
+    s = ReservoirSample(rng, iter_type, n, method, ms; ordered = ordered)
     return update_all!(s, iter, ordered)
 end
 
@@ -300,7 +309,7 @@ function update_all!(s, iter, ordered)
     return ordered ? ordered_value(s) : shuffle!(s.rng, value(s))
 end
 
-function calculate_eltype(iter)
-    T = eltype(iter)
-    return T === Any ? Base.@default_eltype(iter) : T
+function infer_eltype(itr)
+    T1, T2 = eltype(itr), Base.@default_eltype(itr)
+    ifelse(T2 !== Union{} && T2 <: T1, T2, T1)
 end

@@ -1,19 +1,41 @@
 
-mutable struct SampleMultiAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
+struct ImmutSampleMultiAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
+    seen_k::Int
+    n::Int
+    rng::R
+    value::BH
+end
+mutable struct MutSampleMultiAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
     seen_k::Int
     n::Int
     const rng::R
     const value::BH
 end
+const SampleMultiAlgARes = Union{ImmutSampleMultiAlgARes, MutSampleMultiAlgARes}
 
-mutable struct SampleMultiOrdAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
+struct ImmutSampleMultiOrdAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
+    seen_k::Int
+    n::Int
+    rng::R
+    value::BH
+end
+mutable struct MutSampleMultiOrdAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
     seen_k::Int
     n::Int
     const rng::R
     const value::BH
 end
+const SampleMultiOrdAlgARes = Union{ImmutSampleMultiOrdAlgARes, MutSampleMultiOrdAlgARes}
 
-mutable struct SampleMultiAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMulti
+struct ImmutSampleMultiAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMulti
+    state::Float64
+    min_priority::Float64
+    seen_k::Int
+    n::Int
+    rng::R
+    value::BH
+end
+mutable struct MutSampleMultiAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMulti
     state::Float64
     min_priority::Float64
     seen_k::Int
@@ -21,8 +43,17 @@ mutable struct SampleMultiAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMu
     const rng::R
     const value::BH
 end
+const SampleMultiAlgAExpJ = Union{ImmutSampleMultiAlgAExpJ, MutSampleMultiAlgAExpJ}
 
-mutable struct SampleMultiOrdAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMulti
+struct ImmutSampleMultiOrdAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMulti
+    state::Float64
+    min_priority::Float64
+    seen_k::Int
+    n::Int
+    rng::R
+    value::BH
+end
+mutable struct MutSampleMultiOrdAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMulti
     state::Float64
     min_priority::Float64
     seen_k::Int
@@ -30,8 +61,17 @@ mutable struct SampleMultiOrdAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampl
     const rng::R
     const value::BH
 end
+const SampleMultiOrdAlgAExpJ = Union{ImmutSampleMultiOrdAlgAExpJ, MutSampleMultiOrdAlgAExpJ}
 
-mutable struct SampleMultiAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSampleMulti
+struct ImmutSampleMultiAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSampleMulti
+    state::Float64
+    skip_w::Float64
+    seen_k::Int
+    rng::R
+    weights::Vector{Float64}
+    value::Vector{T}
+end
+mutable struct MutSampleMultiAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSampleMulti
     state::Float64
     skip_w::Float64
     seen_k::Int
@@ -39,8 +79,18 @@ mutable struct SampleMultiAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSample
     const weights::Vector{Float64}
     const value::Vector{T}
 end
+const SampleMultiAlgWRSWRSKIP = Union{ImmutSampleMultiAlgWRSWRSKIP, MutSampleMultiAlgWRSWRSKIP}
 
-mutable struct SampleMultiOrdAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSampleMulti
+struct ImmutSampleMultiOrdAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSampleMulti
+    state::Float64
+    skip_w::Float64
+    seen_k::Int
+    rng::R
+    weights::Vector{Float64}
+    value::Vector{T}
+    ord::Vector{Int}
+end
+mutable struct MutSampleMultiOrdAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSampleMulti
     state::Float64
     skip_w::Float64
     seen_k::Int
@@ -49,37 +99,76 @@ mutable struct SampleMultiOrdAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSam
     const value::Vector{T}
     const ord::Vector{Int}
 end
+const SampleMultiOrdAlgWRSWRSKIP = Union{ImmutSampleMultiOrdAlgWRSWRSKIP, MutSampleMultiOrdAlgWRSWRSKIP}
 
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgAExpJ; ordered = false)
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgAExpJ, ::MutSample; 
+        ordered = false)
     if ordered
         value = BinaryHeap(Base.By(last), Tuple{T, Int, Float64}[])
         sizehint!(value, n)
-        return SampleMultiOrdAlgAExpJ(0.0, 0.0, 0, n, rng, value)
+        return MutSampleMultiOrdAlgAExpJ(0.0, 0.0, 0, n, rng, value)
     else
         value = BinaryHeap(Base.By(last), Pair{T, Float64}[])
         sizehint!(value, n)
-        return SampleMultiAlgAExpJ(0.0, 0.0, 0, n, rng, value)
+        return MutSampleMultiAlgAExpJ(0.0, 0.0, 0, n, rng, value)
     end
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgARes; ordered = false)
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgAExpJ, ::ImmutSample; 
+        ordered = false)
     if ordered
         value = BinaryHeap(Base.By(last), Tuple{T, Int, Float64}[])
         sizehint!(value, n)
-        return SampleMultiOrdAlgARes(0, n, rng, value)
+        return ImmutSampleMultiOrdAlgAExpJ(0.0, 0.0, 0, n, rng, value)
     else
         value = BinaryHeap(Base.By(last), Pair{T, Float64}[])
         sizehint!(value, n)
-        return SampleMultiAlgARes(0, n, rng, value)
+        return ImmutSampleMultiAlgAExpJ(0.0, 0.0, 0, n, rng, value)
     end
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP; ordered = false)
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgARes, ::MutSample;  
+        ordered = false)
+    if ordered
+        value = BinaryHeap(Base.By(last), Tuple{T, Int, Float64}[])
+        sizehint!(value, n)
+        return MutSampleMultiOrdAlgARes(0, n, rng, value)
+    else
+        value = BinaryHeap(Base.By(last), Pair{T, Float64}[])
+        sizehint!(value, n)
+        return MutSampleMultiAlgARes(0, n, rng, value)
+    end
+end
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgARes, ::ImmutSample;  
+        ordered = false)
+    if ordered
+        value = BinaryHeap(Base.By(last), Tuple{T, Int, Float64}[])
+        sizehint!(value, n)
+        return ImmutSampleMultiOrdAlgARes(0, n, rng, value)
+    else
+        value = BinaryHeap(Base.By(last), Pair{T, Float64}[])
+        sizehint!(value, n)
+        return ImmutSampleMultiAlgARes(0, n, rng, value)
+    end
+end
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP, ms::MutSample; 
+        ordered = false)
     value = Vector{T}(undef, n)
     weights = Vector{Float64}(undef, n)
     if ordered
         ord = collect(1:n)
-        return SampleMultiOrdAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value, ord)
+        return MutSampleMultiOrdAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value, ord)
     else
-        return SampleMultiAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value)
+        return MutSampleMultiAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value)
+    end
+end
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP, ims::ImmutSample; 
+        ordered = false)
+    value = Vector{T}(undef, n)
+    weights = Vector{Float64}(undef, n)
+    if ordered
+        ord = collect(1:n)
+        return ImmutSampleMultiOrdAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value, ord)
+    else
+        return ImmutSampleMultiAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value)
     end
 end
 
@@ -236,20 +325,19 @@ end
 
 n_seen(s::AbstractReservoirSample) = s.seen_k
 
-function itsample(iter, wv::Function, n::Int, 
-        method::ReservoirAlgorithm=algAExpJ; ordered = false)
-    return itsample(Random.default_rng(), iter, wv, n, method; ordered = ordered)
+function itsample(iter, wv::Function, n::Int, method::ReservoirAlgorithm=algAExpJ; 
+        iter_type = infer_eltype(iter), ordered = false)
+    return itsample(Random.default_rng(), iter, wv, n, method; iter_type, ordered)
 end
 
-function itsample(rng::AbstractRNG, iter, wv::Function, n::Int, 
-        method::ReservoirAlgorithm=algAExpJ; ordered = false)
-    return reservoir_sample(rng, iter, wv, n, method; ordered = ordered)
+function itsample(rng::AbstractRNG, iter, wv::Function, n::Int, method::ReservoirAlgorithm=algAExpJ; 
+        iter_type = infer_eltype(iter), ordered = false)
+    return reservoir_sample(rng, iter, wv, n, method; iter_type, ordered)
 end
 
-function reservoir_sample(rng, iter, wv::Function, n::Int, 
-        method::ReservoirAlgorithm=algAExpJ; ordered = false)
-    iter_type = calculate_eltype(iter)
-    s = ReservoirSample(rng, iter_type, n, method; ordered = ordered)
+function reservoir_sample(rng, iter, wv::Function, n::Int, method::ReservoirAlgorithm=algAExpJ; 
+        iter_type = infer_eltype(iter), ordered = false)
+    s = ReservoirSample(rng, iter_type, n, method, ims; ordered = ordered)
     return update_all!(s, iter, wv, ordered)
 end
 

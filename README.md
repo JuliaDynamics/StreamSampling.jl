@@ -71,28 +71,29 @@ julia> rng = Xoshiro(42);
 julia> iter = Iterators.filter(x -> x != 10, 1:10^7);
 
 julia> wv(el) = 1.0
+wv (generic function with 1 method)
 
 julia> @btime itsample($rng, $iter, 10^4, algRSWRSKIP);
-  11.744 ms (5 allocations: 156.39 KiB)
+  12.209 ms (8 allocations: 156.47 KiB)
 
 julia> @btime sample($rng, collect($iter), 10^4; replace=true);
-  131.933 ms (20 allocations: 146.91 MiB)
+  134.622 ms (20 allocations: 146.91 MiB)
 
 julia> @btime itsample($rng, $iter, 10^4, algL);
-  10.260 ms (3 allocations: 78.22 KiB)
+  10.450 ms (6 allocations: 78.30 KiB)
 
 julia> @btime sample($rng, collect($iter), 10^4; replace=false);
-  132.069 ms (27 allocations: 147.05 MiB)
+  135.039 ms (27 allocations: 147.05 MiB)
 
 julia> @btime itsample($rng, $iter, $wv, 10^4, algWRSWRSKIP);
-  32.278 ms (18 allocations: 547.34 KiB)
+  14.017 ms (13 allocations: 568.84 KiB)
 
 julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=true);
-  348.220 ms (49 allocations: 675.21 MiB)
+  543.582 ms (45 allocations: 702.33 MiB)
 
 julia> @btime itsample($rng, $iter, $wv, 10^4, algAExpJ);
-  39.965 ms (11 allocations: 234.78 KiB)
+  20.968 ms (9 allocations: 234.73 KiB)
 
 julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=false);
-  306.039 ms (43 allocations: 370.19 MiB)
+  305.226 ms (43 allocations: 370.19 MiB)
 ```

@@ -1,5 +1,6 @@
 
-function sortedindices_sample(rng, iter, n::Int; replace = false, ordered = false, kwargs...)
+function sortedindices_sample(rng, iter, n::Int; 
+        iter_type = infer_eltype(iter), replace = false, ordered = false)
     N = length(iter)
     if N <= n
         reservoir = collect(iter)
@@ -13,7 +14,6 @@ function sortedindices_sample(rng, iter, n::Int; replace = false, ordered = fals
             end
         end
     end
-    iter_type = calculate_eltype(iter)
     reservoir = Vector{iter_type}(undef, n)
     indices = get_sorted_indices(rng, n, N, replace)
     first_idx = indices[1]

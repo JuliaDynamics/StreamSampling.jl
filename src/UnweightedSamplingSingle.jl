@@ -73,19 +73,22 @@ function Base.merge!(s1::SampleSingleAlgR, s2::AbstractReservoirSampleSingle)
     return s1
 end
 
-function itsample(iter, method::ReservoirAlgorithm = algL)
-    return itsample(Random.default_rng(), iter, method)
+function itsample(iter, method::ReservoirAlgorithm = algL;
+        iter_type = infer_eltype(iter))
+    return itsample(Random.default_rng(), iter, method; iter_type)
 end
-function itsample(rng::AbstractRNG, iter, method::ReservoirAlgorithm = algL)
+function itsample(rng::AbstractRNG, iter, method::ReservoirAlgorithm = algL;
+        iter_type = infer_eltype(iter))
     if Base.IteratorSize(iter) isa Base.SizeUnknown
-        return reservoir_sample(rng, iter, method)
+        return reservoir_sample(rng, iter, method; iter_type)
     else 
         return sortedindices_sample(rng, iter)
     end
 end
 
-function reservoir_sample(rng, iter, method::ReservoirAlgorithm = algL)
-    s = ReservoirSample(rng, calculate_eltype(iter), method)
+function reservoir_sample(rng, iter, method::ReservoirAlgorithm = algL;
+        iter_type = infer_eltype(iter))
+    s = ReservoirSample(rng, iter_type, method)
     for x in iter
         s = update!(s, x)
     end

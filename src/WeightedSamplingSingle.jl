@@ -43,12 +43,14 @@ end
     return s
 end
 
-function itsample(iter, wv::Function, method::ReservoirAlgorithm = algAExpJ)
-    return itsample(Random.default_rng(), iter, wv, method)
+function itsample(iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
+        iter_type = infer_eltype(iter))
+    return itsample(Random.default_rng(), iter, wv, method; iter_type)
 end
 
-function itsample(rng::AbstractRNG, iter, wv::Function, method::ReservoirAlgorithm = algAExpJ)
-    s = ReservoirSample(rng, calculate_eltype(iter), algAExpJ)
+function itsample(rng::AbstractRNG, iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
+        iter_type = infer_eltype(iter))
+    s = ReservoirSample(rng, iter_type, algAExpJ)
     for x in iter
         s = update!(s, x, wv(x))
     end
