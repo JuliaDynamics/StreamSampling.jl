@@ -26,12 +26,15 @@ function value(s::SampleSingleAlgR)
 end
 
 function ReservoirSample(T, method::ReservoirAlgorithm = algL)
-    return ReservoirSample(Random.default_rng(), T, method)
+    return ReservoirSample(Random.default_rng(), T, method, ms)
 end
-function ReservoirSample(rng::AbstractRNG, T, method::AlgL = algL)
+function ReservoirSample(rng::AbstractRNG, T, method::ReservoirAlgorithm = algL)
+    return ReservoirSample(rng, T, method, ms)
+end
+function ReservoirSample(rng::AbstractRNG, T, ::AlgL, ::MutSample)
     return SampleSingleAlgL{T, typeof(rng)}(1.0, 0, 0, rng)
 end
-function ReservoirSample(rng::AbstractRNG, T, method::AlgR)
+function ReservoirSample(rng::AbstractRNG, T, ::AlgR, ::MutSample)
     return SampleSingleAlgR{T, typeof(rng)}(0, rng)
 end
 
