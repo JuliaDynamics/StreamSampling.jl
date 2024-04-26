@@ -1,6 +1,8 @@
 
+using BenchmarkTools
 using Distributions
 using HypothesisTests
+using Printf
 using Random
 using StableRNGs
 using Test
@@ -14,4 +16,5 @@ using StreamSampling
     include("weighted_sampling_single_tests.jl")
     include("weighted_sampling_multi_tests.jl")
     include("merge_tests.jl")
+    include("benchmark_tests.jl")
 end
