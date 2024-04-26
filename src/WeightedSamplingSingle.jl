@@ -1,24 +1,46 @@
 
-mutable struct SampleSingleAlgARes{T,R} <: AbstractWeightedReservoirSampleSingle
+struct ImmutSampleSingleAlgARes{T,R} <: AbstractWeightedReservoirSampleSingle
+    state::Float64
+    rng::R
+    value::T
+    ImmutSampleSingleAlgARes{T,R}(state, rng) where {T,R} = new{T,R}(state, rng)
+end
+mutable struct MutSampleSingleAlgARes{T,R} <: AbstractWeightedReservoirSampleSingle
     state::Float64
     const rng::R
     value::T
-    SampleSingleAlgARes{T,R}(state, rng) where {T,R} = new{T,R}(state, rng)
+    MutSampleSingleAlgARes{T,R}(state, rng) where {T,R} = new{T,R}(state, rng)
 end
+const SampleSingleAlgARes = Union{ImmutSampleSingleAlgARes, MutSampleSingleAlgARes}
 
-mutable struct SampleSingleAlgAExpJ{T,R} <: AbstractWeightedReservoirSampleSingle
+struct ImmutSampleSingleAlgAExpJ{T,R} <: AbstractWeightedReservoirSampleSingle
+    state::Float64
+    skip_w::Float64
+    rng::R
+    value::T
+    ImmutSampleSingleAlgAExpJ(state, skip_w, rng::R, value::T) where {T,R} = new{T,R}(state, skip_w, rng, value)
+    ImmutSampleSingleAlgAExpJ{T,R}(state, skip_w, rng) where {T,R} = new{T,R}(state, skip_w, rng)
+end
+mutable struct MutSampleSingleAlgAExpJ{T,R} <: AbstractWeightedReservoirSampleSingle
     state::Float64
     skip_w::Float64
     const rng::R
     value::T
-    SampleSingleAlgAExpJ{T,R}(state, skip_w, rng) where {T,R} = new{T,R}(state, skip_w, rng)
+    MutSampleSingleAlgAExpJ{T,R}(state, skip_w, rng) where {T,R} = new{T,R}(state, skip_w, rng)
 end
+const SampleSingleAlgAExpJ = Union{ImmutSampleSingleAlgAExpJ, MutSampleSingleAlgAExpJ}
 
-function ReservoirSample(rng::R, T, method::AlgARes) where {R<:AbstractRNG}
-    return SampleSingleAlgARes{T,R}(0.0, rng)
+function ReservoirSample(rng::R, T, ::AlgARes, ::MutSample) where {R<:AbstractRNG}
+    return MutSampleSingleAlgARes{T,R}(0.0, rng)
 end
-function ReservoirSample(rng::R, T, method::AlgAExpJ) where {R<:AbstractRNG}
-    return SampleSingleAlgAExpJ{T,R}(0.0, 0.0, rng)
+function ReservoirSample(rng::R, T, ::AlgARes, ::ImmutSample) where {R<:AbstractRNG}
+    return ImmutSampleSingleAlgARes{T,R}(0.0, rng)
+end
+function ReservoirSample(rng::R, T, ::AlgAExpJ, ::MutSample) where {R<:AbstractRNG}
+    return MutSampleSingleAlgAExpJ{T,R}(0.0, 0.0, rng)
+end
+function ReservoirSample(rng::R, T, ::AlgAExpJ, ::ImmutSample) where {R<:AbstractRNG}
+    return ImmutSampleSingleAlgAExpJ{T,R}(0.0, 0.0, rng)
 end
 
 function value(s::AbstractWeightedReservoirSampleSingle)
@@ -45,12 +67,16 @@ end
 
 function itsample(iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
         iter_type = infer_eltype(iter))
-    return itsample(Random.default_rng(), iter, wv, method; iter_type)
+    return itsample(Random.default_rng(), iter, wv, method)
 end
 
 function itsample(rng::AbstractRNG, iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
         iter_type = infer_eltype(iter))
-    s = ReservoirSample(rng, iter_type, algAExpJ)
+    s = ReservoirSample(rng, iter_type, method, ms)
+    return update_all!(s, iter, wv)
+end
+
+function update_all!(s, iter, wv::Function)
     for x in iter
         s = update!(s, x, wv(x))
     end
