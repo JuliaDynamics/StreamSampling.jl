@@ -2,6 +2,7 @@
 using BenchmarkTools
 using Distributions
 using HypothesisTests
+using Printf
 using Random
 using StableRNGs
 using Test
