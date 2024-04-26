@@ -12,7 +12,6 @@
             print(" --> Time: $(@sprintf("%.2f", median(b.times)*1e-3)) μs |")
             println(" Memory: $(b.memory) bytes")
         end
-        println()
     end
     for m in (algARes, algAExpJ, algWRSWRSKIP)
         for size in (1, 10)
@@ -24,6 +23,5 @@
             print(" --> Time: $(@sprintf("%.2f", median(b.times)*1e-3)) μs |")
             println(" Memory: $(b.memory) bytes")
         end
-        println()
     end
 end
