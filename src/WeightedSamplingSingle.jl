@@ -3,6 +3,7 @@ struct ImmutSampleSingleAlgARes{T,R} <: AbstractWeightedReservoirSampleSingle
     state::Float64
     rng::R
     value::T
+    ImmutSampleSingleAlgARes(state, rng::R, value::T) where {T,R} = new{T,R}(state, rng, value)
     ImmutSampleSingleAlgARes{T,R}(state, rng) where {T,R} = new{T,R}(state, rng)
 end
 mutable struct MutSampleSingleAlgARes{T,R} <: AbstractWeightedReservoirSampleSingle
@@ -31,10 +32,10 @@ end
 const SampleSingleAlgAExpJ = Union{ImmutSampleSingleAlgAExpJ, MutSampleSingleAlgAExpJ}
 
 function ReservoirSample(rng::R, T, ::AlgARes, ::MutSample) where {R<:AbstractRNG}
-    return MutSampleSingleAlgARes{T,R}(0.0, rng)
+    return MutSampleSingleAlgARes{T,R}(typemax(Float64), rng)
 end
 function ReservoirSample(rng::R, T, ::AlgARes, ::ImmutSample) where {R<:AbstractRNG}
-    return ImmutSampleSingleAlgARes{T,R}(0.0, rng)
+    return ImmutSampleSingleAlgARes{T,R}(typemax(Float64), rng)
 end
 function ReservoirSample(rng::R, T, ::AlgAExpJ, ::MutSample) where {R<:AbstractRNG}
     return MutSampleSingleAlgAExpJ{T,R}(0.0, 0.0, rng)
@@ -49,8 +50,8 @@ function value(s::AbstractWeightedReservoirSampleSingle)
 end
 
 @inline function update!(s::SampleSingleAlgARes, el, w)
-    priority = -randexp(s.rng)/w
-    if priority > s.state
+    priority = randexp(s.rng)/w
+    if priority < s.state
         @imm_reset s.state = priority
         @imm_reset s.value = el
     end
@@ -67,7 +68,7 @@ end
 
 function itsample(iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
         iter_type = infer_eltype(iter))
-    return itsample(Random.default_rng(), iter, wv, method; iter_type)
+    return itsample(Random.default_rng(), iter, wv, method)
 end
 
 function itsample(rng::AbstractRNG, iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
