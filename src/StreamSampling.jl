@@ -123,7 +123,8 @@ export ReservoirSample
 
 """
 
-    update!(rs::AbstractReservoirSample, el, [w])
+    update!(rs::AbstractReservoirSample, el)
+    update!(rs::AbstractReservoirSample, el, w::Float64)
 
 Updates the reservoir sample by scanning the passed element.
 In the case of weighted sampling also the weight of the element
