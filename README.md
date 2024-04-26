@@ -100,5 +100,5 @@ julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=f
 ## Contributing
 
 Contributions are welcome! If you encounter any issues, have suggestions for improvements, or would like to add new 
-features, you're welcome to open an issue or submit a pull request.
+features, feel free to open an issue or submit a pull request.
 
