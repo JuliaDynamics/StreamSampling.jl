@@ -67,7 +67,7 @@ end
 
 function itsample(iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
         iter_type = infer_eltype(iter))
-    return itsample(Random.default_rng(), iter, wv, method)
+    return itsample(Random.default_rng(), iter, wv, method; iter_type)
 end
 
 function itsample(rng::AbstractRNG, iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
