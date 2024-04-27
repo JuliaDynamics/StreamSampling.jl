@@ -1,10 +1,14 @@
 
+mutable struct RefVal{T}
+    value::T
+    RefVal{T}() where T = new{T}()
+    RefVal(value::T) where T = new{T}(value)
+end
+
 struct ImmutSampleSingleAlgARes{T,R} <: AbstractWeightedReservoirSampleSingle
     state::Float64
     rng::R
-    value::T
-    ImmutSampleSingleAlgARes(state, rng::R, value::T) where {T,R} = new{T,R}(state, rng, value)
-    ImmutSampleSingleAlgARes{T,R}(state, rng) where {T,R} = new{T,R}(state, rng)
+    rvalue::RefVal{T}
 end
 mutable struct MutSampleSingleAlgARes{T,R} <: AbstractWeightedReservoirSampleSingle
     state::Float64
@@ -18,9 +22,7 @@ struct ImmutSampleSingleAlgAExpJ{T,R} <: AbstractWeightedReservoirSampleSingle
     state::Float64
     skip_w::Float64
     rng::R
-    value::T
-    ImmutSampleSingleAlgAExpJ(state, skip_w, rng::R, value::T) where {T,R} = new{T,R}(state, skip_w, rng, value)
-    ImmutSampleSingleAlgAExpJ{T,R}(state, skip_w, rng) where {T,R} = new{T,R}(state, skip_w, rng)
+    rvalue::RefVal{T}
 end
 mutable struct MutSampleSingleAlgAExpJ{T,R} <: AbstractWeightedReservoirSampleSingle
     state::Float64
@@ -35,34 +37,45 @@ function ReservoirSample(rng::R, T, ::AlgARes, ::MutSample) where {R<:AbstractRN
     return MutSampleSingleAlgARes{T,R}(typemax(Float64), rng)
 end
 function ReservoirSample(rng::R, T, ::AlgARes, ::ImmutSample) where {R<:AbstractRNG}
-    return ImmutSampleSingleAlgARes{T,R}(typemax(Float64), rng)
+    return ImmutSampleSingleAlgARes(typemax(Float64), rng, RefVal{T}())
 end
 function ReservoirSample(rng::R, T, ::AlgAExpJ, ::MutSample) where {R<:AbstractRNG}
     return MutSampleSingleAlgAExpJ{T,R}(0.0, 0.0, rng)
 end
 function ReservoirSample(rng::R, T, ::AlgAExpJ, ::ImmutSample) where {R<:AbstractRNG}
-    return ImmutSampleSingleAlgAExpJ{T,R}(0.0, 0.0, rng)
+    return ImmutSampleSingleAlgAExpJ(0.0, 0.0, rng, RefVal{T}())
 end
 
 function value(s::AbstractWeightedReservoirSampleSingle)
     s.state === 0.0 && return nothing
-    return s.value
+    return get_val(s)
 end
 
 @inline function update!(s::SampleSingleAlgARes, el, w)
     priority = randexp(s.rng)/w
     if priority < s.state
         @imm_reset s.state = priority
-        @imm_reset s.value = el
+        s = set_val(s, el)
     end
     return s
 end
 @inline function update!(s::SampleSingleAlgAExpJ, el, weight)
     @imm_reset s.state += weight
     if s.skip_w <= s.state
-        @imm_reset s.value = el
         @imm_reset s.skip_w = s.state/rand(s.rng)
+        s = set_val(s, el)
     end
+    return s
+end
+
+get_val(s::Union{ImmutSampleSingleAlgARes, ImmutSampleSingleAlgAExpJ}) = s.rvalue.value
+function set_val(s::Union{ImmutSampleSingleAlgARes, ImmutSampleSingleAlgAExpJ}, el)
+    @reset s.rvalue.value = el
+    return s
+end
+get_val(s::Union{MutSampleSingleAlgARes, MutSampleSingleAlgAExpJ}) = s.value
+function set_val(s::Union{MutSampleSingleAlgARes, MutSampleSingleAlgAExpJ}, el)
+    s.value = el
     return s
 end
 
