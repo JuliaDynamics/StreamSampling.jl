@@ -45,7 +45,12 @@ end
 f = Figure(fontsize = 9,);
 axs = [Axis(f[i, j], yscale = log10, xscale = log10) for i in 1:4 for j in 1:2];
 
-labels = ("stream-based", "collection-based", "collection-based without setup")
+labels = (
+    "stream-based\n(StreamSampling.itsample)", 
+    "collection-based with setup\n(StatsBase.sample)", 
+    "collection-based\n(StatsBase.sample)"
+)
+
 markers = (:circle, :rect, :utriangle)
 a, b = 0, 0
 
