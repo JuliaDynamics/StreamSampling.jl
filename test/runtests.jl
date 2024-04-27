@@ -16,5 +16,5 @@ using StreamSampling
     include("weighted_sampling_single_tests.jl")
     include("weighted_sampling_multi_tests.jl")
     include("merge_tests.jl")
-    include("benchmark_tests.jl")
+    include("benchmark/benchmark_tests.jl")
 end
