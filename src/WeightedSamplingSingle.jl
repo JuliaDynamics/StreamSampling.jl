@@ -86,7 +86,7 @@ end
 
 function itsample(rng::AbstractRNG, iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
         iter_type = infer_eltype(iter))
-    s = ReservoirSample(rng, iter_type, method, ms)
+    s = ReservoirSample(rng, iter_type, method, ims)
     return update_all!(s, iter, wv)
 end
 
