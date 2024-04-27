@@ -1,4 +1,3 @@
-
 using StreamSampling, StatsBase
 using Random, Printf, BenchmarkTools
 using CairoMakie
@@ -43,16 +42,34 @@ for m in algs
     end
 end
 
-f = Figure();
-axs = [Axis(f[i, j], yscale = log10) for i in 1:2 for j in 1:2];
-for j in 1:4, i in 1:3 
-    scatterlines!(axs[j], 1:4, m_times[i, j]) 
-end
-f
+f = Figure(fontsize = 9,);
+axs = [Axis(f[i, j], yscale = log10, xscale = log10) for i in 1:4 for j in 1:2];
 
-f = Figure();
-axs = [Axis(f[i, j], yscale = log10) for i in 1:2 for j in 1:2];
-for j in 1:4, i in 1:3 
-    scatterlines!(axs[j], 1:4, m_mems[i, j]) 
+labels = ("stream-based", "collection-based", "collection-based without setup")
+markers = (:circle, :rect, :utriangle)
+a, b = 0, 0
+
+for j in 1:8
+    m = j in (3, 4, 7, 8) ? m_mems : m_times
+    m == m_mems ? (a += 1) : (b += 1)
+    s = m == m_mems ? a : b
+    for i in 1:3 
+        scatterlines!(axs[j], [0.01, 0.1, 1, 10], m[i, s]; label = labels[i], marker = markers[i])
+    end
+    axs[j].ylabel = m == m_mems ? "memory (Mb)" : "time (ms)"
+    axs[j].xtickformat = x -> string.(x) .* "%"
+    j in (3, 4, 7, 8) && (axs[j].xlabel = "sample size")
+    pr = j in (1, 2) ? "un" : ""
+    t = j in (1, 5) ? "out" : "" 
+    j in (1, 2, 5, 6) && (axs[j].title = pr * "weighted with" * t * " replacement")
+    axs[j].titlegap = 8.0
+    j in (1, 2, 5, 6) && hidexdecorations!(axs[j], grid = false)
 end
+
+f[5, 1] = Legend(f, axs[1], framevisible = false, orientation = :horizontal, 
+        halign = :center, padding=(248,0,0,0))
+
+Label(f[0, :], "Comparison between stream-based and collection-based algorithms", fontsize = 13,
+    font=:bold)
+
 f
