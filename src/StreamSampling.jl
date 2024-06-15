@@ -173,8 +173,8 @@ If the iterator is empty, it returns `nothing`.
 
 -----
 
-    itsample([rng], iter, method = algL; ordered = false)
-    itsample([rng], iter, wv, method = algAExpJ; ordered = false)
+    itsample([rng], iter, n::Int, method = algL; ordered = false)
+    itsample([rng], iter, wv, n::Int, method = algAExpJ; ordered = false)
 
 Return a vector of `n` random elements of the iterator, 
 optionally specifying a `rng` (which defaults to `Random.default_rng()`)
