@@ -9,8 +9,6 @@ using PrecompileTools
     @compile_workload let
         rs = ReservoirSample(Int, algR)
         update_s_no_weights!(rs, iter)
-        rs = ReservoirSample(Int, algL)
-        update_s_no_weights!(rs, iter)
         rs = ReservoirSample(Int, algARes)
         update_s!(rs, iter)
         rs = ReservoirSample(Int, algAExpJ)
