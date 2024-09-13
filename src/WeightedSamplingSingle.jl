@@ -68,6 +68,16 @@ end
     return s
 end
 
+function reset!(s::MutSampleSingleAlgARes)
+    s.state = typemax(Float64)
+    return s
+end
+function reset!(s::MutSampleSingleAlgAExpJ)
+    s.state = 0.0
+    s.skip_w = 0.0
+    return s
+end
+
 get_val(s::Union{ImmutSampleSingleAlgARes, ImmutSampleSingleAlgAExpJ}) = s.rvalue.value
 function set_val(s::Union{ImmutSampleSingleAlgARes, ImmutSampleSingleAlgAExpJ}, el)
     @reset s.rvalue.value = el

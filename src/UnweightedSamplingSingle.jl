@@ -10,6 +10,7 @@ end
 
 mutable struct SampleSingleAlgR{T,R} <: AbstractReservoirSampleSingle
     seen_k::Int
+    skip_k::Int
     const rng::R
     value::T
     SampleSingleAlgR{T,R}(seen_k, rng, value) where {T,R} = new{T,R}(seen_k, rng, value)
@@ -25,22 +26,23 @@ function value(s::SampleSingleAlgR)
     return s.value
 end
 
-function ReservoirSample(T, method::ReservoirAlgorithm = algL)
+function ReservoirSample(T, method::ReservoirAlgorithm = algR)
     return ReservoirSample(Random.default_rng(), T, method, ms)
 end
-function ReservoirSample(rng::AbstractRNG, T, method::ReservoirAlgorithm = algL)
+function ReservoirSample(rng::AbstractRNG, T, method::ReservoirAlgorithm = algR)
     return ReservoirSample(rng, T, method, ms)
 end
 function ReservoirSample(rng::AbstractRNG, T, ::AlgL, ::MutSample)
     return SampleSingleAlgL{T, typeof(rng)}(1.0, 0, 0, rng)
 end
 function ReservoirSample(rng::AbstractRNG, T, ::AlgR, ::MutSample)
-    return SampleSingleAlgR{T, typeof(rng)}(0, rng)
+    return SampleSingleAlgR{T, typeof(rng)}(0, 0, rng)
 end
 
 @inline function update!(s::SampleSingleAlgR, el)
     s.seen_k += 1
-    if rand(s.rng) <= 1/s.seen_k
+    if s.skip_k <= s.seen_k
+        s.skip_k = ceil(Int, s.seen_k/rand(s.rng))
         s.value = el
     end
     return s
@@ -54,6 +56,18 @@ end
         s.state *= rand(s.rng)
         s.skip_k = -ceil(Int, randexp(s.rng)/log(1-s.state))
     end
+    return s
+end
+
+function reset!(s::SampleSingleAlgL)
+    s.state = 1.0
+    s.seen_k = 0
+    s.skip_k = 0
+    return s
+end
+function reset!(s::SampleSingleAlgR)
+    s.seen_k = 0
+    s.skip_k = 0
     return s
 end
 
@@ -76,11 +90,11 @@ function Base.merge!(s1::SampleSingleAlgR, s2::AbstractReservoirSampleSingle)
     return s1
 end
 
-function itsample(iter, method::ReservoirAlgorithm = algL;
+function itsample(iter, method::ReservoirAlgorithm = algR;
         iter_type = infer_eltype(iter))
     return itsample(Random.default_rng(), iter, method; iter_type)
 end
-function itsample(rng::AbstractRNG, iter, method::ReservoirAlgorithm = algL;
+function itsample(rng::AbstractRNG, iter, method::ReservoirAlgorithm = algR;
         iter_type = infer_eltype(iter))
     if Base.IteratorSize(iter) isa Base.SizeUnknown
         return reservoir_sample(rng, iter, iter_type, method)
@@ -89,7 +103,7 @@ function itsample(rng::AbstractRNG, iter, method::ReservoirAlgorithm = algL;
     end
 end
 
-function reservoir_sample(rng, iter, iter_type, method::ReservoirAlgorithm = algL)
+function reservoir_sample(rng, iter, iter_type, method::ReservoirAlgorithm = algR)
     s = ReservoirSample(rng, iter_type, method)
     return update_all!(s, iter)
 end

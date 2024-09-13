@@ -51,7 +51,6 @@ macro imm_reset(e)
     end)
 end
 
-
 """
 Implements random sampling without replacement.
 
@@ -133,6 +132,16 @@ needs to be passed to the function.
 function update! end
 
 export update!
+
+"""
+    reset!(rs::AbstractReservoirSample)
+
+Resets the reservoir sample to its initial state. 
+Useful to avoid allocating a new sample in some cases.
+"""
+function reset! end
+
+export reset!
 
 """
 

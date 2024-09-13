@@ -146,6 +146,22 @@ end
     return s
 end
 
+function reset!(s::Union{SampleMultiAlgR, SampleMultiOrdAlgR})
+    s.seen_k = 0
+    return s
+end
+function reset!(s::Union{SampleMultiAlgL, SampleMultiOrdAlgL})
+    s.state = 0.0
+    s.skip_k = 0
+    s.seen_k = 0
+    return s
+end
+function reset!(s::Union{SampleMultiAlgRSWRSKIP, SampleMultiOrdAlgRSWRSKIP})
+    s.skip_k = 0
+    s.seen_k = 0
+    return s
+end
+
 function update_state!(s::Union{SampleMultiAlgR, SampleMultiOrdAlgR})
     s.seen_k += 1
     return s
