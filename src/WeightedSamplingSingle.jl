@@ -41,9 +41,9 @@ end
     return s
 end
 
-function reset!(s::SampleSingleAlgAExpJ)
-    @imm_reset s.state = 0.0
-    @imm_reset s.skip_w = 0.0
+function reset!(s::MutSampleSingleAlgAExpJ)
+    s.state = 0.0
+    s.skip_w = 0.0
     return s
 end
 
