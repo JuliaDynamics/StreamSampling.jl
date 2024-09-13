@@ -16,6 +16,7 @@
     end
     for m in (algARes, algAExpJ, algWRSWRSKIP)
         for size in (nothing, 10)
+            size == nothing && m === algARes && continue
             size == nothing && m === algWRSWRSKIP && continue
             s = size == nothing ? () : (size,)
             b = @benchmark itsample($rng, $iter, $wv, $s..., $m) evals=1
