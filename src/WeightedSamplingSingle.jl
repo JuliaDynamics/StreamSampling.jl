@@ -47,13 +47,13 @@ function reset!(s::MutSampleSingleAlgAExpJ)
     return s
 end
 
-get_val(s::Union{ImmutSampleSingleAlgARes, ImmutSampleSingleAlgAExpJ}) = s.rvalue.value
-function set_val(s::Union{ImmutSampleSingleAlgARes, ImmutSampleSingleAlgAExpJ}, el)
+get_val(s::ImmutSampleSingleAlgAExpJ) = s.rvalue.value
+function set_val(s::ImmutSampleSingleAlgAExpJ, el)
     @reset s.rvalue.value = el
     return s
 end
-get_val(s::Union{MutSampleSingleAlgARes, MutSampleSingleAlgAExpJ}) = s.value
-function set_val(s::Union{MutSampleSingleAlgARes, MutSampleSingleAlgAExpJ}, el)
+get_val(s::MutSampleSingleAlgAExpJ) = s.value
+function set_val(s::MutSampleSingleAlgAExpJ, el)
     s.value = el
     return s
 end
