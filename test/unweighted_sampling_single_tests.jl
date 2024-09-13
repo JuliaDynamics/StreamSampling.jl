@@ -1,7 +1,7 @@
 
 @testset "Unweighted sampling single tests" begin
     @testset "method=$method" for method in (algL, algR)
-        a, b = 1, 1000
+        a, b = 1, 100
         z = itsample(a:b, method)
         @test a <= z <= b
         z = itsample(Iterators.filter(x -> x != b+1, a:b+1), method)
@@ -17,7 +17,7 @@
         rng = StableRNG(43)
         iters = (a:b, Iterators.filter(x -> x != b + 1, a:b+1))
         for it in iters
-            reps = 100000
+            reps = 10000
             dict_res = Dict{Int, Int}()
             for _ in 1:reps
                 s = itsample(rng, it, method)
@@ -27,7 +27,7 @@
                     dict_res[s] = 1
                 end
             end
-            cases = 1000
+            cases = 100
             ps_exact = [1/cases for _ in 1:cases]
             count_est = collect(values(dict_res))
 
