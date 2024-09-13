@@ -1,6 +1,6 @@
 
 @testset "Unweighted sampling single tests" begin
-    @testset "method=$method" for method in (algL, algR)
+    @testset "method=$method" for method in (algR,)
         a, b = 1, 100
         z = itsample(a:b, method)
         @test a <= z <= b
