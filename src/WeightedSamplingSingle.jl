@@ -5,19 +5,6 @@ mutable struct RefVal{T}
     RefVal(value::T) where T = new{T}(value)
 end
 
-struct ImmutSampleSingleAlgARes{T,R} <: AbstractWeightedReservoirSampleSingle
-    state::Float64
-    rng::R
-    rvalue::RefVal{T}
-end
-mutable struct MutSampleSingleAlgARes{T,R} <: AbstractWeightedReservoirSampleSingle
-    state::Float64
-    const rng::R
-    value::T
-    MutSampleSingleAlgARes{T,R}(state, rng) where {T,R} = new{T,R}(state, rng)
-end
-const SampleSingleAlgARes = Union{ImmutSampleSingleAlgARes, MutSampleSingleAlgARes}
-
 struct ImmutSampleSingleAlgAExpJ{T,R} <: AbstractWeightedReservoirSampleSingle
     state::Float64
     skip_w::Float64
@@ -33,12 +20,6 @@ mutable struct MutSampleSingleAlgAExpJ{T,R} <: AbstractWeightedReservoirSampleSi
 end
 const SampleSingleAlgAExpJ = Union{ImmutSampleSingleAlgAExpJ, MutSampleSingleAlgAExpJ}
 
-function ReservoirSample(rng::R, T, ::AlgARes, ::MutSample) where {R<:AbstractRNG}
-    return MutSampleSingleAlgARes{T,R}(typemax(Float64), rng)
-end
-function ReservoirSample(rng::R, T, ::AlgARes, ::ImmutSample) where {R<:AbstractRNG}
-    return ImmutSampleSingleAlgARes(typemax(Float64), rng, RefVal{T}())
-end
 function ReservoirSample(rng::R, T, ::AlgAExpJ, ::MutSample) where {R<:AbstractRNG}
     return MutSampleSingleAlgAExpJ{T,R}(0.0, 0.0, rng)
 end
@@ -51,14 +32,6 @@ function value(s::AbstractWeightedReservoirSampleSingle)
     return get_val(s)
 end
 
-@inline function update!(s::SampleSingleAlgARes, el, w)
-    priority = randexp(s.rng)/w
-    if priority < s.state
-        @imm_reset s.state = priority
-        s = set_val(s, el)
-    end
-    return s
-end
 @inline function update!(s::SampleSingleAlgAExpJ, el, weight)
     @imm_reset s.state += weight
     if s.skip_w <= s.state
@@ -68,13 +41,9 @@ end
     return s
 end
 
-function reset!(s::MutSampleSingleAlgARes)
-    s.state = typemax(Float64)
-    return s
-end
-function reset!(s::MutSampleSingleAlgAExpJ)
-    s.state = 0.0
-    s.skip_w = 0.0
+function reset!(s::SampleSingleAlgAExpJ)
+    @imm_reset s.state = 0.0
+    @imm_reset s.skip_w = 0.0
     return s
 end
 
