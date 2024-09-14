@@ -11,6 +11,7 @@ update!
 empty!
 value
 ordered_value
+nobs
 itsample
 ```
 

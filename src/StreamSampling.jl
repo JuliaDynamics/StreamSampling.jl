@@ -124,16 +124,6 @@ function update! end
 export update!
 
 """
-    Base.empty!(rs::AbstractReservoirSample)
-
-Resets the reservoir sample to its initial state. 
-Useful to avoid allocating a new sample in some cases.
-"""
-function Base.empty!(::AbstractReservoirSample)
-    error("Abstract Version")
-end
-
-"""
     value(rs::AbstractReservoirSample)
 
 Returns the elements collected in the sample at the current 
@@ -159,6 +149,25 @@ function ordered_value end
 
 export ordered_value
 
+"""
+    nobs(rs::AbstractReservoirSample)
+
+Returns the total number of elements that have been observed so far 
+during the sampling process.
+"""
+OnlineStatsBase.nobs(s::AbstractReservoirSample) = s.seen_k
+
+export nobs
+
+"""
+    Base.empty!(rs::AbstractReservoirSample)
+
+Resets the reservoir sample to its initial state. 
+Useful to avoid allocating a new sample in some cases.
+"""
+function Base.empty!(::AbstractReservoirSample)
+    error("Abstract Version")
+end
 
 """
     itsample([rng], iter, method = algL)

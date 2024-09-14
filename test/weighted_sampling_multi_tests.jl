@@ -73,6 +73,7 @@ end
         end
         @test length(value(rs)) == 5
         @test all(x -> a <= x <= b, value(rs))
+        @test nobs(rs) == 10
 
         weight2(el) = el <= 5 ? 1.0 : 2.0
         rng = StableRNG(41)

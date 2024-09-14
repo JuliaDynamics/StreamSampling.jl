@@ -203,17 +203,17 @@ end
 
 update_order!(s::AbstractWorReservoirSampleMulti, j) = nothing
 function update_order!(s::AbstractOrdWorReservoirSampleMulti, j)
-    s.ord[j] = n_seen(s)
+    s.ord[j] = nobs(s)
 end
 
 update_order_single!(s::SampleMultiAlgRSWRSKIP, r) = nothing
 function update_order_single!(s::SampleMultiOrdAlgRSWRSKIP, r)
-    s.ord[r] = n_seen(s)
+    s.ord[r] = nobs(s)
 end
 
 update_order_multi!(s::SampleMultiAlgRSWRSKIP, r, j) = nothing
 function update_order_multi!(s::SampleMultiOrdAlgRSWRSKIP, r, j)
-    s.ord[r], s.ord[j] = s.ord[j], n_seen(s)
+    s.ord[r], s.ord[j] = s.ord[j], nobs(s)
 end
 
 is_ordered(s::AbstractOrdWrReservoirSampleMulti) = true
@@ -245,7 +245,7 @@ end
 function check_merging_support(s1, s2)
     len1, len2 = length(s1.value), length(s2.value)
     len1 != len2 && error("Merging samples with different sizes is not supported")
-    n1, n2 = n_seen(s1), n_seen(s2)
+    n1, n2 = nobs(s1), nobs(s2)
     n1 < len1 || n2 < len2 && error("Merging samples with different sizes is not supported")
     return len1, len2, n1, n2
 end
@@ -269,30 +269,30 @@ function merge_res_vec!(s1, s2, p, len1, n_tot)
 end
 
 function value(s::AbstractWorReservoirSampleMulti)
-    if n_seen(s) < length(s.value)
-        return s.value[1:n_seen(s)]
+    if nobs(s) < length(s.value)
+        return s.value[1:nobs(s)]
     else
         return s.value
     end
 end
 function value(s::AbstractWrReservoirSampleMulti)
-    if n_seen(s) < length(s.value)
-        return sample(s.rng, s.value[1:n_seen(s)], length(s.value))
+    if nobs(s) < length(s.value)
+        return sample(s.rng, s.value[1:nobs(s)], length(s.value))
     else
         return s.value
     end
 end
 
 function ordered_value(s::AbstractOrdWorReservoirSampleMulti)
-    if n_seen(s) < length(s.value)
-        return s.value[1:n_seen(s)]
+    if nobs(s) < length(s.value)
+        return s.value[1:nobs(s)]
     else
         return s.value[sortperm(s.ord)]
     end
 end
 function ordered_value(s::AbstractOrdWrReservoirSampleMulti)
-    if n_seen(s) < length(s.value)
-        return sample(s.rng, s.value[1:n_seen(s)], length(s.value); ordered=true)
+    if nobs(s) < length(s.value)
+        return sample(s.rng, s.value[1:nobs(s)], length(s.value); ordered=true)
     else
         return s.value[sortperm(s.ord)]
     end

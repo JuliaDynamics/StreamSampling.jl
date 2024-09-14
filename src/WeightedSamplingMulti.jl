@@ -302,49 +302,47 @@ function push_value!(s::Union{SampleMultiOrdAlgARes, SampleMultiOrdAlgAExpJ}, el
 end
 update_order_single!(s::SampleMultiAlgWRSWRSKIP, r) = nothing
 function update_order_single!(s::SampleMultiOrdAlgWRSWRSKIP, r)
-    s.ord[r] = n_seen(s)
+    s.ord[r] = nobs(s)
 end
 
 update_order_multi!(s::SampleMultiAlgWRSWRSKIP, r, j) = nothing
 function update_order_multi!(s::SampleMultiOrdAlgWRSWRSKIP, r, j)
-    s.ord[r], s.ord[j] = s.ord[j], n_seen(s)
+    s.ord[r], s.ord[j] = s.ord[j], nobs(s)
 end
 
 is_ordered(s::SampleMultiOrdAlgWRSWRSKIP) = true
 is_ordered(s::SampleMultiAlgWRSWRSKIP) = false
 
 function value(s::AbstractWeightedWorReservoirSampleMulti)
-    if n_seen(s) < s.n
-        return first.(s.value.valtree[1:n_seen(s)])
+    if nobs(s) < s.n
+        return first.(s.value.valtree[1:nobs(s)])
     else
         return first.(s.value.valtree)
     end
 end
 function value(s::AbstractWeightedWrReservoirSampleMulti)
-    if n_seen(s) < length(s.value)
-        return sample(s.rng, s.value[1:n_seen(s)], weights(s.weights[1:n_seen(s)]), length(s.value))
+    if nobs(s) < length(s.value)
+        return sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value))
     else
         return s.value
     end
 end
 
 function ordered_value(s::Union{SampleMultiOrdAlgARes, SampleMultiOrdAlgAExpJ})
-    if n_seen(s) < length(s.value)
-        vals = s.value.valtree[1:n_seen(s)]
+    if nobs(s) < length(s.value)
+        vals = s.value.valtree[1:nobs(s)]
     else
         vals = s.value.valtree    
     end
     return first.(vals[sortperm(map(x -> x[2], vals))])
 end
 function ordered_value(s::SampleMultiOrdAlgWRSWRSKIP)
-    if n_seen(s) < length(s.value)
-        return sample(s.rng, s.value[1:n_seen(s)], weights(s.weights[1:n_seen(s)]), length(s.value); ordered=true)
+    if nobs(s) < length(s.value)
+        return sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value); ordered=true)
     else
         return s.value[sortperm(s.ord)]
     end
 end
-
-n_seen(s::AbstractReservoirSample) = s.seen_k
 
 function itsample(iter, wv::Function, n::Int, method::ReservoirAlgorithm=algAExpJ; 
         iter_type = infer_eltype(iter), ordered = false)

@@ -39,14 +39,14 @@ function Base.empty!(s::SampleSingleAlgR)
 end
 
 function Base.merge(s1::AbstractReservoirSampleSingle, s2::AbstractReservoirSampleSingle)
-    n1, n2 = n_seen(s1), n_seen(s2)
+    n1, n2 = nobs(s1), nobs(s2)
     n_tot = n1 + n2
     value = rand(s1.rng) < n1/n_tot ? s1.value : s2.value
     return SampleSingleAlgR{typeof(value), typeof(s1.rng)}(n_tot, s1.skip_k + s2.skip_k, s1.rng, value)
 end
 
 function Base.merge!(s1::SampleSingleAlgR, s2::AbstractReservoirSampleSingle)
-    n1, n2 = n_seen(s1), n_seen(s2)
+    n1, n2 = nobs(s1), nobs(s2)
     n_tot = n1 + n2
     r = rand(s1.rng)
     p = n2 / n_tot

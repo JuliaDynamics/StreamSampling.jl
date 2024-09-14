@@ -13,6 +13,7 @@
             update!(rs, x)
         end
         @test a <= value(rs) <= b
+        @test nobs(rs) == 100
 
         rng = StableRNG(43)
         iters = (a:b, Iterators.filter(x -> x != b + 1, a:b+1))

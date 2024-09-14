@@ -47,6 +47,7 @@
         end
         @test length(value(rs)) == 5
         @test all(x -> a <= x <= b, value(rs))
+        @test nobs(rs) == 10
 
         rng = StableRNG(42)
         iters = (a:b, Iterators.filter(x -> x != b + 1, a:b+1))

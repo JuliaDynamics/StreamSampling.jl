@@ -14,6 +14,7 @@
             update!(rs, x, wv(x))
         end
         @test a <= value(rs) <= b
+        @test nobs(rs) == 100
         
         rng = StableRNG(43)
         wv2(el) = el <= 50 ? 1.0 : 2.0
