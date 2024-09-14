@@ -242,13 +242,13 @@ end
     return s
 end
 
-function reset!(s::Union{MutSampleMultiAlgARes, MutSampleMultiOrdAlgARes})
+function Base.empty!(s::Union{MutSampleMultiAlgARes, MutSampleMultiOrdAlgARes})
     s.seen_k = 0
     empty!(s.value)
     sizehint!(s.value, s.n)
     return s
 end
-function reset!(s::Union{MutSampleMultiAlgAExpJ, MutSampleMultiOrdAlgAExpJ})
+function Base.empty!(s::Union{MutSampleMultiAlgAExpJ, MutSampleMultiOrdAlgAExpJ})
     s.state = 0.0
     s.min_priority = 0.0
     s.seen_k = 0
@@ -256,7 +256,7 @@ function reset!(s::Union{MutSampleMultiAlgAExpJ, MutSampleMultiOrdAlgAExpJ})
     sizehint!(s.value, s.n)
     return s
 end
-function reset!(s::Union{MutSampleMultiAlgWRSWRSKIP, MutSampleMultiOrdAlgWRSWRSKIP})
+function Base.empty!(s::Union{MutSampleMultiAlgWRSWRSKIP, MutSampleMultiOrdAlgWRSWRSKIP})
     s.state = 0.0
     s.skip_w = 0.0
     s.seen_k = 0
@@ -264,17 +264,17 @@ function reset!(s::Union{MutSampleMultiAlgWRSWRSKIP, MutSampleMultiOrdAlgWRSWRSK
 end
 
 function update_state!(s::Union{SampleMultiAlgARes, SampleMultiOrdAlgARes}, w)
-    @imm_reset s.seen_k += 1
+    @reset s.seen_k += 1
     return s
 end
 function update_state!(s::Union{SampleMultiAlgAExpJ, SampleMultiOrdAlgAExpJ}, w)
-    @imm_reset s.seen_k += 1
-    @imm_reset s.state -= w
+    @reset s.seen_k += 1
+    @reset s.state -= w
     return s
 end
 function update_state!(s::Union{SampleMultiAlgWRSWRSKIP, SampleMultiOrdAlgWRSWRSKIP}, w)
-    @imm_reset s.seen_k += 1
-    @imm_reset s.state += w
+    @reset s.seen_k += 1
+    @reset s.state += w
     return s
 end
 
@@ -284,13 +284,13 @@ function compute_skip_priority(s, w)
 end
 
 function recompute_skip!(s::Union{SampleMultiAlgAExpJ, SampleMultiOrdAlgAExpJ})
-    @imm_reset s.min_priority = last(first(s.value))
-    @imm_reset s.state = -randexp(s.rng)/log(s.min_priority)
+    @reset s.min_priority = last(first(s.value))
+    @reset s.state = -randexp(s.rng)/log(s.min_priority)
     return s
 end
 function recompute_skip!(s::Union{SampleMultiAlgWRSWRSKIP, SampleMultiOrdAlgWRSWRSKIP}, n)
     q = rand(s.rng)^(1/n)
-    @imm_reset s.skip_w = s.state/q
+    @reset s.skip_w = s.state/q
     return s
 end
 

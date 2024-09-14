@@ -1,8 +1,9 @@
 module StreamSampling
 
-using Accessors
+import Accessors
 using DataStructures
 using Distributions
+using OnlineStatsBase
 using Random
 using StatsBase
 
@@ -38,18 +39,6 @@ struct AlgRSWRSKIP <: ReservoirAlgorithm end
 struct AlgARes <: ReservoirAlgorithm end
 struct AlgAExpJ <: ReservoirAlgorithm end
 struct AlgWRSWRSKIP <: ReservoirAlgorithm end
-
-
-macro imm_reset(e)
-    s = e.args[1].args[1]
-    esc(quote
-        if ismutabletype(typeof($s))
-            $e
-        else
-            StreamSampling.Accessors.@reset $e
-        end
-    end)
-end
 
 """
 Implements random sampling without replacement.
@@ -99,16 +88,18 @@ const algWRSWRSKIP = AlgWRSWRSKIP()
 
 export algL, algR, algRSWRSKIP, algARes, algAExpJ, algWRSWRSKIP
 
-include("SortedSamplingSingle.jl")
-include("SortedSamplingMulti.jl")
-include("UnweightedSamplingSingle.jl")
-include("UnweightedSamplingMulti.jl")
-include("WeightedSamplingSingle.jl")
-include("WeightedSamplingMulti.jl")
-include("precompile.jl")
+macro reset(e)
+    s = e.args[1].args[1]
+    esc(quote
+        if ismutabletype(typeof($s))
+            $e
+        else
+            $StreamSampling.Accessors.@reset $e
+        end
+    end)
+end
 
 """
-
     ReservoirSample([rng], T, method = algL)
     ReservoirSample([rng], T, n::Int, method = algL; ordered = false)
 
@@ -121,7 +112,6 @@ function ReservoirSample end
 export ReservoirSample
 
 """
-
     update!(rs::AbstractReservoirSample, el)
     update!(rs::AbstractReservoirSample, el, w::Float64)
 
@@ -134,17 +124,16 @@ function update! end
 export update!
 
 """
-    reset!(rs::AbstractReservoirSample)
+    Base.empty!(rs::AbstractReservoirSample)
 
 Resets the reservoir sample to its initial state. 
 Useful to avoid allocating a new sample in some cases.
 """
-function reset! end
-
-export reset!
+function Base.empty!(::AbstractReservoirSample)
+    error("Abstract Version")
+end
 
 """
-
     value(rs::AbstractReservoirSample)
 
 Returns the elements collected in the sample at the current 
@@ -207,5 +196,13 @@ from the iterable. The number of elements in the iterable needs to be known
 before starting the sampling.
 """
 function sortedindices_sample end
+
+include("SortedSamplingSingle.jl")
+include("SortedSamplingMulti.jl")
+include("UnweightedSamplingSingle.jl")
+include("UnweightedSamplingMulti.jl")
+include("WeightedSamplingSingle.jl")
+include("WeightedSamplingMulti.jl")
+include("precompile.jl")
 
 end

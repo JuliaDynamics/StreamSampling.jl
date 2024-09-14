@@ -6,17 +6,17 @@ mutable struct RefVal{T}
 end
 
 struct ImmutSampleSingleAlgAExpJ{T,R} <: AbstractWeightedReservoirSampleSingle
-    state::Float64
+    total_w::Float64
     skip_w::Float64
     rng::R
     rvalue::RefVal{T}
 end
 mutable struct MutSampleSingleAlgAExpJ{T,R} <: AbstractWeightedReservoirSampleSingle
-    state::Float64
+    total_w::Float64
     skip_w::Float64
     const rng::R
     value::T
-    MutSampleSingleAlgAExpJ{T,R}(state, skip_w, rng) where {T,R} = new{T,R}(state, skip_w, rng)
+    MutSampleSingleAlgAExpJ{T,R}(total_w, skip_w, rng) where {T,R} = new{T,R}(total_w, skip_w, rng)
 end
 const SampleSingleAlgAExpJ = Union{ImmutSampleSingleAlgAExpJ, MutSampleSingleAlgAExpJ}
 
@@ -28,33 +28,34 @@ function ReservoirSample(rng::R, T, ::AlgAExpJ, ::ImmutSample) where {R<:Abstrac
 end
 
 function value(s::AbstractWeightedReservoirSampleSingle)
-    s.state === 0.0 && return nothing
-    return get_val(s)
+    s.total_w === 0.0 && return nothing
+    return get_value(s)
 end
 
 @inline function update!(s::SampleSingleAlgAExpJ, el, weight)
-    @imm_reset s.state += weight
-    if s.skip_w <= s.state
-        @imm_reset s.skip_w = s.state/rand(s.rng)
-        s = set_val(s, el)
+    @reset s.total_w += weight
+    if s.skip_w <= s.total_w
+        @reset s.skip_w = s.total_w/rand(s.rng)
+        s = reset_value!(s, el)
     end
     return s
 end
 
-function reset!(s::MutSampleSingleAlgAExpJ)
-    s.state = 0.0
+function Base.empty!(s::MutSampleSingleAlgAExpJ)
+    s.total_w = 0.0
     s.skip_w = 0.0
     return s
 end
 
-get_val(s::ImmutSampleSingleAlgAExpJ) = s.rvalue.value
-function set_val(s::ImmutSampleSingleAlgAExpJ, el)
-    @reset s.rvalue.value = el
+get_value(s::MutSampleSingleAlgAExpJ) = s.value
+get_value(s::ImmutSampleSingleAlgAExpJ) = s.rvalue.value
+
+function reset_value!(s::MutSampleSingleAlgAExpJ, el)
+    s.value = el
     return s
 end
-get_val(s::MutSampleSingleAlgAExpJ) = s.value
-function set_val(s::MutSampleSingleAlgAExpJ, el)
-    s.value = el
+function reset_value!(s::ImmutSampleSingleAlgAExpJ, el)
+    @reset s.rvalue.value = el
     return s
 end
 
@@ -62,7 +63,6 @@ function itsample(iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
         iter_type = infer_eltype(iter))
     return itsample(Random.default_rng(), iter, wv, method)
 end
-
 function itsample(rng::AbstractRNG, iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
         iter_type = infer_eltype(iter))
     s = ReservoirSample(rng, iter_type, method, ims)

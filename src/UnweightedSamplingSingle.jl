@@ -32,7 +32,7 @@ end
     return s
 end
 
-function reset!(s::SampleSingleAlgR)
+function Base.empty!(s::SampleSingleAlgR)
     s.seen_k = 0
     s.skip_k = 0
     return s

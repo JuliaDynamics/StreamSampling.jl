@@ -7,11 +7,7 @@ function sortedindices_sample(rng, iter, n::Int;
         if replace
             return sample(rng, reservoir, n, ordered=ordered)
         else
-            if ordered
-                return reservoir
-            else
-                return shuffle!(rng, reservoir)
-            end
+            return ordered ? reservoir : shuffle!(rng, reservoir)
         end
     end
     reservoir = Vector{iter_type}(undef, n)
@@ -36,11 +32,7 @@ function sortedindices_sample(rng, iter, n::Int;
         end
         i += 1
     end
-    if ordered
-        return reservoir
-    else
-        return shuffle!(rng, reservoir)
-    end
+    return ordered ? reservoir : shuffle!(rng, reservoir)
 end
 
 function skip_ahead_no_end(iter, state, n)

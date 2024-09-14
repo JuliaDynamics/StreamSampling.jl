@@ -99,7 +99,7 @@ end
     s = @inline update_state!(s)
     if s.seen_k <= n
         @inbounds s.value[s.seen_k] = el
-        if s.seen_k == n
+        if s.seen_k === n
             s = @inline recompute_skip!(s, n)
         end
     elseif s.skip_k < 0
@@ -115,7 +115,7 @@ end
     s = @inline update_state!(s)
     if s.seen_k <= n
         @inbounds s.value[s.seen_k] = el
-        if s.seen_k == n
+        if s.seen_k === n
             s = recompute_skip!(s, n)
             new_values = sample(s.rng, s.value, n, ordered=is_ordered(s))
             @inbounds for i in 1:n
@@ -146,17 +146,17 @@ end
     return s
 end
 
-function reset!(s::Union{SampleMultiAlgR, SampleMultiOrdAlgR})
+function Base.empty!(s::Union{SampleMultiAlgR, SampleMultiOrdAlgR})
     s.seen_k = 0
     return s
 end
-function reset!(s::Union{SampleMultiAlgL, SampleMultiOrdAlgL})
+function Base.empty!(s::Union{SampleMultiAlgL, SampleMultiOrdAlgL})
     s.state = 0.0
     s.skip_k = 0
     s.seen_k = 0
     return s
 end
-function reset!(s::Union{SampleMultiAlgRSWRSKIP, SampleMultiOrdAlgRSWRSKIP})
+function Base.empty!(s::Union{SampleMultiAlgRSWRSKIP, SampleMultiOrdAlgRSWRSKIP})
     s.skip_k = 0
     s.seen_k = 0
     return s
