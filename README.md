@@ -98,6 +98,12 @@ julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=f
   305.226 ms (43 allocations: 370.19 MiB)
 ```
 
+There are also more performance comparisons in respect to `StatsBase` methods at 
+[test/benchmark/comparison.png](https://github.com/JuliaDynamics/StreamSampling.jl/blob/main/test/benchmark/comparison.png), where
+the version with setup includes the collection of the population in memory, required to perform the sampling with non-streaming methods. 
+
+
+
 ## Contributing
 
 Contributions are welcome! If you encounter any issues, have suggestions for improvements, or would like to add new 
