@@ -23,35 +23,24 @@ struct ImmutSampleMultiAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSampleMul
     weights::Vector{Float64}
     value::Vector{T}
 end
-mutable struct MutSampleMultiAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSampleMulti
-    state::Float64
-    skip_w::Float64
-    seen_k::Int
-    const rng::R
-    const weights::Vector{Float64}
-    const value::Vector{T}
-end
-const SampleMultiAlgWRSWRSKIP = Union{ImmutSampleMultiAlgWRSWRSKIP, MutSampleMultiAlgWRSWRSKIP}
 
-struct ImmutSampleMultiOrdAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSampleMulti
-    state::Float64
-    skip_w::Float64
-    seen_k::Int
-    rng::R
-    weights::Vector{Float64}
+struct ValueWRSWRSKIP{T}
+    value::Vector{T}
+end
+
+struct OrdValueWRSWRSKIP{T}
     value::Vector{T}
     ord::Vector{Int}
 end
-mutable struct MutSampleMultiOrdAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSampleMulti
+
+@hybrid struct SampleMultiAlgWRSWRSKIP{V,R} <: AbstractWeightedWrReservoirSampleMulti
     state::Float64
     skip_w::Float64
     seen_k::Int
     const rng::R
     const weights::Vector{Float64}
-    const value::Vector{T}
-    const ord::Vector{Int}
+    const value::V
 end
-const SampleMultiOrdAlgWRSWRSKIP = Union{ImmutSampleMultiOrdAlgWRSWRSKIP, MutSampleMultiOrdAlgWRSWRSKIP}
 
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgAExpJ, ::MutSample; 
         ordered = false)
@@ -107,9 +96,9 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP, 
     weights = Vector{Float64}(undef, n)
     if ordered
         ord = collect(1:n)
-        return MutSampleMultiOrdAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value, ord)
+        return MutSampleMultiOrdAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value, OrdValueWRSWRSKIP(value, ord))
     else
-        return MutSampleMultiAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value)
+        return MutSampleMultiAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, ValueWRSWRSKIP(value))
     end
 end
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP, ims::ImmutSample; 
@@ -118,9 +107,9 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP, 
     weights = Vector{Float64}(undef, n)
     if ordered
         ord = collect(1:n)
-        return ImmutSampleMultiOrdAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value, ord)
+        return ImmutSampleMultiOrdAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, OrdValueWRSWRSKIP(value, ord))
     else
-        return ImmutSampleMultiAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value)
+        return ImmutSampleMultiAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, ValueWRSWRSKIP(value))
     end
 end
 
