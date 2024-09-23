@@ -1,33 +1,12 @@
 
-struct ImmutSampleMultiAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
-    seen_k::Int
-    n::Int
-    rng::R
-    value::BH
-end
-mutable struct MutSampleMultiAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
+@hybrid struct SampleMultiAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
     seen_k::Int
     n::Int
     const rng::R
     const value::BH
 end
-const SampleMultiAlgARes = Union{ImmutSampleMultiAlgARes, MutSampleMultiAlgARes}
 
-struct ImmutSampleMultiOrdAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
-    seen_k::Int
-    n::Int
-    rng::R
-    value::BH
-end
-mutable struct MutSampleMultiOrdAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
-    seen_k::Int
-    n::Int
-    const rng::R
-    const value::BH
-end
-const SampleMultiOrdAlgARes = Union{ImmutSampleMultiOrdAlgARes, MutSampleMultiOrdAlgARes}
-
-struct ImmutSampleMultiAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMulti
+@hybrid struct SampleMultiAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMulti
     state::Float64
     min_priority::Float64
     seen_k::Int
@@ -35,33 +14,6 @@ struct ImmutSampleMultiAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMulti
     rng::R
     value::BH
 end
-mutable struct MutSampleMultiAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMulti
-    state::Float64
-    min_priority::Float64
-    seen_k::Int
-    const n::Int
-    const rng::R
-    const value::BH
-end
-const SampleMultiAlgAExpJ = Union{ImmutSampleMultiAlgAExpJ, MutSampleMultiAlgAExpJ}
-
-struct ImmutSampleMultiOrdAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMulti
-    state::Float64
-    min_priority::Float64
-    seen_k::Int
-    n::Int
-    rng::R
-    value::BH
-end
-mutable struct MutSampleMultiOrdAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMulti
-    state::Float64
-    min_priority::Float64
-    seen_k::Int
-    const n::Int
-    const rng::R
-    const value::BH
-end
-const SampleMultiOrdAlgAExpJ = Union{ImmutSampleMultiOrdAlgAExpJ, MutSampleMultiOrdAlgAExpJ}
 
 struct ImmutSampleMultiAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSampleMulti
     state::Float64
@@ -106,11 +58,11 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgAExpJ, ::MutSampl
     if ordered
         value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Tuple{T, Int, Float64}[])
         sizehint!(value, n)
-        return MutSampleMultiOrdAlgAExpJ(0.0, 0.0, 0, n, rng, value)
+        return SampleMultiOrdAlgAExpJ(0.0, 0.0, 0, n, rng, value; mutable=true)
     else
         value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Pair{T, Float64}[])
         sizehint!(value, n)
-        return MutSampleMultiAlgAExpJ(0.0, 0.0, 0, n, rng, value)
+        return SampleMultiAlgAExpJ(0.0, 0.0, 0, n, rng, value; mutable=true)
     end
 end
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgAExpJ, ::ImmutSample; 
@@ -118,11 +70,11 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgAExpJ, ::ImmutSam
     if ordered
         value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Tuple{T, Int, Float64}[])
         sizehint!(value, n)
-        return ImmutSampleMultiOrdAlgAExpJ(0.0, 0.0, 0, n, rng, value)
+        return SampleMultiOrdAlgAExpJ(0.0, 0.0, 0, n, rng, value; mutable=false)
     else
         value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Pair{T, Float64}[])
         sizehint!(value, n)
-        return ImmutSampleMultiAlgAExpJ(0.0, 0.0, 0, n, rng, value)
+        return SampleMultiAlgAExpJ(0.0, 0.0, 0, n, rng, value; mutable=false)
     end
 end
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgARes, ::MutSample;  
@@ -130,11 +82,11 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgARes, ::MutSample
     if ordered
         value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Tuple{T, Int, Float64}[])
         sizehint!(value, n)
-        return MutSampleMultiOrdAlgARes(0, n, rng, value)
+        return MutSampleMultiOrdAlgARes(0, n, rng, value; mutable=true)
     else
         value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Pair{T, Float64}[])
         sizehint!(value, n)
-        return MutSampleMultiAlgARes(0, n, rng, value)
+        return MutSampleMultiAlgARes(0, n, rng, value; mutable=true)
     end
 end
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgARes, ::ImmutSample;  
@@ -142,11 +94,11 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgARes, ::ImmutSamp
     if ordered
         value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Tuple{T, Int, Float64}[])
         sizehint!(value, n)
-        return ImmutSampleMultiOrdAlgARes(0, n, rng, value)
+        return SampleMultiOrdAlgARes(0, n, rng, value; mutable=false)
     else
         value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Pair{T, Float64}[])
         sizehint!(value, n)
-        return ImmutSampleMultiAlgARes(0, n, rng, value)
+        return SampleMultiAlgARes(0, n, rng, value; mutable=false)
     end
 end
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP, ms::MutSample; 
@@ -172,7 +124,7 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP, 
     end
 end
 
-@inline function update!(s::Union{SampleMultiAlgARes, SampleMultiOrdAlgARes}, el, w)
+@inline function update!(s::Union{SampleMultiAlgARes_Mut, SampleMultiAlgARes_Immut}, el, w)
     n = s.n
     s = @inline update_state!(s, w)
     priority = -randexp(s.rng)/w
@@ -187,7 +139,7 @@ end
     end
     return s
 end
-@inline function update!(s::Union{SampleMultiAlgAExpJ, SampleMultiOrdAlgAExpJ}, el, w)
+@inline function update!(s::Union{SampleMultiAlgAExpJ_Mut, SampleMultiAlgAExpJ_Immut}, el, w)
     n = s.n
     s = @inline update_state!(s, w)
     if s.seen_k <= n
@@ -242,13 +194,13 @@ end
     return s
 end
 
-function Base.empty!(s::Union{MutSampleMultiAlgARes, MutSampleMultiOrdAlgARes})
+function Base.empty!(s::SampleMultiAlgARes_Mut)
     s.seen_k = 0
     empty!(s.value)
     sizehint!(s.value, s.n)
     return s
 end
-function Base.empty!(s::Union{MutSampleMultiAlgAExpJ, MutSampleMultiOrdAlgAExpJ})
+function Base.empty!(s::SampleMultiAlgAExpJ_Mut)
     s.state = 0.0
     s.min_priority = 0.0
     s.seen_k = 0
@@ -263,11 +215,11 @@ function Base.empty!(s::Union{MutSampleMultiAlgWRSWRSKIP, MutSampleMultiOrdAlgWR
     return s
 end
 
-function update_state!(s::Union{SampleMultiAlgARes, SampleMultiOrdAlgARes}, w)
+function update_state!(s::Union{SampleMultiAlgARes_Mut, SampleMultiAlgARes_Immut}, w)
     @reset s.seen_k += 1
     return s
 end
-function update_state!(s::Union{SampleMultiAlgAExpJ, SampleMultiOrdAlgAExpJ}, w)
+function update_state!(s::Union{SampleMultiAlgAExpJ_Mut, SampleMultiAlgAExpJ_Immut}, w)
     @reset s.seen_k += 1
     @reset s.state -= w
     return s
@@ -283,7 +235,7 @@ function compute_skip_priority(s, w)
     return exp(log(rand(s.rng, Uniform(t,1)))/w)
 end
 
-function recompute_skip!(s::Union{SampleMultiAlgAExpJ, SampleMultiOrdAlgAExpJ})
+function recompute_skip!(s::Union{SampleMultiAlgAExpJ_Mut, SampleMultiAlgAExpJ_Immut})
     @reset s.min_priority = last(first(s.value))
     @reset s.state = -randexp(s.rng)/log(s.min_priority)
     return s
