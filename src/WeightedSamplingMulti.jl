@@ -20,8 +20,8 @@ end
     min_priority::Float64
     seen_k::Int
     n::Int
-    rng::R
-    value::BH
+    const rng::R
+    const value::BH
 end
 
 @hybrid struct SampleMultiAlgWRSWRSKIP{V,R} <: AbstractWeightedWrReservoirSampleMulti
