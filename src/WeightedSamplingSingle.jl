@@ -35,10 +35,10 @@ function value(s::AbstractWeightedReservoirSampleSingle)
 end
 
 @inline function update!(s::SampleSingleAlgAExpJ, el, weight)
-    @reset s.seen_k += 1
-    @reset s.total_w += weight
+    @update s.seen_k += 1
+    @update s.total_w += weight
     if s.skip_w <= s.total_w
-        @reset s.skip_w = s.total_w/rand(s.rng)
+        @update s.skip_w = s.total_w/rand(s.rng)
         s = reset_value!(s, el)
     end
     return s
@@ -59,7 +59,7 @@ function reset_value!(s::MutSampleSingleAlgAExpJ, el)
     return s
 end
 function reset_value!(s::ImmutSampleSingleAlgAExpJ, el)
-    @reset s.rvalue.value = el
+    @update s.rvalue.value = el
     return s
 end
 
