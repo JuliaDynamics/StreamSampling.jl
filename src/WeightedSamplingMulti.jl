@@ -216,17 +216,17 @@ function Base.empty!(s::Union{MutSampleMultiAlgWRSWRSKIP, MutSampleMultiOrdAlgWR
 end
 
 function update_state!(s::Union{SampleMultiAlgARes_Mut, SampleMultiAlgARes_Immut}, w)
-    @reset s.seen_k += 1
+    @update s.seen_k += 1
     return s
 end
 function update_state!(s::Union{SampleMultiAlgAExpJ_Mut, SampleMultiAlgAExpJ_Immut}, w)
-    @reset s.seen_k += 1
-    @reset s.state -= w
+    @update s.seen_k += 1
+    @update s.state -= w
     return s
 end
 function update_state!(s::Union{SampleMultiAlgWRSWRSKIP, SampleMultiOrdAlgWRSWRSKIP}, w)
-    @reset s.seen_k += 1
-    @reset s.state += w
+    @update s.seen_k += 1
+    @update s.state += w
     return s
 end
 
@@ -236,13 +236,13 @@ function compute_skip_priority(s, w)
 end
 
 function recompute_skip!(s::Union{SampleMultiAlgAExpJ_Mut, SampleMultiAlgAExpJ_Immut})
-    @reset s.min_priority = last(first(s.value))
-    @reset s.state = -randexp(s.rng)/log(s.min_priority)
+    @update s.min_priority = last(first(s.value))
+    @update s.state = -randexp(s.rng)/log(s.min_priority)
     return s
 end
 function recompute_skip!(s::Union{SampleMultiAlgWRSWRSKIP, SampleMultiOrdAlgWRSWRSKIP}, n)
     q = rand(s.rng)^(1/n)
-    @reset s.skip_w = s.state/q
+    @update s.skip_w = s.state/q
     return s
 end
 
