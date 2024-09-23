@@ -1,13 +1,4 @@
 
-struct ValueWRSWRSKIP{T}
-    value::Vector{T}
-end
-
-struct OrdValueWRSWRSKIP{T}
-    value::Vector{T}
-    ord::Vector{Int}
-end
-
 @hybrid struct SampleMultiAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
     seen_k::Int
     n::Int
@@ -24,13 +15,14 @@ end
     const value::BH
 end
 
-@hybrid struct SampleMultiAlgWRSWRSKIP{V,R} <: AbstractWeightedWrReservoirSampleMulti
+@hybrid struct SampleMultiAlgWRSWRSKIP{O,V,R} <: AbstractWeightedWrReservoirSampleMulti
     state::Float64
     skip_w::Float64
     seen_k::Int
     const rng::R
     const weights::Vector{Float64}
     const value::V
+    const ord::O
 end
 
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgAExpJ, ::MutSample; 
@@ -87,9 +79,9 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP, 
     weights = Vector{Float64}(undef, n)
     if ordered
         ord = collect(1:n)
-        return MutSampleMultiOrdAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value, OrdValueWRSWRSKIP(value, ord))
+        return MutSampleMultiOrdAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value, ord)
     else
-        return MutSampleMultiAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, ValueWRSWRSKIP(value))
+        return MutSampleMultiAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value, nothing)
     end
 end
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP, ims::ImmutSample; 
@@ -98,9 +90,9 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP, 
     weights = Vector{Float64}(undef, n)
     if ordered
         ord = collect(1:n)
-        return ImmutSampleMultiOrdAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, OrdValueWRSWRSKIP(value, ord))
+        return ImmutSampleMultiOrdAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value, ord)
     else
-        return ImmutSampleMultiAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, ValueWRSWRSKIP(value))
+        return ImmutSampleMultiAlgWRSWRSKIP(0.0, 0.0, 0, rng, weights, value, nothing)
     end
 end
 
