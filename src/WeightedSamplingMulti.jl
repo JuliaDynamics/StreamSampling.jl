@@ -1,4 +1,13 @@
 
+struct ValueWRSWRSKIP{T}
+    value::Vector{T}
+end
+
+struct OrdValueWRSWRSKIP{T}
+    value::Vector{T}
+    ord::Vector{Int}
+end
+
 @hybrid struct SampleMultiAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
     seen_k::Int
     n::Int
@@ -13,24 +22,6 @@ end
     n::Int
     rng::R
     value::BH
-end
-
-struct ImmutSampleMultiAlgWRSWRSKIP{T,R} <: AbstractWeightedWrReservoirSampleMulti
-    state::Float64
-    skip_w::Float64
-    seen_k::Int
-    rng::R
-    weights::Vector{Float64}
-    value::Vector{T}
-end
-
-struct ValueWRSWRSKIP{T}
-    value::Vector{T}
-end
-
-struct OrdValueWRSWRSKIP{T}
-    value::Vector{T}
-    ord::Vector{Int}
 end
 
 @hybrid struct SampleMultiAlgWRSWRSKIP{V,R} <: AbstractWeightedWrReservoirSampleMulti
