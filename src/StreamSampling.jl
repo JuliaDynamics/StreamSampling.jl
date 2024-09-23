@@ -3,6 +3,7 @@ module StreamSampling
 import Accessors
 using DataStructures
 using Distributions
+using HybridStructs
 using OnlineStatsBase
 using Random
 using StatsBase
@@ -87,17 +88,6 @@ Sampling with Replacement, A. Meligrana, 2024".
 const algWRSWRSKIP = AlgWRSWRSKIP()
 
 export algL, algR, algRSWRSKIP, algARes, algAExpJ, algWRSWRSKIP
-
-macro reset(e)
-    s = e.args[1].args[1]
-    esc(quote
-        if ismutabletype(typeof($s))
-            $e
-        else
-            $StreamSampling.Accessors.@reset $e
-        end
-    end)
-end
 
 """
     ReservoirSample([rng], T, method = algL)
