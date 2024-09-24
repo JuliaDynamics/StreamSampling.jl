@@ -22,6 +22,9 @@ end
 function ReservoirSample(rng::AbstractRNG, T, ::AlgR, ::MutSample)
     return SampleSingleAlgR{T, typeof(rng)}(rng)
 end
+function ReservoirSample(rng::AbstractRNG, T, ::AlgL, ::MutSample)
+    return SampleSingleAlgR{T, typeof(rng)}(rng)
+end
 
 @inline function update!(s::SampleSingleAlgR, el)
     s.seen_k += 1
