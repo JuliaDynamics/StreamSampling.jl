@@ -63,16 +63,6 @@ function reset_value!(s::ImmutSampleSingleAlgAExpJ, el)
     return s
 end
 
-function itsample(iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
-        iter_type = infer_eltype(iter))
-    return itsample(Random.default_rng(), iter, wv, method)
-end
-function itsample(rng::AbstractRNG, iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
-        iter_type = infer_eltype(iter))
-    s = ReservoirSample(rng, iter_type, method, ims)
-    return update_all!(s, iter, wv)
-end
-
 function update_all!(s, iter, wv::Function)
     for x in iter
         s = update!(s, x, wv(x))
