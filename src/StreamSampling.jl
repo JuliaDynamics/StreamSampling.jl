@@ -40,6 +40,9 @@ struct AlgARes <: ReservoirAlgorithm end
 struct AlgAExpJ <: ReservoirAlgorithm end
 struct AlgWRSWRSKIP <: ReservoirAlgorithm end
 
+struct Ord end
+struct Unord end
+
 """
 Implements random sampling without replacement.
 
@@ -99,6 +102,11 @@ macro reset(e)
     end)
 end
 
+function infer_eltype(itr)
+    T1, T2 = eltype(itr), Base.@default_eltype(itr)
+    ifelse(T2 !== Union{} && T2 <: T1, T2, T1)
+end
+
 """
     ReservoirSample([rng], T, method = algL)
     ReservoirSample([rng], T, n::Int, method = algL; ordered = false)
@@ -107,7 +115,14 @@ Initializes a reservoir sample which can then be fitted with [`update!`](@ref).
 The first signature represents a sample where only a single element is collected.
 Look at the [`Algorithms`](@ref) section for the supported methods.
 """
-function ReservoirSample end
+Base.@constprop :aggressive function ReservoirSample(T, n::Integer, method::ReservoirAlgorithm=algL; 
+        ordered = false)
+    return ReservoirSample(Random.default_rng(), T, n, method, ms, ordered ? Ord() : Unord())
+end
+Base.@constprop :aggressive function ReservoirSample(rng::AbstractRNG, T, n::Integer, 
+        method::ReservoirAlgorithm=algL; ordered = false)
+    return ReservoirSample(rng, T, n, method, ms, ordered ? Ord() : Unord())
+end
 
 export ReservoirSample
 
@@ -192,7 +207,49 @@ collected.
 If the iterator has less than `n` elements, in the case of sampling without
 replacement, it returns a vector of those elements.
 """
-function itsample end
+function itsample(iter, method::ReservoirAlgorithm = algR;
+        iter_type = infer_eltype(iter))
+    return itsample(Random.default_rng(), iter, method; iter_type)
+end
+function itsample(iter, n::Int, method::ReservoirAlgorithm = algL; 
+        iter_type = infer_eltype(iter), ordered = false)
+    return itsample(Random.default_rng(), iter, n, method; ordered)
+end
+function itsample(iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
+        iter_type = infer_eltype(iter))
+    return itsample(Random.default_rng(), iter, wv, method)
+end
+function itsample(iter, wv::Function, n::Int, method::ReservoirAlgorithm=algAExpJ; 
+        iter_type = infer_eltype(iter), ordered = false)
+    return itsample(Random.default_rng(), iter, wv, n, method; iter_type, ordered)
+end
+Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, method::ReservoirAlgorithm = algR;
+        iter_type = infer_eltype(iter))
+    if Base.IteratorSize(iter) isa Base.SizeUnknown
+        return reservoir_sample(rng, iter, iter_type, method)
+    else 
+        return sortedindices_sample(rng, iter)
+    end
+end
+Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, n::Int, 
+        method::ReservoirAlgorithm = algL; iter_type = infer_eltype(iter), ordered = false)
+    if Base.IteratorSize(iter) isa Base.SizeUnknown
+        reservoir_sample(rng, iter, n, method; iter_type, ordered)::Vector{iter_type}
+    else
+        replace = method isa AlgL || method isa AlgR ? false : true
+        sortedindices_sample(rng, iter, n; iter_type, replace, ordered)::Vector{iter_type}
+    end
+end
+function itsample(rng::AbstractRNG, iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
+        iter_type = infer_eltype(iter))
+    s = ReservoirSample(rng, iter_type, method, ims)
+    return update_all!(s, iter, wv)
+end
+Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, wv::Function, n::Int, method::ReservoirAlgorithm=algAExpJ; 
+        iter_type = infer_eltype(iter), ordered = false)
+    s = ReservoirSample(rng, iter_type, n, method, ims, ordered ? Ord() : Unord())
+    return update_all!(s, iter, wv, ordered)
+end
 
 export itsample
 
