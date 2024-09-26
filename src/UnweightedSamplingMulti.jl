@@ -26,40 +26,23 @@ mutable struct SampleMultiAlgRSWRSKIP{O,T,R} <: AbstractWrReservoirSampleMulti
 end
 const SampleMultiOrdAlgRSWRSKIP = SampleMultiAlgRSWRSKIP{<:Vector}
 
-function ReservoirSample(T, n::Integer, method::ReservoirAlgorithm=algL; 
-        ordered = false)
-    return ReservoirSample(Random.default_rng(), T, n, method, ms; ordered = ordered)
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgL, ::MutSample, ::Ord)
+    return SampleMultiAlgL(0.0, 0, 0, rng, Vector{T}(undef, n), collect(1:n))
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::ReservoirAlgorithm=algL; 
-        ordered = false)
-    return ReservoirSample(rng, T, n, method, ms; ordered = ordered)
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgL, ::MutSample, ::Unord)
+    return SampleMultiAlgL(0.0, 0, 0, rng, Vector{T}(undef, n), nothing)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgL, ::MutSample; 
-        ordered = false)
-    value = Vector{T}(undef, n)
-    if ordered
-        return SampleMultiAlgL(0.0, 0, 0, rng, value, collect(1:n))
-    else
-        return SampleMultiAlgL(0.0, 0, 0, rng, value, nothing)
-    end
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgR, ::MutSample, ::Ord) 
+    return SampleMultiAlgR(0, rng, Vector{T}(undef, n), collect(1:n))
+end        
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgR, ::MutSample, ::Unord) 
+    return SampleMultiAlgR(0, rng, Vector{T}(undef, n), nothing)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgR, ::MutSample; 
-        ordered = false)
-    value = Vector{T}(undef, n)
-    if ordered
-        return SampleMultiAlgR(0, rng, value, collect(1:n))
-    else
-        return SampleMultiAlgR(0, rng, value, nothing)
-    end
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgRSWRSKIP, ::MutSample, ::Ord)
+    return SampleMultiAlgRSWRSKIP(0, 0, rng, Vector{T}(undef, n), collect(1:n))
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgRSWRSKIP, ::MutSample; 
-        ordered = false)
-    value = Vector{T}(undef, n)
-    if ordered
-        return SampleMultiAlgRSWRSKIP(0, 0, rng, value, collect(1:n))
-    else
-        return SampleMultiAlgRSWRSKIP(0, 0, rng, value, nothing)
-    end
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgRSWRSKIP, ::MutSample, ::Unord)
+    return SampleMultiAlgRSWRSKIP(0, 0, rng, Vector{T}(undef, n), nothing)
 end
 
 @inline function update!(s::Union{SampleMultiAlgR, SampleMultiOrdAlgR}, el)
@@ -280,23 +263,9 @@ function ordered_value(s::SampleMultiOrdAlgRSWRSKIP)
     end
 end
 
-function itsample(iter, n::Int, method::ReservoirAlgorithm = algL; 
+Base.@constprop :aggressive function reservoir_sample(rng, iter, n::Int, method::ReservoirAlgorithm = algL;
         iter_type = infer_eltype(iter), ordered = false)
-    return itsample(Random.default_rng(), iter, n, method; ordered)
-end
-function itsample(rng::AbstractRNG, iter, n::Int, method::ReservoirAlgorithm = algL;
-        iter_type = infer_eltype(iter), ordered = false)
-    if Base.IteratorSize(iter) isa Base.SizeUnknown
-        reservoir_sample(rng, iter, n, method; iter_type, ordered)::Vector{iter_type}
-    else
-        replace = method isa AlgL || method isa AlgR ? false : true
-        sortedindices_sample(rng, iter, n; iter_type, replace, ordered)::Vector{iter_type}
-    end
-end
-
-function reservoir_sample(rng, iter, n::Int, method::ReservoirAlgorithm = algL;
-        iter_type = infer_eltype(iter), ordered = false)
-    s = ReservoirSample(rng, iter_type, n, method, ms; ordered = ordered)
+    s = ReservoirSample(rng, iter_type, n, method, ms, ordered ? Ord() : Unord())
     return update_all!(s, iter, ordered)
 end
 
@@ -305,9 +274,4 @@ function update_all!(s, iter, ordered)
         s = update!(s, x)
     end
     return ordered ? ordered_value(s) : shuffle!(s.rng, value(s))
-end
-
-function infer_eltype(itr)
-    T1, T2 = eltype(itr), Base.@default_eltype(itr)
-    ifelse(T2 !== Union{} && T2 <: T1, T2, T1)
 end
