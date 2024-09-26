@@ -1,48 +1,30 @@
 
-mutable struct SampleMultiAlgR{T,R} <: AbstractWorReservoirSampleMulti
+mutable struct SampleMultiAlgR{O,T,R} <: AbstractWorReservoirSampleMulti
     seen_k::Int
     const rng::R
     const value::Vector{T}
+    const ord::O
 end
+const SampleMultiOrdAlgR = SampleMultiAlgR{<:Vector}
 
-mutable struct SampleMultiOrdAlgR{T,R} <: AbstractOrdWorReservoirSampleMulti
-    seen_k::Int
-    const rng::R
-    const value::Vector{T}
-    const ord::Vector{Int}
-end
-
-mutable struct SampleMultiAlgL{T,R} <: AbstractWorReservoirSampleMulti
+mutable struct SampleMultiAlgL{O,T,R} <: AbstractWorReservoirSampleMulti
     state::Float64
     skip_k::Int
     seen_k::Int
     const rng::R
     const value::Vector{T}
+    const ord::O
 end
+const SampleMultiOrdAlgL = SampleMultiAlgL{<:Vector}
 
-mutable struct SampleMultiOrdAlgL{T,R} <: AbstractOrdWorReservoirSampleMulti
-    state::Float64
+mutable struct SampleMultiAlgRSWRSKIP{O,T,R} <: AbstractWrReservoirSampleMulti
     skip_k::Int
     seen_k::Int
     const rng::R
     const value::Vector{T}
-    const ord::Vector{Int}
+    const ord::O
 end
-
-mutable struct SampleMultiAlgRSWRSKIP{T,R} <: AbstractWrReservoirSampleMulti
-    skip_k::Int
-    seen_k::Int
-    const rng::R
-    const value::Vector{T}
-end
-
-mutable struct SampleMultiOrdAlgRSWRSKIP{T,R} <: AbstractOrdWrReservoirSampleMulti
-    skip_k::Int
-    seen_k::Int
-    const rng::R
-    const value::Vector{T}
-    const ord::Vector{Int}
-end
+const SampleMultiOrdAlgRSWRSKIP = SampleMultiAlgRSWRSKIP{<:Vector}
 
 function ReservoirSample(T, n::Integer, method::ReservoirAlgorithm=algL; 
         ordered = false)
@@ -56,27 +38,27 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgL, ::MutSample;
         ordered = false)
     value = Vector{T}(undef, n)
     if ordered
-        return SampleMultiOrdAlgL(0.0, 0, 0, rng, value, collect(1:n))
+        return SampleMultiAlgL(0.0, 0, 0, rng, value, collect(1:n))
     else
-        return SampleMultiAlgL(0.0, 0, 0, rng, value)
+        return SampleMultiAlgL(0.0, 0, 0, rng, value, nothing)
     end
 end
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgR, ::MutSample; 
         ordered = false)
     value = Vector{T}(undef, n)
     if ordered
-        return SampleMultiOrdAlgR(0, rng, value, collect(1:n))
+        return SampleMultiAlgR(0, rng, value, collect(1:n))
     else
-        return SampleMultiAlgR(0, rng, value)
+        return SampleMultiAlgR(0, rng, value, nothing)
     end
 end
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgRSWRSKIP, ::MutSample; 
         ordered = false)
     value = Vector{T}(undef, n)
     if ordered
-        return SampleMultiOrdAlgRSWRSKIP(0, 0, rng, value, collect(1:n))
+        return SampleMultiAlgRSWRSKIP(0, 0, rng, value, collect(1:n))
     else
-        return SampleMultiAlgRSWRSKIP(0, 0, rng, value)
+        return SampleMultiAlgRSWRSKIP(0, 0, rng, value, nothing)
     end
 end
 
@@ -202,7 +184,7 @@ function choose(n, p, q, z)
 end
 
 update_order!(s::AbstractWorReservoirSampleMulti, j) = nothing
-function update_order!(s::AbstractOrdWorReservoirSampleMulti, j)
+function update_order!(s::Union{SampleMultiOrdAlgR, SampleMultiOrdAlgL}, j)
     s.ord[j] = nobs(s)
 end
 
@@ -216,7 +198,7 @@ function update_order_multi!(s::SampleMultiOrdAlgRSWRSKIP, r, j)
     s.ord[r], s.ord[j] = s.ord[j], nobs(s)
 end
 
-is_ordered(s::AbstractOrdWrReservoirSampleMulti) = true
+is_ordered(s::SampleMultiOrdAlgRSWRSKIP) = true
 is_ordered(s::AbstractWrReservoirSampleMulti) = false
 
 function Base.merge(s1::AbstractWrReservoirSampleMulti, s2::AbstractWrReservoirSampleMulti)
@@ -226,7 +208,7 @@ function Base.merge(s1::AbstractWrReservoirSampleMulti, s2::AbstractWrReservoirS
     n_tot = n1 + n2
     p = n2 / n_tot
     value = create_new_res_vec(s1, s2, p, len1)
-    s_merged = SampleMultiAlgRSWRSKIP(0, n_tot, s1.rng, value)
+    s_merged = SampleMultiAlgRSWRSKIP(0, n_tot, s1.rng, value, nothing)
     recompute_skip!(s_merged, len1)
     return s_merged
 end
@@ -283,14 +265,14 @@ function value(s::AbstractWrReservoirSampleMulti)
     end
 end
 
-function ordered_value(s::AbstractOrdWorReservoirSampleMulti)
+function ordered_value(s::Union{SampleMultiOrdAlgR, SampleMultiOrdAlgL})
     if nobs(s) < length(s.value)
         return s.value[1:nobs(s)]
     else
         return s.value[sortperm(s.ord)]
     end
 end
-function ordered_value(s::AbstractOrdWrReservoirSampleMulti)
+function ordered_value(s::SampleMultiOrdAlgRSWRSKIP)
     if nobs(s) < length(s.value)
         return sample(s.rng, s.value[1:nobs(s)], length(s.value); ordered=true)
     else
