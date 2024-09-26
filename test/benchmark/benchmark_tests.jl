@@ -1,6 +1,6 @@
 @testset "benchmarks" begin
     rng = Xoshiro(42)
-    iter = Iterators.filter(x -> x != 10, 1:10^4)
+    iter = Iterators.filter(x -> x != 10, 1:10^2)
     wv(el) = 1.0
     for m in (algR, algL, algRSWRSKIP)
         for size in (nothing, 10)
@@ -10,7 +10,7 @@
             b = @benchmark itsample($rng, $iter, $s..., $m) evals=1
             mstr = "$m $(size == nothing ? :single : :multi)"
             print(mstr * repeat(" ", 35-length(mstr)))
-            print(" --> Time: $(@sprintf("%.2f", median(b.times)*1e-3)) μs |")
+            print(" --> Time: $(median(b.times)) ns |")
             println(" Memory: $(b.memory) bytes")
         end
     end
@@ -22,7 +22,7 @@
             b = @benchmark itsample($rng, $iter, $wv, $s..., $m) evals=1
             mstr = "$m $(size == nothing ? :single : :multi)"
             print(mstr * repeat(" ", 35-length(mstr)))
-            print(" --> Time: $(@sprintf("%.2f", median(b.times)*1e-3)) μs |")
+            print(" --> Time: $(median(b.times)) ns |")
             println(" Memory: $(b.memory) bytes")
         end
     end
