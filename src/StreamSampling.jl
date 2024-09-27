@@ -3,6 +3,7 @@ module StreamSampling
 import Accessors
 using DataStructures
 using Distributions
+using HybridStructs
 using OnlineStatsBase
 using Random
 using StatsBase
@@ -97,7 +98,7 @@ macro reset(e)
         if ismutabletype(typeof($s))
             $e
         else
-            $StreamSampling.Accessors.@reset $e
+            $StreamSampling.Accessors.@update $e
         end
     end)
 end
