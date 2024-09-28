@@ -2,10 +2,10 @@
     rng = Xoshiro(42)
     iter = Iterators.filter(x -> x != 10, 1:10^2)
     wv(el) = 1.0
-    for m in (algR, algL, algRSWRSKIP)
+    for m in (AlgR(), AlgL(), AlgRSWRSKIP())
         for size in (nothing, 10)
-            size == nothing && m === algL && continue
-            size == nothing && m === algRSWRSKIP && continue
+            size == nothing && m === AlgL() && continue
+            size == nothing && m === AlgRSWRSKIP() && continue
             s = size == nothing ? () : (size,)
             b = @benchmark itsample($rng, $iter, $s..., $m) evals=1
             mstr = "$m $(size == nothing ? :single : :multi)"
@@ -14,10 +14,10 @@
             println(" Memory: $(b.memory) bytes")
         end
     end
-    for m in (algARes, algAExpJ, algWRSWRSKIP)
+    for m in (AlgARes(), AlgAExpJ(), AlgWRSWRSKIP())
         for size in (nothing, 10)
-            size == nothing && m === algARes && continue
-            size == nothing && m === algWRSWRSKIP && continue
+            size == nothing && m === AlgARes() && continue
+            size == nothing && m === AlgWRSWRSKIP() && continue
             s = size == nothing ? () : (size,)
             b = @benchmark itsample($rng, $iter, $wv, $s..., $m) evals=1
             mstr = "$m $(size == nothing ? :single : :multi)"

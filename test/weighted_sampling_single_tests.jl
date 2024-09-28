@@ -1,6 +1,6 @@
 
 @testset "Weighted sampling single tests" begin
-    @testset "method=$method" for method in (algAExpJ,)
+    @testset "method=$method" for method in (AlgWRSWRSKIP(),)
     	wv(el) = 1.0
         a, b = 1, 100
         z = itsample(a:b, wv, method)
