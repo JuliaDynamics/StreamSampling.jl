@@ -5,7 +5,7 @@
     for m in (AlgR(), AlgL(), AlgRSWRSKIP())
         for size in (nothing, 10)
             size == nothing && m === AlgL() && continue
-            size == nothing && m === AlgRSWRSKIP() && continue
+            size == nothing && m === AlgR() && continue
             s = size == nothing ? () : (size,)
             b = @benchmark itsample($rng, $iter, $s..., $m) evals=1
             mstr = "$m $(size == nothing ? :single : :multi)"
@@ -17,7 +17,7 @@
     for m in (AlgARes(), AlgAExpJ(), AlgWRSWRSKIP())
         for size in (nothing, 10)
             size == nothing && m === AlgARes() && continue
-            size == nothing && m === AlgWRSWRSKIP() && continue
+            size == nothing && m === AlgAExpJ() && continue
             s = size == nothing ? () : (size,)
             b = @benchmark itsample($rng, $iter, $wv, $s..., $m) evals=1
             mstr = "$m $(size == nothing ? :single : :multi)"

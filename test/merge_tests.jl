@@ -33,8 +33,8 @@
         end
     end
     @test length(value(merge!(s1, s2))) == 2
-    s1 = ReservoirSample(rng, Int, AlgR())
-    s2 = ReservoirSample(rng, Int, AlgR())
+    s1 = ReservoirSample(rng, Int, AlgRSWRSKIP())
+    s2 = ReservoirSample(rng, Int, AlgRSWRSKIP())
     fit!(s1, 1)
     fit!(s2, 2)
     @test value(merge!(s1, s2)) in (1, 2)
