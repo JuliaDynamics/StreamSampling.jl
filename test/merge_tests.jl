@@ -32,10 +32,10 @@
             update!(s, x)
         end
     end
-    @test length(merge!(s1, s2).value) == 2
+    @test length(value(merge!(s1, s2))) == 2
     s1 = ReservoirSample(rng, Int, algR)
     s2 = ReservoirSample(rng, Int, algR)
     update!(s1, 1)
     update!(s2, 2)
-    @test merge!(s1, s2).value in (1, 2)
+    @test value(merge!(s1, s2)) in (1, 2)
 end
