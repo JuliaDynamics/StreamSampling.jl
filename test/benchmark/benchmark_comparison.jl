@@ -8,9 +8,9 @@ pop = collect(stream);
 w(el) = 1.0;
 weights = Weights(w.(stream));
 
-algs = (algL, algRSWRSKIP, algAExpJ, algWRSWRSKIP);
-algsweighted = (algAExpJ, algWRSWRSKIP);
-algsreplace = (algRSWRSKIP, algWRSWRSKIP);
+algs = (AlgL(), AlgRSWRSKIP(), AlgAExpJ(), AlgWRSWRSKIP());
+algsweighted = (AlgAExpJ(), AlgWRSWRSKIP());
+algsreplace = (AlgRSWRSKIP(), AlgWRSWRSKIP());
 sizes = (10^3, 10^4, 10^5, 10^6)
 
 p = Dict((0, 0) => 1, (0, 1) => 2, (1, 0) => 3, (1, 1) => 4);

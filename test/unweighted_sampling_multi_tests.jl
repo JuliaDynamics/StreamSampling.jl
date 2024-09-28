@@ -1,7 +1,7 @@
 
 
 @testset "Unweighted sampling multi tests" begin
-    combs = Iterators.product([(algL, algR, algRSWRSKIP), (false, true)]...)
+    combs = Iterators.product([(AlgL(), AlgR(), AlgRSWRSKIP()), (false, true)]...)
     @testset "method=$method ordered=$ordered" for (method, ordered) in combs
         a, b = 1, 10
         # test return values of iter with known lengths are inrange
@@ -11,7 +11,7 @@
         @test all(x -> a <= x <= b, s)
 
         s = itsample(iter, 10^7, method; ordered=ordered)
-        @test method == algRSWRSKIP ? length(s) == 10^7 : length(s) == 10
+        @test method == AlgRSWRSKIP() ? length(s) == 10^7 : length(s) == 10
         @test length(unique(s)) == 10
         @test all(x -> a <= x <= b, s)
 
@@ -21,7 +21,7 @@
         @test all(x -> a <= x <= b, s)
         @test typeof(s) == Vector{Int}
         s = itsample(iter, 100, method; ordered=ordered)
-        @test method == algRSWRSKIP ? length(s) == 100 : length(s) == 10
+        @test method == AlgRSWRSKIP() ? length(s) == 100 : length(s) == 10
         @test length(unique(s)) == 10
 
         # test return values of iter with unknown lengths are inrange
@@ -36,7 +36,7 @@
         @test all(x -> a <= x <= b, s)
         @test typeof(s) == Vector{Int}
         s = itsample(iter, 100, method; ordered=ordered)
-        @test method == algRSWRSKIP ? length(s) == 100 : length(s) == 4
+        @test method == AlgRSWRSKIP() ? length(s) == 100 : length(s) == 4
         @test length(unique(s)) == 4
         @test ordered ? issorted(s) : true
 
@@ -64,7 +64,7 @@
                         dict_res[s] = 1
                     end
                 end
-                cases = method == algRSWRSKIP ? 10^size : factorial(10)/factorial(10-size)
+                cases = method == AlgRSWRSKIP() ? 10^size : factorial(10)/factorial(10-size)
                 ps_exact = [1/cases for _ in 1:cases]
                 count_est = collect(values(dict_res))
 

@@ -26,7 +26,7 @@ function prob_no_replace(k)
 end
 
 @testset "Weighted sampling multi tests" begin
-    combs = Iterators.product([(algAExpJ, algARes, algWRSWRSKIP), (false, true)]...)
+    combs = Iterators.product([(AlgAExpJ(), AlgARes(), AlgWRSWRSKIP()), (false, true)]...)
     @testset "method=$method ordered=$ordered" for (method, ordered) in combs
         a, b = 1, 10
         # test return values of iter with known lengths are inrange
@@ -37,7 +37,7 @@ end
         @test all(x -> a <= x <= b, s)
 
         s = itsample(iter, weight, 10^7, method; ordered=ordered)
-        @test method == algWRSWRSKIP ? length(s) == 10^7 : length(s) == 10
+        @test method == AlgWRSWRSKIP() ? length(s) == 10^7 : length(s) == 10
         @test length(unique(s)) == 10
         @test all(x -> a <= x <= b, s)
 
@@ -47,7 +47,7 @@ end
         @test all(x -> a <= x <= b, s)
         @test typeof(s) == Vector{Int}
         s = itsample(iter, weight, 100, method; ordered=ordered)
-        @test method == algWRSWRSKIP ? length(s) == 100 : length(s) == 10
+        @test method == AlgWRSWRSKIP() ? length(s) == 100 : length(s) == 10
         @test length(unique(s)) == 10
 
         # test return values of iter with unknown lengths are inrange
@@ -62,7 +62,7 @@ end
         @test all(x -> a <= x <= b, s)
         @test typeof(s) == Vector{Int}
         s = itsample(iter, weight, 100, method; ordered=ordered)
-        @test method == algWRSWRSKIP ? length(s) == 100 : length(s) == 4
+        @test method == AlgWRSWRSKIP() ? length(s) == 100 : length(s) == 4
         @test length(unique(s)) == 4
         @test ordered ? issorted(s) : true
 
@@ -91,9 +91,9 @@ end
                         dict_res[s] = 1
                     end
                 end
-                cases = method == algWRSWRSKIP ? 10^size : factorial(10)/factorial(10-size)
+                cases = method == AlgWRSWRSKIP() ? 10^size : factorial(10)/factorial(10-size)
                 pairs_dict = collect(pairs(dict_res))
-                if method == algWRSWRSKIP
+                if method == AlgWRSWRSKIP()
                     ps_exact = [prob_replace(k) for (k, v) in pairs_dict]
                 else
                     ps_exact = [prob_no_replace(k) for (k, v) in pairs_dict if length(unique(k)) == size]

@@ -32,31 +32,24 @@ abstract type AbstractWeightedWorReservoirSampleMulti <: AbstractWeightedReservo
 abstract type AbstractWeightedWrReservoirSampleMulti <: AbstractWeightedReservoirSample end
 abstract type AbstractWeightedOrdWrReservoirSampleMulti <: AbstractWeightedReservoirSample end
 
-abstract type ReservoirAlgorithm end
-
-struct AlgL <: ReservoirAlgorithm end
-struct AlgR <: ReservoirAlgorithm end
-struct AlgRSWRSKIP <: ReservoirAlgorithm end
-struct AlgARes <: ReservoirAlgorithm end
-struct AlgAExpJ <: ReservoirAlgorithm end
-struct AlgWRSWRSKIP <: ReservoirAlgorithm end
-
 struct Ord end
 struct Unord end
 
-"""
-Implements random sampling without replacement.
-
-Adapted from algorithm L described in "Random sampling with a reservoir, J. S. Vitter, 1985".
-"""
-const algL = AlgL()
+abstract type ReservoirAlgorithm end
 
 """
 Implements random sampling without replacement. 
 
 Adapted from algorithm R described in "Random sampling with a reservoir, J. S. Vitter, 1985".
 """
-const algR = AlgR()
+struct AlgR <: ReservoirAlgorithm end
+
+"""
+Implements random sampling without replacement.
+
+Adapted from algorithm L described in "Random sampling with a reservoir, J. S. Vitter, 1985".
+"""
+struct AlgL <: ReservoirAlgorithm end
 
 """
 Implements random sampling with replacement.
@@ -64,7 +57,7 @@ Implements random sampling with replacement.
 Adapted fron algorithm RSWR_SKIP described in "Reservoir-based Random Sampling with Replacement from 
 Data Stream, B. Park et al., 2008".
 """
-const algRSWRSKIP = AlgRSWRSKIP()
+struct AlgRSWRSKIP <: ReservoirAlgorithm end
 
 """
 Implements weighted random sampling without replacement.
@@ -72,7 +65,7 @@ Implements weighted random sampling without replacement.
 Adapted from algorithm A-Res described in "Weighted random sampling with a reservoir, 
 P. S. Efraimidis et al., 2006".
 """
-const algARes = AlgARes()
+struct AlgARes <: ReservoirAlgorithm end
 
 """
 Implements weighted random sampling without replacement.
@@ -80,7 +73,7 @@ Implements weighted random sampling without replacement.
 Adapted from algorithm A-ExpJ described in "Weighted random sampling with a reservoir, 
 P. S. Efraimidis et al., 2006".
 """
-const algAExpJ = AlgAExpJ()
+struct AlgAExpJ <: ReservoirAlgorithm end
 
 """
 Implements weighted random sampling with replacement.
@@ -88,9 +81,9 @@ Implements weighted random sampling with replacement.
 Adapted from algorithm WRSWR_SKIP described in "A Skip-based Algorithm for Weighted Reservoir 
 Sampling with Replacement, A. Meligrana, 2024". 
 """
-const algWRSWRSKIP = AlgWRSWRSKIP()
+struct AlgWRSWRSKIP <: ReservoirAlgorithm end
 
-export algL, algR, algRSWRSKIP, algARes, algAExpJ, algWRSWRSKIP
+export AlgL, AlgR, AlgRSWRSKIP, AlgARes, AlgAExpJ, AlgWRSWRSKIP
 
 macro reset(e)
     s = e.args[1].args[1]

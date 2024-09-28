@@ -6,9 +6,9 @@ using PrecompileTools
     wv(el) = 1.0
     update_s!(rs, iter) = for x in iter fit!(rs, x) end
     @compile_workload let
-        rs = ReservoirSample(Int, AlgR())
+        rs = ReservoirSample(Int, AlgRSWRSKIP())
         update_s!(rs, iter)
-        rs = ReservoirSample(Int, wv, AlgAExpJ())
+        rs = ReservoirSample(Int, wv, AlgWRSWRSKIP())
         update_s!(rs, iter)
         rs = ReservoirSample(Int, 2, AlgR())
         update_s!(rs, iter)
