@@ -34,7 +34,7 @@ julia> itsample(st, 5)
  91
 ```
 In some cases, one needs to control the updates the `ReservoirSample` will be subject to. In this case
-you can simply use the `update!` function to fit new values in the reservoir:
+you can simply use the `fit!` function to update the reservoir:
 
 ```julia
 julia> using StreamSampling
@@ -42,7 +42,7 @@ julia> using StreamSampling
 julia> rs = ReservoirSample(Int, 5);
 
 julia> for x in 1:100
-           update!(rs, x)
+           fit!(rs, x)
        end
 
 julia> value(rs)

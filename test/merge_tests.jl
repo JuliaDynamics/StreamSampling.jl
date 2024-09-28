@@ -12,7 +12,7 @@
             s_all = (s1, s2)
             for (s, it) in zip(s_all, iters)
                 for x in it
-                    update!(s, x)
+                    fit!(s, x)
                 end
             end
             s_merged = merge(s1, s2)
@@ -29,13 +29,13 @@
     s_all = (s1, s2)
     for (s, it) in zip(s_all, iters)
         for x in it
-            update!(s, x)
+            fit!(s, x)
         end
     end
     @test length(value(merge!(s1, s2))) == 2
     s1 = ReservoirSample(rng, Int, algR)
     s2 = ReservoirSample(rng, Int, algR)
-    update!(s1, 1)
-    update!(s2, 2)
+    fit!(s1, 1)
+    fit!(s2, 2)
     @test value(merge!(s1, s2)) in (1, 2)
 end

@@ -67,9 +67,9 @@ end
         @test ordered ? issorted(s) : true
 
         iter = Iterators.filter(x -> x != b + 1, a:b+1)
-        rs = ReservoirSample(Int, 5, method; ordered = ordered)
+        rs = ReservoirSample(Int, weight, 5, method; ordered = ordered)
         for x in iter
-            update!(rs, x, weight(x))
+            fit!(rs, x)
         end
         @test length(value(rs)) == 5
         @test all(x -> a <= x <= b, value(rs))

@@ -63,7 +63,7 @@ function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgRSWRSKIP, ::Immut
     return SampleMultiAlgRSWRSKIP_Immut(0, 0, rng, Vector{T}(undef, n), nothing)
 end
 
-@inline function update!(s::SampleMultiAlgR, el)
+@inline function OnlineStatsBase._fit!(s::SampleMultiAlgR, el)
     n = length(s.value)
     s = @inline update_state!(s)
     if s.seen_k <= n
@@ -77,7 +77,7 @@ end
     end
     return s
 end
-@inline function update!(s::SampleMultiAlgL, el)
+@inline function OnlineStatsBase._fit!(s::SampleMultiAlgL, el)
     n = length(s.value)
     s = @inline update_state!(s)
     if s.seen_k <= n
@@ -93,7 +93,7 @@ end
     end
     return s
 end
-@inline function update!(s::AbstractWrReservoirSampleMulti, el)
+@inline function OnlineStatsBase._fit!(s::AbstractWrReservoirSampleMulti, el)
     n = length(s.value)
     s = @inline update_state!(s)
     if s.seen_k <= n
@@ -251,14 +251,14 @@ function merge_res_vec!(s1, s2, p, len1, n_tot)
     return s1
 end
 
-function value(s::AbstractWorReservoirSampleMulti)
+function OnlineStatsBase.value(s::AbstractWorReservoirSampleMulti)
     if nobs(s) < length(s.value)
         return s.value[1:nobs(s)]
     else
         return s.value
     end
 end
-function value(s::AbstractWrReservoirSampleMulti)
+function OnlineStatsBase.value(s::AbstractWrReservoirSampleMulti)
     if nobs(s) < length(s.value)
         return sample(s.rng, s.value[1:nobs(s)], length(s.value))
     else
@@ -289,7 +289,7 @@ end
 
 function update_all!(s, iter, ordered)
     for x in iter
-        s = update!(s, x)
+        s = fit!(s, x)
     end
     return ordered ? ordered_value(s) : shuffle!(s.rng, value(s))
 end

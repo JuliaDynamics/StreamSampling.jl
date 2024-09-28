@@ -12,7 +12,7 @@ end
     rvalue::RT
 end
 
-function value(s::SampleSingleAlgR)
+function OnlineStatsBase.value(s::SampleSingleAlgR)
     s.seen_k === 0 && return nothing
     return s.rvalue.value
 end
@@ -33,7 +33,7 @@ function ReservoirSample(rng::AbstractRNG, T, ::AlgL, ::ImmutSample)
     return SampleSingleAlgR_Immut(0, 0, rng, RefVal_Mut{T}())
 end
 
-@inline function update!(s::SampleSingleAlgR, el)
+@inline function OnlineStatsBase._fit!(s::SampleSingleAlgR, el)
     @update s.seen_k += 1
     if s.skip_k <= s.seen_k
         @update s.skip_k = ceil(Int, s.seen_k/rand(s.rng))
@@ -82,7 +82,7 @@ end
 
 function update_all!(s, iter)
     for x in iter
-        s = update!(s, x)
+        s = fit!(s, x)
     end
     return value(s)
 end

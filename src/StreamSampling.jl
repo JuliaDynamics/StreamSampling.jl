@@ -14,7 +14,7 @@ struct MutSample end
 const ims = ImmutSample()
 const ms = MutSample()
 
-abstract type AbstractReservoirSample end
+abstract type AbstractReservoirSample <: OnlineStat{Any} end
 
 # unweighted cases
 abstract type AbstractReservoirSampleSingle <: AbstractReservoirSample end
@@ -112,7 +112,7 @@ end
     ReservoirSample([rng], T, method = algL)
     ReservoirSample([rng], T, n::Int, method = algL; ordered = false)
 
-Initializes a reservoir sample which can then be fitted with [`update!`](@ref).
+Initializes a reservoir sample which can then be fitted with [`fit!`](@ref).
 The first signature represents a sample where only a single element is collected.
 Look at the [`Algorithms`](@ref) section for the supported methods.
 """
@@ -124,20 +124,25 @@ Base.@constprop :aggressive function ReservoirSample(rng::AbstractRNG, T, n::Int
         method::ReservoirAlgorithm=algL; ordered = false)
     return ReservoirSample(rng, T, n, method, ms, ordered ? Ord() : Unord())
 end
+Base.@constprop :aggressive function ReservoirSample(T, wv, n::Integer, 
+        method::ReservoirAlgorithm=algL; ordered = false)
+    return ReservoirSample(Random.default_rng(), T, wv, n, method, ms, ordered ? Ord() : Unord())
+end
+Base.@constprop :aggressive function ReservoirSample(rng::AbstractRNG, T, wv, n::Integer, 
+        method::ReservoirAlgorithm=algL; ordered = false)
+    return ReservoirSample(rng, T, wv, n, method, ms, ordered ? Ord() : Unord())
+end
 
 export ReservoirSample
 
 """
-    update!(rs::AbstractReservoirSample, el)
-    update!(rs::AbstractReservoirSample, el, w::Float64)
+    fit!(rs::AbstractReservoirSample, el)
 
-Updates the reservoir sample by scanning the passed element.
-In the case of weighted sampling also the weight of the element
-needs to be passed to the function.
+Updates the reservoir sample by considering the passed element.
 """
-function update! end
+@inline OnlineStatsBase.fit!(s::AbstractReservoirSample, el) = OnlineStatsBase._fit!(s, el)
 
-export update!
+export fit!
 
 """
     value(rs::AbstractReservoirSample)
@@ -150,7 +155,7 @@ when [`ReservoirSample`](@ref) is instantiated, some ordering in
 the sample can be more probable than others. To represent each one 
 with the same probability call `shuffle!` over the result.
 """
-function value end
+OnlineStatsBase.value(s::AbstractReservoirSample) = error("Abstract version")
 
 export value
 
@@ -243,13 +248,13 @@ Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, n::Int,
 end
 function itsample(rng::AbstractRNG, iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
         iter_type = infer_eltype(iter))
-    s = ReservoirSample(rng, iter_type, method, ims)
-    return update_all!(s, iter, wv)
+    s = ReservoirSample(rng, iter_type, wv, method, ims)
+    return update_all!(s, iter)
 end
 Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, wv::Function, n::Int, method::ReservoirAlgorithm=algAExpJ; 
         iter_type = infer_eltype(iter), ordered = false)
-    s = ReservoirSample(rng, iter_type, n, method, ims, ordered ? Ord() : Unord())
-    return update_all!(s, iter, wv, ordered)
+    s = ReservoirSample(rng, iter_type, wv, n, method, ims, ordered ? Ord() : Unord())
+    return update_all!(s, iter, ordered)
 end
 
 export itsample
