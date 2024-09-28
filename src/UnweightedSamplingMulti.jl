@@ -1,5 +1,5 @@
 
-mutable struct SampleMultiAlgR{O,T,R} <: AbstractWorReservoirSampleMulti
+@hybrid struct SampleMultiAlgR{O,T,R} <: AbstractWorReservoirSampleMulti
     seen_k::Int
     const rng::R
     const value::Vector{T}
@@ -7,7 +7,7 @@ mutable struct SampleMultiAlgR{O,T,R} <: AbstractWorReservoirSampleMulti
 end
 const SampleMultiOrdAlgR = SampleMultiAlgR{<:Vector}
 
-mutable struct SampleMultiAlgL{O,T,R} <: AbstractWorReservoirSampleMulti
+@hybrid struct SampleMultiAlgL{O,T,R} <: AbstractWorReservoirSampleMulti
     state::Float64
     skip_k::Int
     seen_k::Int
@@ -17,7 +17,7 @@ mutable struct SampleMultiAlgL{O,T,R} <: AbstractWorReservoirSampleMulti
 end
 const SampleMultiOrdAlgL = SampleMultiAlgL{<:Vector}
 
-mutable struct SampleMultiAlgRSWRSKIP{O,T,R} <: AbstractWrReservoirSampleMulti
+@hybrid struct SampleMultiAlgRSWRSKIP{O,T,R} <: AbstractWrReservoirSampleMulti
     skip_k::Int
     seen_k::Int
     const rng::R
@@ -27,25 +27,43 @@ end
 const SampleMultiOrdAlgRSWRSKIP = SampleMultiAlgRSWRSKIP{<:Vector}
 
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgL, ::MutSample, ::Ord)
-    return SampleMultiAlgL(0.0, 0, 0, rng, Vector{T}(undef, n), collect(1:n))
+    return SampleMultiAlgL_Mut(0.0, 0, 0, rng, Vector{T}(undef, n), collect(1:n))
 end
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgL, ::MutSample, ::Unord)
-    return SampleMultiAlgL(0.0, 0, 0, rng, Vector{T}(undef, n), nothing)
+    return SampleMultiAlgL_Mut(0.0, 0, 0, rng, Vector{T}(undef, n), nothing)
+end
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgL, ::ImmutSample, ::Ord)
+    return SampleMultiAlgL_Immut(0.0, 0, 0, rng, Vector{T}(undef, n), collect(1:n))
+end
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgL, ::ImmutSample, ::Unord)
+    return SampleMultiAlgL_Immut(0.0, 0, 0, rng, Vector{T}(undef, n), nothing)
 end
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgR, ::MutSample, ::Ord) 
-    return SampleMultiAlgR(0, rng, Vector{T}(undef, n), collect(1:n))
+    return SampleMultiAlgR_Mut(0, rng, Vector{T}(undef, n), collect(1:n))
 end        
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgR, ::MutSample, ::Unord) 
-    return SampleMultiAlgR(0, rng, Vector{T}(undef, n), nothing)
+    return SampleMultiAlgR_Mut(0, rng, Vector{T}(undef, n), nothing)
+end
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgR, ::ImmutSample, ::Ord) 
+    return SampleMultiAlgR_Immut(0, rng, Vector{T}(undef, n), collect(1:n))
+end
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgR, ::ImmutSample, ::Unord) 
+    return SampleMultiAlgR_Immut(0, rng, Vector{T}(undef, n), nothing)
 end
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgRSWRSKIP, ::MutSample, ::Ord)
-    return SampleMultiAlgRSWRSKIP(0, 0, rng, Vector{T}(undef, n), collect(1:n))
+    return SampleMultiAlgRSWRSKIP_Mut(0, 0, rng, Vector{T}(undef, n), collect(1:n))
 end
 function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgRSWRSKIP, ::MutSample, ::Unord)
-    return SampleMultiAlgRSWRSKIP(0, 0, rng, Vector{T}(undef, n), nothing)
+    return SampleMultiAlgRSWRSKIP_Mut(0, 0, rng, Vector{T}(undef, n), nothing)
+end
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgRSWRSKIP, ::ImmutSample, ::Ord)
+    return SampleMultiAlgRSWRSKIP_Immut(0, 0, rng, Vector{T}(undef, n), collect(1:n))
+end
+function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgRSWRSKIP, ::ImmutSample, ::Unord)
+    return SampleMultiAlgRSWRSKIP_Immut(0, 0, rng, Vector{T}(undef, n), nothing)
 end
 
-@inline function update!(s::Union{SampleMultiAlgR, SampleMultiOrdAlgR}, el)
+@inline function update!(s::SampleMultiAlgR, el)
     n = length(s.value)
     s = @inline update_state!(s)
     if s.seen_k <= n
@@ -59,7 +77,7 @@ end
     end
     return s
 end
-@inline function update!(s::Union{SampleMultiAlgL, SampleMultiOrdAlgL}, el)
+@inline function update!(s::SampleMultiAlgL, el)
     n = length(s.value)
     s = @inline update_state!(s)
     if s.seen_k <= n
@@ -111,45 +129,45 @@ end
     return s
 end
 
-function Base.empty!(s::Union{SampleMultiAlgR, SampleMultiOrdAlgR})
+function Base.empty!(s::SampleMultiAlgR_Mut)
     s.seen_k = 0
     return s
 end
-function Base.empty!(s::Union{SampleMultiAlgL, SampleMultiOrdAlgL})
+function Base.empty!(s::SampleMultiAlgL_Mut)
     s.state = 0.0
     s.skip_k = 0
     s.seen_k = 0
     return s
 end
-function Base.empty!(s::Union{SampleMultiAlgRSWRSKIP, SampleMultiOrdAlgRSWRSKIP})
+function Base.empty!(s::SampleMultiAlgRSWRSKIP_Mut)
     s.skip_k = 0
     s.seen_k = 0
     return s
 end
 
-function update_state!(s::Union{SampleMultiAlgR, SampleMultiOrdAlgR})
-    s.seen_k += 1
+function update_state!(s::SampleMultiAlgR)
+    @update s.seen_k += 1
     return s
 end
-function update_state!(s::Union{SampleMultiAlgL, SampleMultiOrdAlgL})
-    s.seen_k += 1
-    s.skip_k -= 1
+function update_state!(s::SampleMultiAlgL)
+    @update s.seen_k += 1
+    @update s.skip_k -= 1
     return s
 end
 function update_state!(s::AbstractWrReservoirSampleMulti)
-    s.seen_k += 1
-    s.skip_k -= 1
+    @update s.seen_k += 1
+    @update s.skip_k -= 1
     return s
 end
 
 function recompute_skip!(s::AbstractWorReservoirSampleMulti, n)
-    s.state += randexp(s.rng)
-    s.skip_k = -ceil(Int, randexp(s.rng)/log(1-exp(-s.state/n)))
+    @update s.state += randexp(s.rng)
+    @update s.skip_k = -ceil(Int, randexp(s.rng)/log(1-exp(-s.state/n)))
     return s
 end
 function recompute_skip!(s::AbstractWrReservoirSampleMulti, n)
     q = rand(s.rng)^(1/n)
-    s.skip_k = ceil(Int, s.seen_k/q - s.seen_k - 1)
+    @update s.skip_k = ceil(Int, s.seen_k/q - s.seen_k - 1)
     return s
 end
 
@@ -191,7 +209,7 @@ function Base.merge(s1::AbstractWrReservoirSampleMulti, s2::AbstractWrReservoirS
     n_tot = n1 + n2
     p = n2 / n_tot
     value = create_new_res_vec(s1, s2, p, len1)
-    s_merged = SampleMultiAlgRSWRSKIP(0, n_tot, s1.rng, value, nothing)
+    s_merged = typeof(s1)(0, n_tot, s1.rng, value, nothing)
     recompute_skip!(s_merged, len1)
     return s_merged
 end
@@ -265,7 +283,7 @@ end
 
 Base.@constprop :aggressive function reservoir_sample(rng, iter, n::Int, method::ReservoirAlgorithm = algL;
         iter_type = infer_eltype(iter), ordered = false)
-    s = ReservoirSample(rng, iter_type, n, method, ms, ordered ? Ord() : Unord())
+    s = ReservoirSample(rng, iter_type, n, method, ims, ordered ? Ord() : Unord())
     return update_all!(s, iter, ordered)
 end
 

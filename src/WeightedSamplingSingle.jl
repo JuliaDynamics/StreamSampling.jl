@@ -1,32 +1,17 @@
 
-mutable struct RefVal{T}
-    value::T
-    RefVal{T}() where T = new{T}()
-    RefVal(value::T) where T = new{T}(value)
-end
-
-struct ImmutSampleSingleAlgAExpJ{T,R} <: AbstractWeightedReservoirSampleSingle
-    seen_k::Int
-    total_w::Float64
-    skip_w::Float64
-    rng::R
-    rvalue::RefVal{T}
-end
-mutable struct MutSampleSingleAlgAExpJ{T,R} <: AbstractWeightedReservoirSampleSingle
+@hybrid struct SampleSingleAlgAExpJ{RT,R} <: AbstractWeightedReservoirSampleSingle
     seen_k::Int
     total_w::Float64
     skip_w::Float64
     const rng::R
-    value::T
-    MutSampleSingleAlgAExpJ{T,R}(seen_k, total_w, skip_w, rng) where {T,R} = new{T,R}(seen_k, total_w, skip_w, rng)
+    rvalue::RT
 end
-const SampleSingleAlgAExpJ = Union{ImmutSampleSingleAlgAExpJ, MutSampleSingleAlgAExpJ}
 
 function ReservoirSample(rng::R, T, ::AlgAExpJ, ::MutSample) where {R<:AbstractRNG}
-    return MutSampleSingleAlgAExpJ{T,R}(0, 0.0, 0.0, rng)
+    return SampleSingleAlgAExpJ_Mut(0, 0.0, 0.0, rng, RefVal_Immut{T}())
 end
 function ReservoirSample(rng::R, T, ::AlgAExpJ, ::ImmutSample) where {R<:AbstractRNG}
-    return ImmutSampleSingleAlgAExpJ(0, 0.0, 0.0, rng, RefVal{T}())
+    return SampleSingleAlgAExpJ_Immut(0, 0.0, 0.0, rng, RefVal_Mut{T}())
 end
 
 function value(s::AbstractWeightedReservoirSampleSingle)
@@ -39,28 +24,25 @@ end
     @update s.total_w += weight
     if s.skip_w <= s.total_w
         @update s.skip_w = s.total_w/rand(s.rng)
-        s = reset_value!(s, el)
+        reset_value!(s, el)
     end
     return s
 end
 
-function Base.empty!(s::MutSampleSingleAlgAExpJ)
+function Base.empty!(s::SampleSingleAlgAExpJ_Mut)
     s.seen_k = 0
     s.total_w = 0.0
     s.skip_w = 0.0
     return s
 end
 
-get_value(s::MutSampleSingleAlgAExpJ) = s.value
-get_value(s::ImmutSampleSingleAlgAExpJ) = s.rvalue.value
+get_value(s::SampleSingleAlgAExpJ) = s.rvalue.value
 
-function reset_value!(s::MutSampleSingleAlgAExpJ, el)
-    s.value = el
-    return s
+function reset_value!(s::SampleSingleAlgAExpJ_Mut, el)
+    s.rvalue = RefVal_Immut(el)
 end
-function reset_value!(s::ImmutSampleSingleAlgAExpJ, el)
-    @update s.rvalue.value = el
-    return s
+function reset_value!(s::SampleSingleAlgAExpJ_Immut, el)
+    s.rvalue.value = el
 end
 
 function update_all!(s, iter, wv::Function)
