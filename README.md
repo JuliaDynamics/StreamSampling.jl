@@ -74,28 +74,28 @@ julia> iter = Iterators.filter(x -> x != 10, 1:10^7);
 julia> wv(el) = 1.0;
 
 julia> @btime itsample($rng, $iter, 10^4, algRSWRSKIP);
-  12.209 ms (8 allocations: 156.47 KiB)
+  12.457 ms (4 allocations: 156.34 KiB)
 
 julia> @btime sample($rng, collect($iter), 10^4; replace=true);
-  134.622 ms (20 allocations: 146.91 MiB)
+  134.152 ms (20 allocations: 146.91 MiB)
 
 julia> @btime itsample($rng, $iter, 10^4, algL);
-  10.450 ms (6 allocations: 78.30 KiB)
+  8.262 ms (2 allocations: 78.17 KiB)
 
 julia> @btime sample($rng, collect($iter), 10^4; replace=false);
-  135.039 ms (27 allocations: 147.05 MiB)
+  138.054 ms (27 allocations: 147.05 MiB)
 
 julia> @btime itsample($rng, $iter, $wv, 10^4, algWRSWRSKIP);
-  14.017 ms (13 allocations: 568.84 KiB)
+  14.479 ms (15 allocations: 547.23 KiB)
 
 julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=true);
-  543.582 ms (45 allocations: 702.33 MiB)
+  343.936 ms (49 allocations: 675.21 MiB)
 
 julia> @btime itsample($rng, $iter, $wv, 10^4, algAExpJ);
-  20.968 ms (9 allocations: 234.73 KiB)
+  30.523 ms (6 allocations: 234.62 KiB)
 
 julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=false);
-  305.226 ms (43 allocations: 370.19 MiB)
+  294.242 ms (43 allocations: 370.19 MiB)
 ```
 
 There are also more performance comparisons in respect to `StatsBase` methods at 
