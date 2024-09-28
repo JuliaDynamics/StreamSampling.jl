@@ -1,25 +1,27 @@
 
 const OrdWeighted = BinaryHeap{Tuple{T, Int64, Float64}, Base.Order.By{typeof(last), DataStructures.FasterForward}} where T
 
-@hybrid struct SampleMultiAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
+@hybrid struct SampleMultiAlgARes{BH,R,F} <: AbstractWeightedWorReservoirSampleMulti
     seen_k::Int
     n::Int
     const rng::R
     const value::BH
+    wv::F
 end
 const SampleMultiOrdAlgARes = Union{SampleMultiAlgARes_Immut{<:OrdWeighted}, SampleMultiAlgARes_Mut{<:OrdWeighted}}
 
-@hybrid struct SampleMultiAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMulti
+@hybrid struct SampleMultiAlgAExpJ{BH,R,F} <: AbstractWeightedWorReservoirSampleMulti
     state::Float64
     min_priority::Float64
     seen_k::Int
     const n::Int
     const rng::R
     const value::BH
+    wv::F
 end
 const SampleMultiOrdAlgAExpJ = Union{SampleMultiAlgAExpJ_Immut{<:OrdWeighted}, SampleMultiAlgAExpJ_Mut{<:OrdWeighted}}
 
-@hybrid struct SampleMultiAlgWRSWRSKIP{O,T,R} <: AbstractWeightedWrReservoirSampleMulti
+@hybrid struct SampleMultiAlgWRSWRSKIP{O,T,R,F} <: AbstractWeightedWrReservoirSampleMulti
     state::Float64
     skip_w::Float64
     seen_k::Int
@@ -27,66 +29,68 @@ const SampleMultiOrdAlgAExpJ = Union{SampleMultiAlgAExpJ_Immut{<:OrdWeighted}, S
     const weights::Vector{Float64}
     const value::Vector{T}
     const ord::O
+    wv::F
 end
 const SampleMultiOrdAlgWRSWRSKIP = Union{SampleMultiAlgWRSWRSKIP_Immut{<:Vector}, SampleMultiAlgWRSWRSKIP_Mut{<:Vector}}
 
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgAExpJ, ::MutSample, ::Ord)
+function ReservoirSample(rng::AbstractRNG, T, wv, n::Integer, ::AlgAExpJ, ::MutSample, ::Ord)
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Tuple{T, Int, Float64}[])
     sizehint!(value, n)
-    return SampleMultiAlgAExpJ_Mut(0.0, 0.0, 0, n, rng, value)
+    return SampleMultiAlgAExpJ_Mut(0.0, 0.0, 0, n, rng, value, wv)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgAExpJ, ::MutSample, ::Unord)
+function ReservoirSample(rng::AbstractRNG, T, wv, n::Integer, ::AlgAExpJ, ::MutSample, ::Unord)
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Pair{T, Float64}[])
     sizehint!(value, n)
-    return SampleMultiAlgAExpJ_Mut(0.0, 0.0, 0, n, rng, value)
+    return SampleMultiAlgAExpJ_Mut(0.0, 0.0, 0, n, rng, value, wv)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgAExpJ, ::ImmutSample, ::Ord)
+function ReservoirSample(rng::AbstractRNG, T, wv, n::Integer, ::AlgAExpJ, ::ImmutSample, ::Ord)
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Tuple{T, Int, Float64}[])
     sizehint!(value, n)
-    return SampleMultiAlgAExpJ_Immut(0.0, 0.0, 0, n, rng, value)
+    return SampleMultiAlgAExpJ_Immut(0.0, 0.0, 0, n, rng, value, wv)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgAExpJ, ::ImmutSample, ::Unord)
+function ReservoirSample(rng::AbstractRNG, T, wv, n::Integer, ::AlgAExpJ, ::ImmutSample, ::Unord)
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Pair{T, Float64}[])
     sizehint!(value, n)
-    return SampleMultiAlgAExpJ_Immut(0.0, 0.0, 0, n, rng, value)
+    return SampleMultiAlgAExpJ_Immut(0.0, 0.0, 0, n, rng, value, wv)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgARes, ::MutSample, ::Ord) 
+function ReservoirSample(rng::AbstractRNG, T, wv, n::Integer, ::AlgARes, ::MutSample, ::Ord) 
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Tuple{T, Int, Float64}[])
     sizehint!(value, n)
-    return SampleMultiAlgARes_Mut(0, n, rng, value)
+    return SampleMultiAlgARes_Mut(0, n, rng, value, wv)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgARes, ::MutSample, ::Unord)  
+function ReservoirSample(rng::AbstractRNG, T, wv, n::Integer, ::AlgARes, ::MutSample, ::Unord)  
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Pair{T, Float64}[])
     sizehint!(value, n)
-    return SampleMultiAlgARes_Mut(0, n, rng, value)
+    return SampleMultiAlgARes_Mut(0, n, rng, value, wv)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgARes, ::ImmutSample, ::Ord)
+function ReservoirSample(rng::AbstractRNG, T, wv, n::Integer, ::AlgARes, ::ImmutSample, ::Ord)
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Tuple{T, Int, Float64}[])
     sizehint!(value, n)
-    return SampleMultiAlgARes_Immut(0, n, rng, value)
+    return SampleMultiAlgARes_Immut(0, n, rng, value, wv)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgARes, ::ImmutSample, ::Unord)
+function ReservoirSample(rng::AbstractRNG, T, wv, n::Integer, ::AlgARes, ::ImmutSample, ::Unord)
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Pair{T, Float64}[])
     sizehint!(value, n)
-    return SampleMultiAlgARes_Immut(0, n, rng, value)
+    return SampleMultiAlgARes_Immut(0, n, rng, value, wv)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP, ::MutSample, ::Ord)
+function ReservoirSample(rng::AbstractRNG, T, wv, n::Integer, ::AlgWRSWRSKIP, ::MutSample, ::Ord)
     ord = collect(1:n)
-    return SampleMultiAlgWRSWRSKIP_Mut(0.0, 0.0, 0, rng, Vector{Float64}(undef, n), Vector{T}(undef, n), ord)
+    return SampleMultiAlgWRSWRSKIP_Mut(0.0, 0.0, 0, rng, Vector{Float64}(undef, n), Vector{T}(undef, n), ord, wv)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP, ::MutSample, ::Unord)
-    return SampleMultiAlgWRSWRSKIP_Mut(0.0, 0.0, 0, rng, Vector{Float64}(undef, n), Vector{T}(undef, n), nothing)
+function ReservoirSample(rng::AbstractRNG, T, wv, n::Integer, ::AlgWRSWRSKIP, ::MutSample, ::Unord)
+    return SampleMultiAlgWRSWRSKIP_Mut(0.0, 0.0, 0, rng, Vector{Float64}(undef, n), Vector{T}(undef, n), nothing, wv)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP, ::ImmutSample, ::Ord)
+function ReservoirSample(rng::AbstractRNG, T, wv, n::Integer, ::AlgWRSWRSKIP, ::ImmutSample, ::Ord)
     ord = collect(1:n)
-    return SampleMultiAlgWRSWRSKIP_Immut(0.0, 0.0, 0, rng, Vector{Float64}(undef, n), Vector{T}(undef, n), ord)
+    return SampleMultiAlgWRSWRSKIP_Immut(0.0, 0.0, 0, rng, Vector{Float64}(undef, n), Vector{T}(undef, n), ord, wv)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, method::AlgWRSWRSKIP, ::ImmutSample, ::Unord)
-    return SampleMultiAlgWRSWRSKIP_Immut(0.0, 0.0, 0, rng, Vector{Float64}(undef, n), Vector{T}(undef, n), nothing)
+function ReservoirSample(rng::AbstractRNG, T, wv, n::Integer, ::AlgWRSWRSKIP, ::ImmutSample, ::Unord)
+    return SampleMultiAlgWRSWRSKIP_Immut(0.0, 0.0, 0, rng, Vector{Float64}(undef, n), Vector{T}(undef, n), nothing, wv)
 end
 
-@inline function update!(s::Union{SampleMultiAlgARes, SampleMultiOrdAlgARes}, el, w)
+@inline function OnlineStatsBase._fit!(s::Union{SampleMultiAlgARes, SampleMultiOrdAlgARes}, el)
     n = s.n
+    w = s.wv(el)
     s = @inline update_state!(s, w)
     priority = -randexp(s.rng)/w
     if s.seen_k <= n
@@ -100,8 +104,9 @@ end
     end
     return s
 end
-@inline function update!(s::Union{SampleMultiAlgAExpJ, SampleMultiOrdAlgAExpJ}, el, w)
+@inline function OnlineStatsBase._fit!(s::Union{SampleMultiAlgAExpJ, SampleMultiOrdAlgAExpJ}, el)
     n = s.n
+    w = s.wv(el)
     s = @inline update_state!(s, w)
     if s.seen_k <= n
         priority = exp(-randexp(s.rng)/w)
@@ -117,8 +122,9 @@ end
     end
     return s
 end
-@inline function update!(s::Union{SampleMultiAlgWRSWRSKIP, SampleMultiOrdAlgWRSWRSKIP}, el, w)
+@inline function OnlineStatsBase._fit!(s::Union{SampleMultiAlgWRSWRSKIP, SampleMultiOrdAlgWRSWRSKIP}, el)
     n = length(s.value)
+    w = s.wv(el)
     s = @inline update_state!(s, w)
     if s.seen_k <= n
         @inbounds s.value[s.seen_k] = el
@@ -226,14 +232,14 @@ end
 is_ordered(s::SampleMultiOrdAlgWRSWRSKIP) = true
 is_ordered(s::SampleMultiAlgWRSWRSKIP) = false
 
-function value(s::AbstractWeightedWorReservoirSampleMulti)
+function OnlineStatsBase.value(s::AbstractWeightedWorReservoirSampleMulti)
     if nobs(s) < s.n
         return first.(s.value.valtree[1:nobs(s)])
     else
         return first.(s.value.valtree)
     end
 end
-function value(s::AbstractWeightedWrReservoirSampleMulti)
+function OnlineStatsBase.value(s::AbstractWeightedWrReservoirSampleMulti)
     if nobs(s) < length(s.value)
         return sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value))
     else
@@ -255,11 +261,4 @@ function ordered_value(s::SampleMultiOrdAlgWRSWRSKIP)
     else
         return s.value[sortperm(s.ord)]
     end
-end
-
-function update_all!(s, iter, wv, ordered)
-    for x in iter
-        s = update!(s, x, wv(x))
-    end
-    return ordered ? ordered_value(s) : shuffle!(s.rng, value(s))
 end

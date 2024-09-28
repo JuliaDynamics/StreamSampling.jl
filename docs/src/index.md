@@ -7,7 +7,7 @@ consult the [ReadMe](https://github.com/JuliaDynamics/StreamSampling.jl).
 
 ```@docs
 ReservoirSample
-update!
+fit!
 empty!
 value
 ordered_value
