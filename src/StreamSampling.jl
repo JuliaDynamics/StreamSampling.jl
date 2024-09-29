@@ -102,28 +102,30 @@ function infer_eltype(itr)
 end
 
 """
-    ReservoirSample([rng], T, [wfunc], method = algL)
-    ReservoirSample([rng], T, [wfunc], n::Int, method = algL; ordered = false)
+    ReservoirSample([rng], T, method = AlgRSWRSKIP())
+    ReservoirSample([rng], T, wfunc, method = AlgWRSWRSKIP())
+    ReservoirSample([rng], T, n::Int, method = AlgL(); ordered = false)
+    ReservoirSample([rng], T, wfunc, n::Int, method = AlgAExpJ(); ordered = false)
 
 Initializes a reservoir sample which can then be fitted with [`fit!`](@ref).
 The first signature represents a sample where only a single element is collected.
 A weight function `wfunc` can be passed to apply weighted sampling. Look at the
 [`Algorithms`](@ref) section for the supported methods.
 """
-Base.@constprop :aggressive function ReservoirSample(T, n::Integer, method::ReservoirAlgorithm=algL; 
+Base.@constprop :aggressive function ReservoirSample(T, n::Integer, method::ReservoirAlgorithm=AlgL(); 
         ordered = false)
     return ReservoirSample(Random.default_rng(), T, n, method, ms, ordered ? Ord() : Unord())
 end
 Base.@constprop :aggressive function ReservoirSample(rng::AbstractRNG, T, n::Integer, 
-        method::ReservoirAlgorithm=algL; ordered = false)
+        method::ReservoirAlgorithm=AlgL(); ordered = false)
     return ReservoirSample(rng, T, n, method, ms, ordered ? Ord() : Unord())
 end
 Base.@constprop :aggressive function ReservoirSample(T, wv, n::Integer, 
-        method::ReservoirAlgorithm=algL; ordered = false)
+        method::ReservoirAlgorithm=algAExpJ(); ordered = false)
     return ReservoirSample(Random.default_rng(), T, wv, n, method, ms, ordered ? Ord() : Unord())
 end
 Base.@constprop :aggressive function ReservoirSample(rng::AbstractRNG, T, wv, n::Integer, 
-        method::ReservoirAlgorithm=algL; ordered = false)
+        method::ReservoirAlgorithm=algAExpJ(); ordered = false)
     return ReservoirSample(rng, T, wv, n, method, ms, ordered ? Ord() : Unord())
 end
 
