@@ -1,4 +1,12 @@
 
+"""
+    sortedindices_sample(rng, iter)
+    sortedindices_sample(rng, iter, n; replace = false, ordered = false)
+
+Algorithm which generates sorted random indices used to retrieve the sample 
+from the iterable. The number of elements in the iterable needs to be known 
+before starting the sampling.
+"""
 function sortedindices_sample(rng, iter, n::Int; 
         iter_type = infer_eltype(iter), replace = false, ordered = false)
     N = length(iter)
@@ -50,14 +58,4 @@ function get_sorted_indices(rng, n, N, replace)
     else
         return sort!(sample(rng, 1:N, n; replace=replace))
     end
-end
-
-function sortedrandrange(rng, range, n)
-    exp_rands = randexp(rng, n)
-    sorted_rands = cumsum(exp_rands)
-    a, b = range.start, range.stop
-    range_size = b-a+1
-    cum_step = (sorted_rands[end] + randexp(rng)) / range_size
-    sorted_rands ./= cum_step
-    return ceil.(Int, sorted_rands)
 end

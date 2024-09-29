@@ -8,9 +8,6 @@
     wv::F
 end
 
-function ReservoirSample(T, wv, method::ReservoirAlgorithm = AlgWRSWRSKIP())
-    return ReservoirSample(Random.default_rng(), T, wv, method, MutSample())
-end
 function ReservoirSample(rng::R, T, wv, ::AlgWRSWRSKIP, ::MutSample) where {R<:AbstractRNG}
     return SampleSingleAlgWRSWRSKIP_Mut(0, 0.0, 0.0, rng, RefVal_Immut{T}(), wv)
 end

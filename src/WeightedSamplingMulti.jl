@@ -247,7 +247,7 @@ function OnlineStatsBase.value(s::AbstractWeightedWrReservoirSampleMulti)
     end
 end
 
-function ordered_value(s::Union{SampleMultiOrdAlgARes, SampleMultiOrdAlgAExpJ})
+function ordvalue(s::Union{SampleMultiOrdAlgARes, SampleMultiOrdAlgAExpJ})
     if nobs(s) < length(s.value)
         vals = s.value.valtree[1:nobs(s)]
     else
@@ -255,7 +255,7 @@ function ordered_value(s::Union{SampleMultiOrdAlgARes, SampleMultiOrdAlgAExpJ})
     end
     return first.(vals[sortperm(map(x -> x[2], vals))])
 end
-function ordered_value(s::SampleMultiOrdAlgWRSWRSKIP)
+function ordvalue(s::SampleMultiOrdAlgWRSWRSKIP)
     if nobs(s) < length(s.value)
         return sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value); ordered=true)
     else

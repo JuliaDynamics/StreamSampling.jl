@@ -1,10 +1,4 @@
 
-@hybrid struct RefVal{T}
-    value::T
-    RefVal{T}() where T = new{T}()
-    RefVal(value::T) where T = new{T}(value)
-end
-
 @hybrid struct SampleSingleAlgRSWRSKIP{RT,R} <: AbstractReservoirSampleSingle
     seen_k::Int
     skip_k::Int
@@ -12,22 +6,16 @@ end
     rvalue::RT
 end
 
-function OnlineStatsBase.value(s::SampleSingleAlgRSWRSKIP)
-    s.seen_k === 0 && return nothing
-    return s.rvalue.value
-end
-
-function ReservoirSample(T, method::ReservoirAlgorithm = AlgRSWRSKIP())
-    return ReservoirSample(Random.default_rng(), T, method, MutSample())
-end
-function ReservoirSample(rng::AbstractRNG, T, method::ReservoirAlgorithm = AlgRSWRSKIP())
-    return ReservoirSample(rng, T, method, MutSample())
-end
 function ReservoirSample(rng::AbstractRNG, T, ::AlgRSWRSKIP, ::MutSample)
     return SampleSingleAlgRSWRSKIP_Mut(0, 0, rng, RefVal_Immut{T}())
 end
 function ReservoirSample(rng::AbstractRNG, T, ::AlgRSWRSKIP, ::ImmutSample)
     return SampleSingleAlgRSWRSKIP_Immut(0, 0, rng, RefVal_Mut{T}())
+end
+
+function OnlineStatsBase.value(s::SampleSingleAlgRSWRSKIP)
+    s.seen_k === 0 && return nothing
+    return s.rvalue.value
 end
 
 @inline function OnlineStatsBase._fit!(s::SampleSingleAlgRSWRSKIP, el)
@@ -70,16 +58,4 @@ function Base.merge!(s1::SampleSingleAlgRSWRSKIP_Mut, s2::SampleSingleAlgRSWRSKI
     s1.seen_k = n_tot
     s1.skip_k += s2.skip_k
     return s1
-end
-
-function reservoir_sample(rng, iter, iter_type, method::ReservoirAlgorithm = algR)
-    s = ReservoirSample(rng, iter_type, method, ims)
-    return update_all!(s, iter)
-end
-
-function update_all!(s, iter)
-    for x in iter
-        s = fit!(s, x)
-    end
-    return value(s)
 end

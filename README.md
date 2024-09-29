@@ -73,25 +73,25 @@ julia> iter = Iterators.filter(x -> x != 10, 1:10^7);
 
 julia> wv(el) = 1.0;
 
-julia> @btime itsample($rng, $iter, 10^4, algRSWRSKIP);
+julia> @btime itsample($rng, $iter, 10^4, AlgRSWRSKIP());
   12.457 ms (4 allocations: 156.34 KiB)
 
 julia> @btime sample($rng, collect($iter), 10^4; replace=true);
   134.152 ms (20 allocations: 146.91 MiB)
 
-julia> @btime itsample($rng, $iter, 10^4, algL);
+julia> @btime itsample($rng, $iter, 10^4, AlgL());
   8.262 ms (2 allocations: 78.17 KiB)
 
 julia> @btime sample($rng, collect($iter), 10^4; replace=false);
   138.054 ms (27 allocations: 147.05 MiB)
 
-julia> @btime itsample($rng, $iter, $wv, 10^4, algWRSWRSKIP);
+julia> @btime itsample($rng, $iter, $wv, 10^4, AlgWRSWRSKIP());
   14.479 ms (15 allocations: 547.23 KiB)
 
 julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=true);
   343.936 ms (49 allocations: 675.21 MiB)
 
-julia> @btime itsample($rng, $iter, $wv, 10^4, algAExpJ);
+julia> @btime itsample($rng, $iter, $wv, 10^4, AlgAExpJ());
   30.523 ms (6 allocations: 234.62 KiB)
 
 julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=false);

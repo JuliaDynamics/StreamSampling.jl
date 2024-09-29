@@ -266,30 +266,17 @@ function OnlineStatsBase.value(s::AbstractWrReservoirSampleMulti)
     end
 end
 
-function ordered_value(s::Union{SampleMultiOrdAlgR, SampleMultiOrdAlgL})
+function ordvalue(s::Union{SampleMultiOrdAlgR, SampleMultiOrdAlgL})
     if nobs(s) < length(s.value)
         return s.value[1:nobs(s)]
     else
         return s.value[sortperm(s.ord)]
     end
 end
-function ordered_value(s::SampleMultiOrdAlgRSWRSKIP)
+function ordvalue(s::SampleMultiOrdAlgRSWRSKIP)
     if nobs(s) < length(s.value)
         return sample(s.rng, s.value[1:nobs(s)], length(s.value); ordered=true)
     else
         return s.value[sortperm(s.ord)]
     end
-end
-
-Base.@constprop :aggressive function reservoir_sample(rng, iter, n::Int, method::ReservoirAlgorithm = algL;
-        iter_type = infer_eltype(iter), ordered = false)
-    s = ReservoirSample(rng, iter_type, n, method, ims, ordered ? Ord() : Unord())
-    return update_all!(s, iter, ordered)
-end
-
-function update_all!(s, iter, ordered)
-    for x in iter
-        s = fit!(s, x)
-    end
-    return ordered ? ordered_value(s) : shuffle!(s.rng, value(s))
 end

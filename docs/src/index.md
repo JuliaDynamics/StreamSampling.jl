@@ -10,7 +10,7 @@ ReservoirSample
 fit!
 empty!
 value
-ordered_value
+ordvalue
 nobs
 itsample
 ```
