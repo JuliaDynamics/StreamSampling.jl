@@ -99,8 +99,7 @@ julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=f
 ```
 
 There are also more performance comparisons in respect to `StatsBase` methods at 
-[test/benchmark/comparison.png](https://github.com/JuliaDynamics/StreamSampling.jl/blob/main/test/benchmark/comparison.png), where
-the version with setup includes the collection of the population in memory, required to perform the sampling with non-streaming methods. 
+[test/benchmark/comparison.png](https://github.com/JuliaDynamics/StreamSampling.jl/blob/main/test/benchmark/comparison_stream_algs.png), where the version with setup includes the collection of the population in memory, required to perform the sampling with non-streaming methods. 
 
 
 

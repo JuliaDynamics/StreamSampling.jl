@@ -18,7 +18,7 @@ function sortedindices_sample(rng, iter, n::Int;
     reservoir = Vector{iter_type}(undef, n)
     indices = get_sorted_indices(rng, n, N, replace)
     first_idx = indices[1]
-    el, state = iterate(iter)
+    el, state = iterate(iter)::Tuple
     if first_idx != 1
         el, state = skip_ahead_no_end(iter, state, first_idx - 2)
     end
@@ -37,9 +37,9 @@ end
 
 function skip_ahead_no_end(iter, state, n)
     for _ in 1:n
-        it = iterate(iter, state)
+        it = iterate(iter, state)::Tuple
         state = it[2]
     end
-    it = iterate(iter, state)
+    it = iterate(iter, state)::Tuple
     return it
 end

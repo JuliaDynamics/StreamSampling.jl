@@ -135,10 +135,10 @@ Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, n::Int, me
         iter_type = infer_eltype(iter), ordered = false)
     if Base.IteratorSize(iter) isa Base.SizeUnknown
         s = ReservoirSample(rng, iter_type, n, method, ImmutSample(), ordered ? Ord() : Unord())
-        return update_all!(s, iter, ordered)::Vector{iter_type}
+        return update_all!(s, iter, ordered)
     else
         replace = method isa AlgL || method isa AlgR ? false : true
-        sortedindices_sample(rng, iter, n; iter_type, replace, ordered)::Vector{iter_type}
+        sortedindices_sample(rng, iter, n; iter_type, replace, ordered)
     end
 end
 function itsample(rng::AbstractRNG, iter, wv::Function, method = AlgWRSWRSKIP(); iter_type = infer_eltype(iter))

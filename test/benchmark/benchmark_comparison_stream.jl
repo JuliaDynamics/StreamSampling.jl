@@ -77,4 +77,5 @@ f[5, 1] = Legend(f, axs[1], framevisible = false, orientation = :horizontal,
 Label(f[0, :], "Comparison between stream-based and collection-based algorithms", fontsize = 13,
     font=:bold)
 
+save("comparison_stream_algs.png", f)
 f
