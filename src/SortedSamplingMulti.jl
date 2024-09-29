@@ -12,32 +12,24 @@ function sortedindices_sample(rng, iter, n::Int;
     N = length(iter)
     if N <= n
         reservoir = collect(iter)
-        if replace
-            return sample(rng, reservoir, n, ordered=ordered)
-        else
-            return ordered ? reservoir : shuffle!(rng, reservoir)
-        end
+        replace && return sample(rng, reservoir, n, ordered=ordered)
+        return ordered ? reservoir : shuffle!(rng, reservoir)
     end
     reservoir = Vector{iter_type}(undef, n)
     indices = get_sorted_indices(rng, n, N, replace)
     first_idx = indices[1]
-    it = iterate(iter)
-    el, state = it
+    el, state = iterate(iter)
     if first_idx != 1
-        it = skip_ahead_no_end(iter, state, first_idx - 2)
-        el, state = it
+        el, state = skip_ahead_no_end(iter, state, first_idx - 2)
     end
     reservoir[1] = el
     i = 2
     @inbounds while i <= n
         skip_k = indices[i] - indices[i-1] - 1
-        if skip_k < 0
-            reservoir[i] = el
-        else
-            it = skip_ahead_no_end(iter, state, skip_k)
-            el, state = it
-            reservoir[i] = el
+        if skip_k >= 0
+            el, state = skip_ahead_no_end(iter, state, skip_k)
         end
+        reservoir[i] = el
         i += 1
     end
     return ordered ? reservoir : shuffle!(rng, reservoir)
@@ -50,12 +42,4 @@ function skip_ahead_no_end(iter, state, n)
     end
     it = iterate(iter, state)
     return it
-end
-
-function get_sorted_indices(rng, n, N, replace)
-    if replace == true
-        return sortedrandrange(rng, 1:N, n)
-    else
-        return sort!(sample(rng, 1:N, n; replace=replace))
-    end
 end

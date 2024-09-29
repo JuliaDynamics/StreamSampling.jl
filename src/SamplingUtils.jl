@@ -19,3 +19,8 @@ function sortedrandrange(rng, range, n)
     sorted_rands ./= cum_step
     return ceil.(Int, sorted_rands)
 end
+
+function get_sorted_indices(rng, n, N, replace)
+    replace == true && return sortedrandrange(rng, 1:N, n)
+    return sort!(sample(rng, 1:N, n; replace=replace))
+end
