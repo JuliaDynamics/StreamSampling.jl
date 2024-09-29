@@ -1,0 +1,20 @@
+
+[deps]
+StreamSampling = "ff63dad9-3335-55d8-95ec-f8139d39e468"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+ChunkSplitter = "ae650224-84b6-46f8-82ea-d812ca08434e"
+PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+
+[compat]
+StreamSampling = "0.4"
+Distributions = "0.25"
+Random = "1"
+StatsBase = "0.34"
+CairoMakie = "0.12"
+PyCall = "1.96"
+BenchmarkTools = "1.6"
+ChunkSplitter = "2"
