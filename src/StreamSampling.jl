@@ -102,12 +102,13 @@ function infer_eltype(itr)
 end
 
 """
-    ReservoirSample([rng], T, method = algL)
-    ReservoirSample([rng], T, n::Int, method = algL; ordered = false)
+    ReservoirSample([rng], T, [wfunc], method = algL)
+    ReservoirSample([rng], T, [wfunc], n::Int, method = algL; ordered = false)
 
 Initializes a reservoir sample which can then be fitted with [`fit!`](@ref).
 The first signature represents a sample where only a single element is collected.
-Look at the [`Algorithms`](@ref) section for the supported methods.
+A weight function `wfunc` can be passed to apply weighted sampling. Look at the
+[`Algorithms`](@ref) section for the supported methods.
 """
 Base.@constprop :aggressive function ReservoirSample(T, n::Integer, method::ReservoirAlgorithm=algL; 
         ordered = false)
@@ -131,7 +132,7 @@ export ReservoirSample
 """
     fit!(rs::AbstractReservoirSample, el)
 
-Updates the reservoir sample by considering the passed element.
+Updates the reservoir sample by taking into account the element passed.
 """
 @inline OnlineStatsBase.fit!(s::AbstractReservoirSample, el) = OnlineStatsBase._fit!(s, el)
 
