@@ -209,23 +209,23 @@ collected.
 If the iterator has less than `n` elements, in the case of sampling without
 replacement, it returns a vector of those elements.
 """
-function itsample(iter, method::ReservoirAlgorithm = algR;
+function itsample(iter, method::ReservoirAlgorithm = AlgRSWRSKIP();
         iter_type = infer_eltype(iter))
     return itsample(Random.default_rng(), iter, method; iter_type)
 end
-function itsample(iter, n::Int, method::ReservoirAlgorithm = algL; 
+function itsample(iter, n::Int, method::ReservoirAlgorithm = AlgL(); 
         iter_type = infer_eltype(iter), ordered = false)
     return itsample(Random.default_rng(), iter, n, method; ordered)
 end
-function itsample(iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
+function itsample(iter, wv::Function, method::ReservoirAlgorithm = AlgWRSWRSKIP();
         iter_type = infer_eltype(iter))
     return itsample(Random.default_rng(), iter, wv, method)
 end
-function itsample(iter, wv::Function, n::Int, method::ReservoirAlgorithm=algAExpJ; 
+function itsample(iter, wv::Function, n::Int, method::ReservoirAlgorithm=AlgAExpJ(); 
         iter_type = infer_eltype(iter), ordered = false)
     return itsample(Random.default_rng(), iter, wv, n, method; iter_type, ordered)
 end
-Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, method::ReservoirAlgorithm = algR;
+Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, method::ReservoirAlgorithm = AlgRSWRSKIP();
         iter_type = infer_eltype(iter))
     if Base.IteratorSize(iter) isa Base.SizeUnknown
         return reservoir_sample(rng, iter, iter_type, method)
@@ -234,7 +234,7 @@ Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, method::Re
     end
 end
 Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, n::Int, 
-        method::ReservoirAlgorithm = algL; iter_type = infer_eltype(iter), ordered = false)
+        method::ReservoirAlgorithm = AlgL(); iter_type = infer_eltype(iter), ordered = false)
     if Base.IteratorSize(iter) isa Base.SizeUnknown
         reservoir_sample(rng, iter, n, method; iter_type, ordered)::Vector{iter_type}
     else
@@ -242,12 +242,12 @@ Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, n::Int,
         sortedindices_sample(rng, iter, n; iter_type, replace, ordered)::Vector{iter_type}
     end
 end
-function itsample(rng::AbstractRNG, iter, wv::Function, method::ReservoirAlgorithm = algAExpJ;
+function itsample(rng::AbstractRNG, iter, wv::Function, method::ReservoirAlgorithm = AlgWRSWRSKIP();
         iter_type = infer_eltype(iter))
     s = ReservoirSample(rng, iter_type, wv, method, ims)
     return update_all!(s, iter)
 end
-Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, wv::Function, n::Int, method::ReservoirAlgorithm=algAExpJ; 
+Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, wv::Function, n::Int, method::ReservoirAlgorithm=AlgAExpJ(); 
         iter_type = infer_eltype(iter), ordered = false)
     s = ReservoirSample(rng, iter_type, wv, n, method, ims, ordered ? Ord() : Unord())
     return update_all!(s, iter, ordered)
