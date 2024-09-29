@@ -5,7 +5,7 @@ using CairoMakie
 rng = Xoshiro(42);
 stream = Iterators.filter(x -> x != 10, 1:10^7);
 pop = collect(stream);
-w(el) = 1.0;
+w(el) = Float64(el);
 weights = Weights(w.(stream));
 
 algs = (AlgL(), AlgRSWRSKIP(), AlgAExpJ(), AlgWRSWRSKIP());
