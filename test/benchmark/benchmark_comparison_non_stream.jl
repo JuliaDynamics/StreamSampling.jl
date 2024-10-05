@@ -26,8 +26,8 @@ function weighted_reservoir_sample_seq(rng, a, ws, n)
         if w_sum > w_skip
             p = w_el/w_sum
             q = 1-p
-            z = q^(n-3)
-            t = rand(rng, Uniform(z*q*q*q,1.0))
+            z = q^(n-4)
+            t = rand(rng, Uniform(z*q*q*q*q,1.0))
             k = choose(n, p, q, t, z)
             for j in 1:k
                 r = rand(rng, j:n)
@@ -45,12 +45,14 @@ function skip(rng, w_sum::AbstractFloat, n)
 end
 
 function choose(n, p, q, t, z)
-    x = z*q*q*(q + n*p)
+    x = z*q*q*q*(q + n*p)
     x > t && return 1
-    x += n*p*(n-1)*p*z*q/2
+    x += n*p*(n-1)*p*z*q*q/2
     x > t && return 2
-    x += n*p*(n-1)*p*(n-2)*p*z/6
+    x += n*p*(n-1)*p*(n-2)*p*z*q/6
     x > t && return 3
+    x += n*p*(n-1)*p*(n-2)*p*(n-3)*p*z/24
+    x > t && return 4
     return quantile(Binomial(n, p), t)
 end
 
@@ -67,25 +69,9 @@ function weighted_reservoir_sample_parallel_1_pass(rngs, a, ws, n)
         s = weighted_reservoir_sample_seq(rngs[i], @view(a[inds]), @view(ws[inds]), n)
         ss[i], w_sums[i] = s
     end
-    ps = w_sums ./ sum(w_sums)
-    ns = rand(rngs[1], Multinomial(n, ps))
-    Threads.@threads for i in 1:nt
-        ss[i] = sample(rngs[i], ss[i], ns[i]; replace = false)
-    end
-    return shuffle!(rngs[1], reduce(vcat, ss))
-end
-
-function sample_parallel_1_pass(rngs, a, ws, n)
-    nt = Threads.nthreads()
-    ss = Vector{Vector{eltype(a)}}(undef, nt)
-    w_sums = Vector{Float64}(undef, nt)
-    chunks_inds = chunks(a; n=nt)
-    Threads.@threads for (i, inds) in enumerate(chunks_inds)
-        s = sample(rngs[i], @view(a[inds]), Weights(@view(ws[inds])), n; replace = true)
-        ss[i], w_sums[i] = s
-    end
-    ps = w_sums ./ sum(w_sums)
-    ns = rand(rngs[1], Multinomial(n, ps))
+    W = sum(w_sums)
+    w_sums /= W
+    ns = rand(rngs[1], Multinomial(n, w_sums))
     Threads.@threads for i in 1:nt
         ss[i] = sample(rngs[i], ss[i], ns[i]; replace = false)
     end
@@ -104,8 +90,9 @@ function weighted_reservoir_sample_parallel_2_pass(rngs, a, ws, n)
         w_sums[i] = sum(@view(ws[inds]))
     end
     ss = Vector{Vector{eltype(a)}}(undef, nt)
-    ps = w_sums ./ sum(w_sums)
-    ns = rand(rngs[1], Multinomial(n, ps))
+    W = sum(w_sums)
+    w_sums /= W
+    ns = rand(rngs[1], Multinomial(n, w_sums))
     Threads.@threads for (i, inds) in enumerate(chunks_inds)
         s = weighted_reservoir_sample_seq(rngs[i], @view(a[inds]), @view(ws[inds]), ns[i])
         ss[i] = s[1]
@@ -121,8 +108,9 @@ function sample_parallel_2_pass(rngs, a, ws, n)
         w_sums[i] = sum(@view(ws[inds]))
     end
     ss = Vector{Vector{eltype(a)}}(undef, nt)
-    ps = w_sums ./ sum(w_sums)
-    ns = rand(rngs[1], Multinomial(n, ps))
+    W = sum(w_sums)
+    w_sums /= W
+    ns = rand(rngs[1], Multinomial(n, w_sums))
     Threads.@threads for (i, inds) in enumerate(chunks_inds)
         s = sample(rngs[i], @view(a[inds]), Weights(@view(ws[inds])), ns[i]; replace = true)
         ss[i] = s
@@ -208,12 +196,12 @@ ax1 = Axis(f[1, 1], yscale=log10, xscale=log10,
 	   yminorticksvisible = true, yminorgridvisible = true, 
 	   yminorticks = IntervalsBetween(10))
 
-scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_numpy[2:end], color = :pink, label = "numpy.choice sequential")
-scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_other[2:end], color = :green, label = "StatsBase.sample sequential")
-scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_other_parallel[2:end], color = :black, label = "StatsBase.sample parallel (2 passes)")
-scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_single_thread[2:end], color = :blue, label = "WRSWR-SKIP sequential")
-scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_multi_thread[2:end], color = :red, label = "WRSWR-SKIP parallel (1 pass)")
-scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_multi_thread_2[2:end], color = :orange, label = "WRSWR-SKIP parallel (2 passes)")
+scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_numpy[2:end], label = "numpy.choice sequential", marker = :circle, markersize = 12, linestyle = :dot)
+scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_other[2:end], label = "StatsBase.sample sequential", marker = :rect, markersize = 12, linestyle = :dot)
+scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_other_parallel[2:end], label = "StatsBase.sample parallel (2 passes)", marker = :diamond, markersize = 12, linestyle = :dot)
+scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_single_thread[2:end], label = "WRSWR-SKIP sequential", marker = :hexagon, markersize = 12, linestyle = :dot)
+scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_multi_thread[2:end], label = "WRSWR-SKIP parallel (1 pass)", marker = :cross, markersize = 12, linestyle = :dot)
+scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_multi_thread_2[2:end], label = "WRSWR-SKIP parallel (2 passes)", marker = :xcross, markersize = 12, linestyle = :dot)
 Legend(f[1,2], ax1, labelsize=10, framevisible = false)
 
 ax1.xtickformat = x -> string.(round.(x.*100, digits=10)) .* "%"
