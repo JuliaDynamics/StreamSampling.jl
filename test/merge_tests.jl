@@ -16,7 +16,7 @@
                 end
             end
             s_merged = merge(s1, s2)
-            res[value(s_merged)...] += 1
+            res[shuffle!(rng, value(s_merged))...] += 1
         end
         cases = m1 == AlgRSWRSKIP() ? 10^size : factorial(10)/factorial(10-size)
         ps_exact = [1/cases for _ in 1:cases]

@@ -8,7 +8,7 @@ using OnlineStatsBase
 using Random
 using StatsBase
 
-export fit!, value, ordvalue, nobs, itsample
+export fit!, merge!, value, ordvalue, nobs, itsample
 export AbstractReservoirSample, ReservoirSample
 export AlgL, AlgR, AlgRSWRSKIP, AlgARes, AlgAExpJ, AlgWRSWRSKIP
 
@@ -92,6 +92,7 @@ include("UnweightedSamplingSingle.jl")
 include("UnweightedSamplingMulti.jl")
 include("WeightedSamplingSingle.jl")
 include("WeightedSamplingMulti.jl")
+include("SamplingReduction.jl")
 include("precompile.jl")
 
 end
