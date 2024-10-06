@@ -1,4 +1,7 @@
 
+struct TypeS end
+struct TypeUnion end
+
 @hybrid struct RefVal{T}
     value::T
     RefVal{T}() where T = new{T}()

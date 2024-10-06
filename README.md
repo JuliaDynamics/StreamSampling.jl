@@ -16,7 +16,7 @@ This has some advantages over other sampling procedures:
 - In some cases, sampling with the techniques implemented in this library can bring considerable performance gains, since
   the population of items doesn't need to be previously stored in memory.
   
-## Brief overview of the functionalities
+## Overview of the functionalities
 
 The `itsample` function allows to consume all the stream at once and return the sample collected:
 
@@ -33,6 +33,7 @@ julia> itsample(st, 5)
  96
  91
 ```
+
 In some cases, one needs to control the updates the `ReservoirSample` will be subject to. In this case
 you can simply use the `fit!` function to update the reservoir:
 
@@ -71,39 +72,36 @@ julia> rng = Xoshiro(42);
 
 julia> iter = Iterators.filter(x -> x != 10, 1:10^7);
 
-julia> wv(el) = 1.0;
+julia> wv(el) = Float64(el);
 
 julia> @btime itsample($rng, $iter, 10^4, AlgRSWRSKIP());
-  12.457 ms (4 allocations: 156.34 KiB)
+  12.301 ms (6 allocations: 156.38 KiB)
 
 julia> @btime sample($rng, collect($iter), 10^4; replace=true);
-  134.152 ms (20 allocations: 146.91 MiB)
+  92.936 ms (35 allocations: 290.93 MiB)
 
 julia> @btime itsample($rng, $iter, 10^4, AlgL());
-  8.262 ms (2 allocations: 78.17 KiB)
+  12.719 ms (3 allocations: 78.19 KiB)
 
 julia> @btime sample($rng, collect($iter), 10^4; replace=false);
-  138.054 ms (27 allocations: 147.05 MiB)
+  93.544 ms (41 allocations: 291.08 MiB)
 
 julia> @btime itsample($rng, $iter, $wv, 10^4, AlgWRSWRSKIP());
-  14.479 ms (15 allocations: 547.23 KiB)
+  18.672 ms (22 allocations: 547.34 KiB)
 
 julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=true);
-  343.936 ms (49 allocations: 675.21 MiB)
+  377.567 ms (83 allocations: 963.26 MiB)
 
 julia> @btime itsample($rng, $iter, $wv, 10^4, AlgAExpJ());
-  30.523 ms (6 allocations: 234.62 KiB)
+  37.600 ms (8 allocations: 234.55 KiB)
 
 julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=false);
-  294.242 ms (43 allocations: 370.19 MiB)
+  258.426 ms (74 allocations: 658.24 MiB)
 ```
 
 Some more performance comparisons in respect to `StatsBase` methods are in the [benchmark](https://github.com/JuliaDynamics/StreamSampling.jl/blob/main/benchmark/) folder. 
-
-
 
 ## Contributing
 
 Contributions are welcome! If you encounter any issues, have suggestions for improvements, or would like to add new 
 features, feel free to open an issue or submit a pull request.
-

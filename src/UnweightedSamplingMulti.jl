@@ -85,7 +85,7 @@ end
         if s.seen_k === n
             s = @inline recompute_skip!(s, n)
         end
-    elseif s.skip_k < 0
+    elseif s.skip_k < s.seen_k
         j = rand(s.rng, 1:n)
         @inbounds s.value[j] = el
         update_order!(s, j)
@@ -105,7 +105,7 @@ end
                 s.value[i] = new_values[i]
             end
         end
-    elseif s.skip_k < 0
+    elseif s.skip_k < s.seen_k
         p = 1/s.seen_k
         z = (1-p)^(n-3)
         q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p),1.0))
@@ -151,23 +151,21 @@ function update_state!(s::SampleMultiAlgR)
 end
 function update_state!(s::SampleMultiAlgL)
     @update s.seen_k += 1
-    @update s.skip_k -= 1
     return s
 end
 function update_state!(s::AbstractWrReservoirSampleMulti)
     @update s.seen_k += 1
-    @update s.skip_k -= 1
     return s
 end
 
 function recompute_skip!(s::AbstractWorReservoirSampleMulti, n)
     @update s.state += randexp(s.rng)
-    @update s.skip_k = -ceil(Int, randexp(s.rng)/log(1-exp(-s.state/n)))
+    @update s.skip_k = s.seen_k-ceil(Int, randexp(s.rng)/log(1-exp(-s.state/n)))
     return s
 end
 function recompute_skip!(s::AbstractWrReservoirSampleMulti, n)
     q = rand(s.rng)^(1/n)
-    @update s.skip_k = ceil(Int, s.seen_k/q - s.seen_k - 1)
+    @update s.skip_k = ceil(Int, s.seen_k/q)-1
     return s
 end
 
@@ -200,54 +198,22 @@ function update_order_multi!(s::SampleMultiOrdAlgRSWRSKIP, r, j)
 end
 
 is_ordered(s::SampleMultiOrdAlgRSWRSKIP) = true
-is_ordered(s::AbstractWrReservoirSampleMulti) = false
+is_ordered(s::SampleMultiAlgRSWRSKIP) = false
 
-function Base.merge(s1::AbstractWrReservoirSampleMulti, s2::AbstractWrReservoirSampleMulti)
-    len1, len2, n1, n2 = check_merging_support(s1, s2)
-    shuffle!(s1.rng, s1.value)
-    shuffle!(s2.rng, s2.value)
-    n_tot = n1 + n2
-    p = n2 / n_tot
-    value = create_new_res_vec(s1, s2, p, len1)
-    s_merged = typeof(s1)(0, n_tot, s1.rng, value, nothing)
-    recompute_skip!(s_merged, len1)
-    return s_merged
+function Base.merge(ss::SampleMultiAlgRSWRSKIP...)
+    newvalue = reduce_samples(TypeUnion(), ss...)
+    skip_k = sum(getfield(s, :skip_k) for s in ss)
+    seen_k = sum(getfield(s, :seen_k) for s in ss)
+    return SampleMultiAlgRSWRSKIP_Mut(skip_k, seen_k, ss[1].rng, newvalue, nothing)
 end
 
-function Base.merge!(s1::SampleMultiAlgRSWRSKIP, s2::AbstractWrReservoirSampleMulti)
-    len1, len2, n1, n2 = check_merging_support(s1, s2)
-    shuffle!(s1.rng, s1.value)
-    shuffle!(s2.rng, s2.value)
-    n_tot = n1 + n2
-    p = n2 / n_tot
-    merge_res_vec!(s1, s2, p, len1, n_tot)
-    recompute_skip!(s1, len1)
-    return s1
-end
-
-function check_merging_support(s1, s2)
-    len1, len2 = length(s1.value), length(s2.value)
-    len1 != len2 && error("Merging samples with different sizes is not supported")
-    n1, n2 = nobs(s1), nobs(s2)
-    n1 < len1 || n2 < len2 && error("Merging samples with different sizes is not supported")
-    return len1, len2, n1, n2
-end
-
-function create_new_res_vec(s1, s2, p, len1)
-    value = similar(s1.value)
-    @inbounds for j in 1:len1
-        value[j] = rand(s1.rng) < p ? s2.value[j] : s1.value[j]
+function Base.merge!(s1::SampleMultiAlgRSWRSKIP{<:Nothing}, ss::SampleMultiAlgRSWRSKIP...)
+    newvalue = reduce_samples(TypeS(), s1, ss...)
+    for i in 1:length(newvalue)
+        @inbounds s1.value[i] = newvalue[i]
     end
-    return value
-end
-
-function merge_res_vec!(s1, s2, p, len1, n_tot)
-    @inbounds for j in 1:len1
-        if rand(s1.rng) < p
-            s1.value[j] = s2.value[j]
-        end
-    end
-    s1.seen_k = n_tot
+    s1.skip_k += sum(getfield(s, :skip_k) for s in ss)
+    s1.seen_k += sum(getfield(s, :seen_k) for s in ss)
     return s1
 end
 

@@ -8,7 +8,9 @@
 Initializes a reservoir sample which can then be fitted with [`fit!`](@ref).
 The first signature represents a sample where only a single element is collected.
 A weight function `wfunc` can be passed to apply weighted sampling. Look at the
-[`Algorithms`](@ref) section for the supported methods.
+[`Sampling Algorithms`](@ref) section for the supported methods. If `ordered` is 
+true, the reservoir sample values can be retrived in the order they were collected
+with [`ordvalue`](@ref).
 """
 function ReservoirSample(T, method::ReservoirAlgorithm = AlgRSWRSKIP())
     return ReservoirSample(Random.default_rng(), T, method, MutSample())
@@ -83,6 +85,28 @@ Resets the reservoir sample to its initial state.
 Useful to avoid allocating a new sample in some cases.
 """
 function Base.empty!(::AbstractReservoirSample)
+    error("Abstract Version")
+end
+
+"""
+    Base.merge!(rs::AbstractReservoirSample, rs::AbstractReservoirSample...)
+
+Updates the first reservoir sample by merging its value with the values
+of the other samples. Currently only supported for samples with replacement.
+"""
+function Base.merge!(::AbstractReservoirSample)
+    error("Abstract Version")
+end
+
+
+"""
+    Base.merge(rs::AbstractReservoirSample...)
+
+Creates a new reservoir sample by merging the values
+of the samples passed. Currently only supported for sample
+with replacement.
+"""
+function OnlineStatsBase.merge(::AbstractReservoirSample)
     error("Abstract Version")
 end
 
