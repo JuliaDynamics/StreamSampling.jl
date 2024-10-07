@@ -1,7 +1,7 @@
 
 const OrdWeighted = BinaryHeap{Tuple{T, Int64, Float64}, Base.Order.By{typeof(last), DataStructures.FasterForward}} where T
 
-@hybrid struct SampleMultiAlgARes{BH,R} <: AbstractWeightedWorReservoirSampleMulti
+@hybrid struct SampleMultiAlgARes{BH,R} <: AbstractReservoirSample
     seen_k::Int
     n::Int
     const rng::R
@@ -9,7 +9,7 @@ const OrdWeighted = BinaryHeap{Tuple{T, Int64, Float64}, Base.Order.By{typeof(la
 end
 const SampleMultiOrdAlgARes = Union{SampleMultiAlgARes_Immut{<:OrdWeighted}, SampleMultiAlgARes_Mut{<:OrdWeighted}}
 
-@hybrid struct SampleMultiAlgAExpJ{BH,R} <: AbstractWeightedWorReservoirSampleMulti
+@hybrid struct SampleMultiAlgAExpJ{BH,R} <: AbstractReservoirSample
     state::Float64
     min_priority::Float64
     seen_k::Int
@@ -19,7 +19,7 @@ const SampleMultiOrdAlgARes = Union{SampleMultiAlgARes_Immut{<:OrdWeighted}, Sam
 end
 const SampleMultiOrdAlgAExpJ = Union{SampleMultiAlgAExpJ_Immut{<:OrdWeighted}, SampleMultiAlgAExpJ_Mut{<:OrdWeighted}}
 
-@hybrid struct SampleMultiAlgWRSWRSKIP{O,T,R} <: AbstractWeightedWrReservoirSampleMulti
+@hybrid struct SampleMultiAlgWRSWRSKIP{O,T,R} <: AbstractReservoirSample
     state::Float64
     skip_w::Float64
     seen_k::Int
@@ -100,7 +100,7 @@ end
     end
     return s
 end
-@inline function OnlineStatsBase._fit!(s::Union{SampleMultiAlgAExpJ, SampleMultiOrdAlgAExpJ}, el, w)
+@inline function OnlineStatsBase._fit!(s::SampleMultiAlgAExpJ, el, w)
     n = s.n
     s = @inline update_state!(s, w)
     if s.seen_k <= n
@@ -117,7 +117,7 @@ end
     end
     return s
 end
-@inline function OnlineStatsBase._fit!(s::Union{SampleMultiAlgWRSWRSKIP, SampleMultiOrdAlgWRSWRSKIP}, el, w)
+@inline function OnlineStatsBase._fit!(s::SampleMultiAlgWRSWRSKIP, el, w)
     n = length(s.value)
     s = @inline update_state!(s, w)
     if s.seen_k <= n
@@ -176,7 +176,6 @@ function Base.empty!(s::SampleMultiAlgWRSWRSKIP_Mut)
     return s
 end
 
-
 function Base.merge(ss::SampleMultiAlgWRSWRSKIP...)
     newvalue = reduce_samples(TypeUnion(), ss...)
     skip_w = sum(getfield(s, :skip_w) for s in ss)
@@ -198,16 +197,16 @@ function Base.merge!(s1::SampleMultiAlgWRSWRSKIP{<:Nothing}, ss::SampleMultiAlgW
     return s1
 end
 
-function update_state!(s::Union{SampleMultiAlgARes, SampleMultiOrdAlgARes}, w)
+function update_state!(s::SampleMultiAlgARes, w)
     @update s.seen_k += 1
     return s
 end
-function update_state!(s::Union{SampleMultiAlgAExpJ, SampleMultiOrdAlgAExpJ}, w)
+function update_state!(s::SampleMultiAlgAExpJ, w)
     @update s.seen_k += 1
     @update s.state -= w
     return s
 end
-function update_state!(s::Union{SampleMultiAlgWRSWRSKIP, SampleMultiOrdAlgWRSWRSKIP}, w)
+function update_state!(s::SampleMultiAlgWRSWRSKIP, w)
     @update s.seen_k += 1
     @update s.state += w
     return s
@@ -218,12 +217,12 @@ function compute_skip_priority(s, w)
     return exp(log(rand(s.rng, Uniform(t,1)))/w)
 end
 
-function recompute_skip!(s::Union{SampleMultiAlgAExpJ, SampleMultiOrdAlgAExpJ})
+function recompute_skip!(s::SampleMultiAlgAExpJ)
     @update s.min_priority = last(first(s.value))
     @update s.state = -randexp(s.rng)/log(s.min_priority)
     return s
 end
-function recompute_skip!(s::Union{SampleMultiAlgWRSWRSKIP, SampleMultiOrdAlgWRSWRSKIP}, n)
+function recompute_skip!(s::SampleMultiAlgWRSWRSKIP, n)
     q = rand(s.rng)^(1/n)
     @update s.skip_w = s.state/q
     return s
@@ -248,14 +247,14 @@ end
 is_ordered(s::SampleMultiOrdAlgWRSWRSKIP) = true
 is_ordered(s::SampleMultiAlgWRSWRSKIP) = false
 
-function OnlineStatsBase.value(s::AbstractWeightedWorReservoirSampleMulti)
+function OnlineStatsBase.value(s::Union{SampleMultiAlgARes, SampleMultiAlgAExpJ})
     if nobs(s) < s.n
         return first.(s.value.valtree[1:nobs(s)])
     else
         return first.(s.value.valtree)
     end
 end
-function OnlineStatsBase.value(s::AbstractWeightedWrReservoirSampleMulti)
+function OnlineStatsBase.value(s::SampleMultiAlgWRSWRSKIP)
     if nobs(s) < length(s.value)
         return sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value))
     else

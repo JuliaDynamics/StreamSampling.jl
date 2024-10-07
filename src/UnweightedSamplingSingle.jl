@@ -1,5 +1,5 @@
 
-@hybrid struct SampleSingleAlgRSWRSKIP{RT,R} <: AbstractReservoirSampleSingle
+@hybrid struct SampleSingleAlgRSWRSKIP{RT,R} <: AbstractReservoirSample
     seen_k::Int
     skip_k::Int
     const rng::R
@@ -40,7 +40,7 @@ function Base.empty!(s::SampleSingleAlgRSWRSKIP)
     return s
 end
 
-function Base.merge(s1::AbstractReservoirSampleSingle, s2::AbstractReservoirSampleSingle)
+function Base.merge(s1::SampleSingleAlgRSWRSKIP, s2::SampleSingleAlgRSWRSKIP)
     n1, n2 = nobs(s1), nobs(s2)
     n_tot = n1 + n2
     value = rand(s1.rng) < n1/n_tot ? s1.rvalue : s2.rvalue
