@@ -57,50 +57,6 @@ julia> value(rs)
 
 Consult the [API page](https://juliadynamics.github.io/StreamSampling.jl/stable/api) for more information on these and other functionalities.
 
-## Benchmark
-
-As stated in the first section, using these sampling techniques can bring down considerably the memory usage of the program, 
-but there are cases where they are also more time efficient, as demostrated below with a comparison with the 
-equivalent methods of `StatsBase.sample`:
-
-```julia
-julia> using StreamSampling
-
-julia> using BenchmarkTools, Random, StatsBase
-
-julia> rng = Xoshiro(42);
-
-julia> iter = Iterators.filter(x -> x != 10, 1:10^7);
-
-julia> wv(el) = Float64(el);
-
-julia> @btime itsample($rng, $iter, 10^4, AlgRSWRSKIP());
-  12.301 ms (6 allocations: 156.38 KiB)
-
-julia> @btime sample($rng, collect($iter), 10^4; replace=true);
-  92.936 ms (35 allocations: 290.93 MiB)
-
-julia> @btime itsample($rng, $iter, 10^4, AlgL());
-  12.719 ms (3 allocations: 78.19 KiB)
-
-julia> @btime sample($rng, collect($iter), 10^4; replace=false);
-  93.544 ms (41 allocations: 291.08 MiB)
-
-julia> @btime itsample($rng, $iter, $wv, 10^4, AlgWRSWRSKIP());
-  18.672 ms (22 allocations: 547.34 KiB)
-
-julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=true);
-  377.567 ms (83 allocations: 963.26 MiB)
-
-julia> @btime itsample($rng, $iter, $wv, 10^4, AlgAExpJ());
-  37.600 ms (8 allocations: 234.55 KiB)
-
-julia> @btime sample($rng, collect($iter), Weights($wv.($iter)), 10^4; replace=false);
-  258.426 ms (74 allocations: 658.24 MiB)
-```
-
-Some more performance comparisons in respect to `StatsBase` methods are in the [benchmark](https://github.com/JuliaDynamics/StreamSampling.jl/blob/main/benchmark/) folder. 
-
 ## Contributing
 
 Contributions are welcome! If you encounter any issues, have suggestions for improvements, or would like to add new 
