@@ -9,9 +9,9 @@
         @test a <= z <= b
         
         iter = Iterators.filter(x -> x != b + 1, a:b+1)
-        rs = ReservoirSample(Int, wv, method)
+        rs = ReservoirSample(Int, method)
         for x in iter
-            fit!(rs, x)
+            fit!(rs, x, wv(x))
         end
         @test a <= value(rs) <= b
         @test nobs(rs) == 100
