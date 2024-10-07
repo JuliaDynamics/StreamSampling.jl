@@ -8,6 +8,7 @@ using OnlineStatsBase
 using Random
 using StatsBase
 
+export StreamSampling
 export fit!, merge!, value, ordvalue, nobs, itsample
 export AbstractReservoirSample, ReservoirSample
 export AlgL, AlgR, AlgRSWRSKIP, AlgARes, AlgAExpJ, AlgWRSWRSKIP
