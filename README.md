@@ -55,7 +55,7 @@ julia> value(rs)
  74
 ```
 
-Consult the [API page](https://juliadynamics.github.io/StreamSampling.jl/stable/) for more information on these and other functionalities.
+Consult the [API page](https://juliadynamics.github.io/StreamSampling.jl/stable/api) for more information on these and other functionalities.
 
 ## Benchmark
 
