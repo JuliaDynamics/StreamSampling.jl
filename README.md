@@ -16,7 +16,7 @@ This has some advantages over other sampling procedures:
 - In some cases, sampling with the techniques implemented in this library can bring considerable performance gains, since
   the population of items doesn't need to be previously stored in memory.
 
-For information about the available functionalities consult the [documentation](https://juliadynamics.github.io/StreamSampling.jl/stable/)
+For information about the available functionalities consult the [documentation](https://juliadynamics.github.io/StreamSampling.jl/stable/).
 
 ## Contributing
 
