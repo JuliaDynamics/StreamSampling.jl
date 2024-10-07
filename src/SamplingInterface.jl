@@ -1,28 +1,20 @@
 
 """
     ReservoirSample([rng], T, method = AlgRSWRSKIP())
-    ReservoirSample([rng], T, wfunc, method = AlgWRSWRSKIP())
     ReservoirSample([rng], T, n::Int, method = AlgL(); ordered = false)
-    ReservoirSample([rng], T, wfunc, n::Int, method = AlgAExpJ(); ordered = false)
 
 Initializes a reservoir sample which can then be fitted with [`fit!`](@ref).
 The first signature represents a sample where only a single element is collected.
-A weight function `wfunc` can be passed to apply weighted sampling. Look at the
-[`Sampling Algorithms`](@ref) section for the supported methods. If `ordered` is 
-true, the reservoir sample values can be retrived in the order they were collected
-with [`ordvalue`](@ref).
+If `ordered` is true, the reservoir sample values can be retrived in the order
+they were collected with [`ordvalue`](@ref).
+
+Look at the [`Sampling Algorithms`](@ref) section for the supported methods. 
 """
 function ReservoirSample(T, method::ReservoirAlgorithm = AlgRSWRSKIP())
     return ReservoirSample(Random.default_rng(), T, method, MutSample())
 end
 function ReservoirSample(rng::AbstractRNG, T, method::ReservoirAlgorithm = AlgRSWRSKIP())
     return ReservoirSample(rng, T, method, MutSample())
-end
-function ReservoirSample(T, wv, method::ReservoirAlgorithm = AlgWRSWRSKIP())
-    return ReservoirSample(Random.default_rng(), T, wv, method, MutSample())
-end
-function ReservoirSample(rng::AbstractRNG, T, wv, method::ReservoirAlgorithm = AlgWRSWRSKIP())
-    return ReservoirSample(rng, T, wv, method, MutSample())
 end
 Base.@constprop :aggressive function ReservoirSample(T, n::Integer, method::ReservoirAlgorithm=AlgL(); 
         ordered = false)
@@ -32,21 +24,17 @@ Base.@constprop :aggressive function ReservoirSample(rng::AbstractRNG, T, n::Int
         method::ReservoirAlgorithm=AlgL(); ordered = false)
     return ReservoirSample(rng, T, n, method, MutSample(), ordered ? Ord() : Unord())
 end
-Base.@constprop :aggressive function ReservoirSample(T, wv, n::Integer, 
-        method::ReservoirAlgorithm=algAExpJ(); ordered = false)
-    return ReservoirSample(Random.default_rng(), T, wv, n, method, MutSample(), ordered ? Ord() : Unord())
-end
-Base.@constprop :aggressive function ReservoirSample(rng::AbstractRNG, T, wv, n::Integer, 
-        method::ReservoirAlgorithm=algAExpJ(); ordered = false)
-    return ReservoirSample(rng, T, wv, n, method, MutSample(), ordered ? Ord() : Unord())
-end
 
 """
     fit!(rs::AbstractReservoirSample, el)
+    fit!(rs::AbstractReservoirSample, el, w)
 
 Updates the reservoir sample by taking into account the element passed.
+If the sampling is weighted also the weight of the elements needs to be
+passed.
 """
 @inline OnlineStatsBase.fit!(s::AbstractReservoirSample, el) = OnlineStatsBase._fit!(s, el)
+@inline OnlineStatsBase.fit!(s::AbstractReservoirSample, el, w) = OnlineStatsBase._fit!(s, el, w)
 
 """
     value(rs::AbstractReservoirSample)
@@ -166,13 +154,13 @@ Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, n::Int, me
     end
 end
 function itsample(rng::AbstractRNG, iter, wv::Function, method = AlgWRSWRSKIP(); iter_type = infer_eltype(iter))
-    s = ReservoirSample(rng, iter_type, wv, method, ImmutSample())
-    return update_all!(s, iter)
+    s = ReservoirSample(rng, iter_type, method, ImmutSample())
+    return update_all!(s, iter, wv)
 end
 Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, wv::Function, n::Int, method = AlgAExpJ(); 
         iter_type = infer_eltype(iter), ordered = false)
-    s = ReservoirSample(rng, iter_type, wv, n, method, ImmutSample(), ordered ? Ord() : Unord())
-    return update_all!(s, iter, ordered)
+    s = ReservoirSample(rng, iter_type, n, method, ImmutSample(), ordered ? Ord() : Unord())
+    return update_all!(s, iter, ordered, wv)
 end
 
 function update_all!(s, iter)
@@ -181,9 +169,22 @@ function update_all!(s, iter)
     end
     return value(s)
 end
-function update_all!(s, iter, ordered)
+function update_all!(s, iter, wv)
+    for x in iter
+        s = fit!(s, x, wv(x))
+    end
+    return value(s)
+end
+function update_all!(s, iter, ordered::Bool)
     for x in iter
         s = fit!(s, x)
     end
     return ordered ? ordvalue(s) : shuffle!(s.rng, value(s))
 end
+function update_all!(s, iter, ordered, wv)
+    for x in iter
+        s = fit!(s, x, wv(x))
+    end
+    return ordered ? ordvalue(s) : shuffle!(s.rng, value(s))
+end
+
