@@ -120,6 +120,14 @@ appear in the same order as in `iter`) must be collected.
 
 If the iterator has less than `n` elements, in the case of sampling without
 replacement, it returns a vector of those elements.
+
+-----
+
+    itsample(rngs, iters, n::Int)
+    itsample(rngs, iters, wfuncs, n::Int)
+
+Parallel implementation which returns a sample with replacement of size `n`
+from the multiple iterables. All the arguments except from `n` must be tuples.
 """
 function itsample(iter, method = AlgRSWRSKIP(); iter_type = infer_eltype(iter))
     return itsample(Random.default_rng(), iter, method; iter_type)
@@ -162,6 +170,28 @@ Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, wv::Functi
     s = ReservoirSample(rng, iter_type, n, method, ImmutSample(), ordered ? Ord() : Unord())
     return update_all!(s, iter, ordered, wv)
 end
+function itsample(rngs::Tuple, iters::Tuple, n::Int,; iter_types = infer_eltype.(iters))
+    n_it = length(iters)
+    vs = Vector{Vector{Union{iter_types...}}}(undef, n_it)
+    ps = Vector{Float64}(undef, n_it)
+    Threads.@threads for i in 1:n_it
+        s = ReservoirSample(rngs[i], iter_types[i], n, AlgRSWRSKIP(), ImmutSample(), Unord())
+        vs[i], ps[i] = update_all_p!(s, iters[i])
+    end
+    ps /= sum(ps)
+    return shuffle!(rngs[1], reduce_samples(rngs, ps, vs))
+end
+function itsample(rngs::Tuple, iters::Tuple, wfuncs::Tuple, n::Int; iter_types = infer_eltype.(iters))
+    n_it = length(iters)
+    vs = Vector{Vector{Union{iter_types...}}}(undef, n_it)
+    ps = Vector{Float64}(undef, n_it)
+    Threads.@threads for i in 1:n_it
+        s = ReservoirSample(rngs[i], iter_types[i], n, AlgWRSWRSKIP(), ImmutSample(), Unord())
+        vs[i], ps[i] = update_all_p!(s, iters[i], wfuncs[i])
+    end
+    ps /= sum(ps)
+    return shuffle!(rngs[1], reduce_samples(rngs, ps, vs))
+end
 
 function update_all!(s, iter)
     for x in iter
@@ -188,3 +218,15 @@ function update_all!(s, iter, ordered, wv)
     return ordered ? ordvalue(s) : shuffle!(s.rng, value(s))
 end
 
+function update_all_p!(s, iter)
+    for x in iter
+        s = fit!(s, x)
+    end
+    return value(s), s.seen_k
+end
+function update_all_p!(s, iter, wv)
+    for x in iter
+        s = fit!(s, x, wv(x))
+    end
+    return value(s), s.state
+end

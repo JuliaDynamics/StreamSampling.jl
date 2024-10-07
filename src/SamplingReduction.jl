@@ -11,6 +11,14 @@ function reduce_samples(t, ss::T...) where {T<:SMWR}
     end
     return reduce(vcat, v)
 end
+function reduce_samples(rngs, ps::Vector, vs::Vector)
+    nt = length(vs)
+    ns = rand(rngs[1], Multinomial(length(vs[1]), ps))
+    Threads.@threads for i in 1:nt
+        vs[i] = sample(rngs[i], vs[i], ns[i]; replace = false)
+    end
+    return reduce(vcat, vs)
+end
 
 function get_ps(ss::SampleMultiAlgRSWRSKIP...)
     sum_w = sum(getfield(s, :seen_k) for s in ss)
