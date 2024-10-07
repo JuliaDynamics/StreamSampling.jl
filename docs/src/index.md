@@ -1,4 +1,6 @@
 
+# StreamSampling.jl
+
 ```@docs
 StreamSampling
 ```
