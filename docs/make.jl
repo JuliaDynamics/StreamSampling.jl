@@ -1,4 +1,5 @@
 using Documenter
+using Literate
 using StreamSampling
 
 println("Documentation Build")
