@@ -1,56 +1,47 @@
-# An Illustrative Example
 
-Suppose to receive data about some process in the form of a stream and you want
-to detect if anything is going wrong in the data being received. A reservoir 
-sampling approach could be useful to evaluate properties on the data stream. 
-This is a demonstration of such a use case using `StreamSampling.jl`. We will
-assume that the monitored statistic in this case is the mean of the data, and 
-you want that to be lower than a certain threshold otherwise some malfunctioning
-is expected.
+# StreamSampling.jl
+
+```@docs
+StreamSampling
+```
+
+# Overview of the functionalities
+
+The `itsample` function allows to consume all the stream at once and return the sample collected:
 
 ```julia
-julia> using StreamSampling, Statistics, Random
+julia> using StreamSampling
 
-julia> function monitor(stream, thr)
-           rng = Xoshiro(42)
-           # we use a reservoir sample of 10^4 elements
-           rs = ReservoirSample(rng, Int, 10^4)
-           # we loop over the stream and fit the data in the reservoir
-           for (i, e) in enumerate(stream)
-               fit!(rs, e)
-               # we check the mean value every 1000 iterations
-               if iszero(mod(i, 1000)) && mean(value(rs)) >= thr
-                   return rs
-               end
-           end
+julia> st = 1:100;
+
+julia> itsample(st, 5)
+5-element Vector{Int64}:
+  9
+ 15
+ 52
+ 96
+ 91
+```
+
+In some cases, one needs to control the updates the `ReservoirSample` will be subject to. In this case
+you can simply use the `fit!` function to update the reservoir:
+
+```julia
+julia> using StreamSampling
+
+julia> rs = ReservoirSample(Int, 5);
+
+julia> for x in 1:100
+           fit!(rs, x)
        end
+
+julia> value(rs)
+5-element Vector{Int64}:
+  7
+  9
+ 20
+ 49
+ 74
 ```
 
-We use some toy data for illustration
-
-```julia
-julia> stream = 1:10^8; # the data stream
-
-julia> thr = 2*10^7; # the threshold for the mean monitoring
-```
-
-Then, we run the monitoring
-
-```julia
-julia> rs = monitor(stream, thr);
-```
-
-The number of observations until the detection is triggered is
-given by
-
-```julia
-julia> nobs(rs)
-40009000
-```
-
-which is very close to the true value of `4*10^7 - 1` observations.
-
-Note that in this case we could use an online mean methods, 
-instead of holding all the sample into memory. However, 
-the approach with the sample is more general because it
-allows to estimate any statistic about the stream. 
+Consult the [API page](https://juliadynamics.github.io/StreamSampling.jl/stable/api) for more information about the package interface.
