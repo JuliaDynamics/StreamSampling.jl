@@ -1,5 +1,5 @@
 
-@hybrid struct SampleMultiAlgR{O,T,R} <: AbstractWorReservoirSampleMulti
+@hybrid struct SampleMultiAlgR{O,T,R} <: AbstractReservoirSample
     seen_k::Int
     const rng::R
     const value::Vector{T}
@@ -7,7 +7,7 @@
 end
 const SampleMultiOrdAlgR = SampleMultiAlgR{<:Vector}
 
-@hybrid struct SampleMultiAlgL{O,T,R} <: AbstractWorReservoirSampleMulti
+@hybrid struct SampleMultiAlgL{O,T,R} <: AbstractReservoirSample
     state::Float64
     skip_k::Int
     seen_k::Int
@@ -17,7 +17,7 @@ const SampleMultiOrdAlgR = SampleMultiAlgR{<:Vector}
 end
 const SampleMultiOrdAlgL = SampleMultiAlgL{<:Vector}
 
-@hybrid struct SampleMultiAlgRSWRSKIP{O,T,R} <: AbstractWrReservoirSampleMulti
+@hybrid struct SampleMultiAlgRSWRSKIP{O,T,R} <: AbstractReservoirSample
     skip_k::Int
     seen_k::Int
     const rng::R
@@ -93,7 +93,7 @@ end
     end
     return s
 end
-@inline function OnlineStatsBase._fit!(s::AbstractWrReservoirSampleMulti, el)
+@inline function OnlineStatsBase._fit!(s::SampleMultiAlgRSWRSKIP, el)
     n = length(s.value)
     s = @inline update_state!(s)
     if s.seen_k <= n
@@ -153,17 +153,17 @@ function update_state!(s::SampleMultiAlgL)
     @update s.seen_k += 1
     return s
 end
-function update_state!(s::AbstractWrReservoirSampleMulti)
+function update_state!(s::SampleMultiAlgRSWRSKIP)
     @update s.seen_k += 1
     return s
 end
 
-function recompute_skip!(s::AbstractWorReservoirSampleMulti, n)
+function recompute_skip!(s::SampleMultiAlgL, n)
     @update s.state += randexp(s.rng)
     @update s.skip_k = s.seen_k-ceil(Int, randexp(s.rng)/log(1-exp(-s.state/n)))
     return s
 end
-function recompute_skip!(s::AbstractWrReservoirSampleMulti, n)
+function recompute_skip!(s::SampleMultiAlgRSWRSKIP, n)
     q = rand(s.rng)^(1/n)
     @update s.skip_k = ceil(Int, s.seen_k/q)-1
     return s
@@ -182,7 +182,7 @@ function choose(n, p, q, z)
     return quantile(b, q)
 end
 
-update_order!(s::AbstractWorReservoirSampleMulti, j) = nothing
+update_order!(s::Union{SampleMultiAlgR, SampleMultiAlgL}, j) = nothing
 function update_order!(s::Union{SampleMultiOrdAlgR, SampleMultiOrdAlgL}, j)
     s.ord[j] = nobs(s)
 end
@@ -217,14 +217,14 @@ function Base.merge!(s1::SampleMultiAlgRSWRSKIP{<:Nothing}, ss::SampleMultiAlgRS
     return s1
 end
 
-function OnlineStatsBase.value(s::AbstractWorReservoirSampleMulti)
+function OnlineStatsBase.value(s::Union{SampleMultiAlgR, SampleMultiAlgL})
     if nobs(s) < length(s.value)
         return s.value[1:nobs(s)]
     else
         return s.value
     end
 end
-function OnlineStatsBase.value(s::AbstractWrReservoirSampleMulti)
+function OnlineStatsBase.value(s::SampleMultiAlgRSWRSKIP)
     if nobs(s) < length(s.value)
         return sample(s.rng, s.value[1:nobs(s)], length(s.value))
     else

@@ -1,5 +1,5 @@
 
-@hybrid struct SampleSingleAlgWRSWRSKIP{RT,R} <: AbstractWeightedReservoirSampleSingle
+@hybrid struct SampleSingleAlgWRSWRSKIP{RT,R} <: AbstractReservoirSample
     seen_k::Int
     total_w::Float64
     skip_w::Float64
@@ -14,7 +14,7 @@ function ReservoirSample(rng::R, T, ::AlgWRSWRSKIP, ::ImmutSample) where {R<:Abs
     return SampleSingleAlgWRSWRSKIP_Immut(0, 0.0, 0.0, rng, RefVal_Mut{T}())
 end
 
-function OnlineStatsBase.value(s::AbstractWeightedReservoirSampleSingle)
+function OnlineStatsBase.value(s::SampleSingleAlgWRSWRSKIP)
     s.seen_k === 0 && return nothing
     return get_value(s)
 end
