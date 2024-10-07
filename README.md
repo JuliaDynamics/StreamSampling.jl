@@ -15,47 +15,8 @@ This has some advantages over other sampling procedures:
 - The sample collected is a random sample of the portion of the stream seen thus far at any point of the sampling process.
 - In some cases, sampling with the techniques implemented in this library can bring considerable performance gains, since
   the population of items doesn't need to be previously stored in memory.
-  
-## Overview of the functionalities
 
-The `itsample` function allows to consume all the stream at once and return the sample collected:
-
-```julia
-julia> using StreamSampling
-
-julia> st = 1:100;
-
-julia> itsample(st, 5)
-5-element Vector{Int64}:
-  9
- 15
- 52
- 96
- 91
-```
-
-In some cases, one needs to control the updates the `ReservoirSample` will be subject to. In this case
-you can simply use the `fit!` function to update the reservoir:
-
-```julia
-julia> using StreamSampling
-
-julia> rs = ReservoirSample(Int, 5);
-
-julia> for x in 1:100
-           fit!(rs, x)
-       end
-
-julia> value(rs)
-5-element Vector{Int64}:
-  7
-  9
- 20
- 49
- 74
-```
-
-Consult the [API page](https://juliadynamics.github.io/StreamSampling.jl/stable/api) for more information on these and other functionalities.
+For information about the available functionalities consult the [documentation](https://juliadynamics.github.io/StreamSampling.jl/stable/)
 
 ## Contributing
 
