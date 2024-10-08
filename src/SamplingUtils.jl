@@ -13,7 +13,7 @@ function infer_eltype(itr)
     ifelse(T2 !== Union{} && T2 <: T1, T2, T1)
 end
 
-function sortedsample(rng, range, n)
+function sortedrandrange(rng, range, n)
     s = Vector{Int}(undef, n)
     curmax = -log(Float64(range.stop))
     for i in n:-1:1
