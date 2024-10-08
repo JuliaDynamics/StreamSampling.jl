@@ -13,14 +13,14 @@ function infer_eltype(itr)
     ifelse(T2 !== Union{} && T2 <: T1, T2, T1)
 end
 
-function sortedrandrange(rng, range, n)
-    exp_rands = randexp(rng, n)
-    sorted_rands = cumsum(exp_rands)
-    a, b = range.start, range.stop
-    range_size = b-a+1
-    cum_step = (sorted_rands[end] + randexp(rng)) / range_size
-    sorted_rands ./= cum_step
-    return ceil.(Int, sorted_rands)
+function sortedsample(rng, range, n)
+    s = Vector{Int}(undef, n)
+    curmax = -log(Float64(range.stop))
+    for i in n:-1:1
+        curmax += randexp(rng)/i
+        @inbounds s[i] = ceil(Int, exp(-curmax))
+    end
+    return s
 end
 
 function get_sorted_indices(rng, n, N, replace)
