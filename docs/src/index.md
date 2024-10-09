@@ -29,7 +29,7 @@ you can simply use the `fit!` function to update the reservoir:
 ```julia
 julia> using StreamSampling
 
-julia> rs = ReservoirSample(Int, 5);
+julia> rs = ReservoirSample{Int}(5);
 
 julia> for x in 1:100
            fit!(rs, x)
