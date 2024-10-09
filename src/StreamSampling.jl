@@ -25,6 +25,9 @@ struct MutSample end
 struct Ord end
 struct Unord end
 
+struct Replace end
+struct NoReplace end
+
 abstract type AbstractReservoirSample <: OnlineStat{Any} end
 
 abstract type ReservoirAlgorithm end
