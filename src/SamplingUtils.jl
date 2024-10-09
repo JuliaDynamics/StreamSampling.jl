@@ -13,17 +13,26 @@ function infer_eltype(itr)
     ifelse(T2 !== Union{} && T2 <: T1, T2, T1)
 end
 
-function sortedrandrange(rng, range, n)
-    s = Vector{Int}(undef, n)
-    curmax = -log(Float64(range.stop))
-    for i in n:-1:1
-        curmax += randexp(rng)/i
-        @inbounds s[i] = ceil(Int, exp(-curmax))
-    end
-    return s
+get_sorted_indices(rng, n, N, ::Replace) = SortedRandRangeIter(rng, 1:N, n)
+get_sorted_indices(rng, n, N, ::NoReplace) = sort!(sample(rng, 1:N, n; replace=false))
+
+struct SortedRandRangeIter{R}
+    rng::R
+    range::UnitRange{Int}
+    n::Int
 end
 
-function get_sorted_indices(rng, n, N, replace)
-    replace == true && return sortedrandrange(rng, 1:N, n)
-    return sort!(sample(rng, 1:N, n; replace=replace))
+@inline function Base.iterate(s::SortedRandRangeIter)
+    curmax = -log(Float64(s.range.stop)) + randexp(s.rng)/s.n
+    return (s.range.stop - ceil(Int, exp(-curmax)) + 1, (s.n-1, curmax))
 end
+@inline function Base.iterate(s::SortedRandRangeIter, state)
+    state[1] == 0 && return nothing
+    curmax = state[2] + randexp(s.rng)/state[1]
+    return (s.range.stop - ceil(Int, exp(-curmax)) + 1, (state[1]-1, curmax))
+end
+
+Base.IteratorEltype(::SortedRandRangeIter) = Base.HasEltype()
+Base.eltype(::SortedRandRangeIter) = Int
+Base.IteratorSize(::SortedRandRangeIter) = Base.HasLength()
+Base.length(s::SortedRandRangeIter) = s.n

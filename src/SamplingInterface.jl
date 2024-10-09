@@ -157,8 +157,8 @@ Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, n::Int, me
         s = ReservoirSample(rng, iter_type, n, method, ImmutSample(), ordered ? Ord() : Unord())
         return update_all!(s, iter, ordered)
     else
-        replace = method isa AlgL || method isa AlgR ? false : true
-        sortedindices_sample(rng, iter, n; iter_type, replace, ordered)
+        replace = method isa AlgL || method isa AlgR ? NoReplace() : Replace()
+        sortedindices_sample(rng, iter, n, replace; iter_type, ordered)
     end
 end
 function itsample(rng::AbstractRNG, iter, wv::Function, method = AlgWRSWRSKIP(); iter_type = infer_eltype(iter))
