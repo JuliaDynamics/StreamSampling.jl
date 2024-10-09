@@ -50,17 +50,23 @@ also possible to iterate over a `StreamSample` like so
 ```julia
 julia> using StreamSampling
 
-julia> iter = 1:100
+julia> iter = 1:100;
 
 julia> ss = StreamSample{Int}(iter, 5, 100);
 
-julia> collect(ss)
+julia> r = Int[];
+
+julia> for x in ss
+           push!(r, x)
+       end
+
+julia> r
 5-element Vector{Int64}:
-  7
-  9
- 20
- 49
- 74
+ 10
+ 22
+ 26
+ 35
+ 75
 ```
 
 Consult the [API page](https://juliadynamics.github.io/StreamSampling.jl/stable/api) for more information about the package interface.
