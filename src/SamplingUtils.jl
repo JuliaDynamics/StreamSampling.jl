@@ -24,12 +24,12 @@ end
 
 @inline function Base.iterate(s::SortedRandRangeIter)
     curmax = -log(Float64(s.range.stop)) + randexp(s.rng)/s.n
-    return (ceil(Int, exp(-curmax)), (s.n-1, curmax))
+    return (s.range.stop - ceil(Int, exp(-curmax)) + 1, (s.n-1, curmax))
 end
 @inline function Base.iterate(s::SortedRandRangeIter, state)
     state[1] == 0 && return nothing
     curmax = state[2] + randexp(s.rng)/state[1]
-    return (ceil(Int, exp(-curmax)), (state[1]-1, curmax))
+    return (s.range.stop - ceil(Int, exp(-curmax)) + 1, (state[1]-1, curmax))
 end
 
 Base.IteratorEltype(::SortedRandRangeIter) = Base.HasEltype()
