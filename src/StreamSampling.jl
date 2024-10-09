@@ -17,7 +17,7 @@ using StatsBase
 
 export fit!, merge!, value, ordvalue, nobs, itsample
 export AbstractReservoirSample, ReservoirSample, StreamSample
-export AlgL, AlgR, AlgRSWRSKIP, AlgARes, AlgAExpJ, AlgWRSWRSKIP
+export AlgL, AlgR, AlgRSWRSKIP, AlgARes, AlgAExpJ, AlgWRSWRSKIP, AlgORDS, AlgORDSWR
 
 struct ImmutSample end
 struct MutSample end
