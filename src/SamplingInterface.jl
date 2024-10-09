@@ -183,7 +183,7 @@ Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, n::Int, me
         s = ReservoirSample{iter_type}(rng, n, method, ImmutSample(), ordered ? Ord() : Unord())
         return update_all!(s, iter, ordered)
     else
-        m = method isa AlgL || method isa AlgR ? AlgORDS() : AlgORDSWR()
+        m = method isa AlgL || method isa AlgR || method isa AlgORDS() ? AlgORDS() : AlgORDSWR()
         s = collect(StreamSample{iter_type}(rng, iter, n, length(iter), m))
         return ordered ? s : shuffle!(rng, s)
     end
