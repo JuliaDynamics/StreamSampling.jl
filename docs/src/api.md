@@ -21,10 +21,12 @@ itsample
 ## Sampling Algorithms
 
 ```@docs
-StreamSampling.AlgR
-StreamSampling.AlgL
-StreamSampling.AlgRSWRSKIP
-StreamSampling.AlgARes
-StreamSampling.AlgAExpJ
-StreamSampling.AlgWRSWRSKIP
+AlgR
+AlgL
+AlgRSWRSKIP
+AlgARes
+AlgAExpJ
+AlgWRSWRSKIP
+AlgORDS
+AlgORDSWR
 ```
