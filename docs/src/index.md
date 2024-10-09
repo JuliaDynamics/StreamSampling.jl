@@ -44,4 +44,23 @@ julia> value(rs)
  74
 ```
 
+If the total number of elements in the stream is known beforehand and the sampling is unweighted, it is
+also possible to iterate over a `StreamSample` like so
+
+```julia
+julia> using StreamSampling
+
+julia> iter = 1:100
+
+julia> ss = StreamSample{Int}(iter, 5, 100);
+
+julia> collect(ss)
+5-element Vector{Int64}:
+  7
+  9
+ 20
+ 49
+ 74
+```
+
 Consult the [API page](https://juliadynamics.github.io/StreamSampling.jl/stable/api) for more information about the package interface.

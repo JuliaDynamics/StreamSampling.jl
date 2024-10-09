@@ -1,35 +1,43 @@
 
-"""
-    sortedindices_sample(rng, iter)
-    sortedindices_sample(rng, iter, n; replace = false, ordered = false)
-
-Algorithm which generates sorted random indices used to retrieve the sample 
-from the iterable. The number of elements in the iterable needs to be known 
-before starting the sampling.
-"""
-function sortedindices_sample(rng, iter, n::Int, replace; 
-        iter_type = infer_eltype(iter), ordered = false)
-    N = length(iter)
-    if N <= n
-        reservoir = collect(iter)
-        replace isa Replace && return sample(rng, reservoir, n, ordered=ordered)
-        return ordered ? reservoir : shuffle!(rng, reservoir)
+struct SampleMultiAlgORD{T,R,I,D} <: AbstractStreamSample
+    rng::R
+    it::I
+    n::Int
+    inds::D
+    function SampleMultiAlgORD{T}(rng::R, it::I, n, inds::D) where {T,R,I,D}
+        return new{T,R,I,D}(rng, it, n, inds)
     end
-    reservoir = Vector{iter_type}(undef, n)
-    indices = get_sorted_indices(rng, n, N, replace)
-    curr_idx, state_idx = iterate(indices)
+end
+
+function StreamSample{T}(rng::AbstractRNG, iter, n, N, ::AlgORDSWR) where T
+    return SampleMultiAlgORD{T}(rng, iter, n, SortedRandRangeIter(rng, 1:N, n))
+end
+function StreamSample{T}(rng::AbstractRNG, iter, n, N, ::AlgORDS) where T
+    return SampleMultiAlgORD{T}(rng, iter, min(n, N), sort!(sample(rng, 1:N, min(n, N); replace=false)))
+end
+
+@inline function Base.iterate(s::SampleMultiAlgORD)
+    indices, iter = s.inds, s.it
+    curr_idx, state_idx = iterate(indices)::Tuple
     el, state_el = iterate(iter)::Tuple
     for _ in 1:curr_idx-1
         el, state_el = iterate(iter, state_el)::Tuple
     end
-    reservoir[1] = el
-    @inbounds for i in 2:n
-        next_idx, state_idx = iterate(indices, state_idx)
-        for _ in 1:next_idx-curr_idx
-            el, state_el = iterate(iter, state_el)::Tuple
-        end
-        reservoir[i] = el
-        curr_idx = next_idx
-    end
-    return ordered ? reservoir : shuffle!(rng, reservoir)
+    return (el, (el, state_el, curr_idx, state_idx))
 end
+@inline function Base.iterate(s::SampleMultiAlgORD, state)
+    el, state_el, curr_idx, state_idx = state
+    indices, iter = s.inds, s.it
+    it_indices = iterate(indices, state_idx)
+    it_indices === nothing && return nothing
+    next_idx, state_idx = it_indices
+    for _ in 1:next_idx-curr_idx
+        el, state_el = iterate(iter, state_el)::Tuple
+    end
+    return (el, (el, state_el, next_idx, state_idx))
+end
+
+Base.IteratorEltype(::SampleMultiAlgORD) = Base.HasEltype()
+Base.eltype(::SampleMultiAlgORD{T}) where T = T
+Base.IteratorSize(::SampleMultiAlgORD) = Base.HasLength()
+Base.length(s::SampleMultiAlgORD) = s.n

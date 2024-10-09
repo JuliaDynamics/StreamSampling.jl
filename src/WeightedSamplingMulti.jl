@@ -30,58 +30,58 @@ const SampleMultiOrdAlgAExpJ = Union{SampleMultiAlgAExpJ_Immut{<:OrdWeighted}, S
 end
 const SampleMultiOrdAlgWRSWRSKIP = Union{SampleMultiAlgWRSWRSKIP_Immut{<:Vector}, SampleMultiAlgWRSWRSKIP_Mut{<:Vector}}
 
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgAExpJ, ::MutSample, ::Ord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgAExpJ, ::MutSample, ::Ord) where T
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Tuple{T, Int, Float64}[])
     sizehint!(value, n)
     return SampleMultiAlgAExpJ_Mut(0.0, 0.0, 0, n, rng, value)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgAExpJ, ::MutSample, ::Unord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgAExpJ, ::MutSample, ::Unord) where T
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Pair{T, Float64}[])
     sizehint!(value, n)
     return SampleMultiAlgAExpJ_Mut(0.0, 0.0, 0, n, rng, value)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgAExpJ, ::ImmutSample, ::Ord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgAExpJ, ::ImmutSample, ::Ord) where T
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Tuple{T, Int, Float64}[])
     sizehint!(value, n)
     return SampleMultiAlgAExpJ_Immut(0.0, 0.0, 0, n, rng, value)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgAExpJ, ::ImmutSample, ::Unord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgAExpJ, ::ImmutSample, ::Unord) where T
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Pair{T, Float64}[])
     sizehint!(value, n)
     return SampleMultiAlgAExpJ_Immut(0.0, 0.0, 0, n, rng, value)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgARes, ::MutSample, ::Ord) 
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgARes, ::MutSample, ::Ord) where T
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Tuple{T, Int, Float64}[])
     sizehint!(value, n)
     return SampleMultiAlgARes_Mut(0, n, rng, value)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgARes, ::MutSample, ::Unord)  
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgARes, ::MutSample, ::Unord) where T 
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Pair{T, Float64}[])
     sizehint!(value, n)
     return SampleMultiAlgARes_Mut(0, n, rng, value)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgARes, ::ImmutSample, ::Ord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgARes, ::ImmutSample, ::Ord) where T
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Tuple{T, Int, Float64}[])
     sizehint!(value, n)
     return SampleMultiAlgARes_Immut(0, n, rng, value)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgARes, ::ImmutSample, ::Unord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgARes, ::ImmutSample, ::Unord) where T
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Pair{T, Float64}[])
     sizehint!(value, n)
     return SampleMultiAlgARes_Immut(0, n, rng, value)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgWRSWRSKIP, ::MutSample, ::Ord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgWRSWRSKIP, ::MutSample, ::Ord) where T
     ord = collect(1:n)
     return SampleMultiAlgWRSWRSKIP_Mut(0.0, 0.0, 0, rng, Vector{Float64}(undef, n), Vector{T}(undef, n), ord)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgWRSWRSKIP, ::MutSample, ::Unord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgWRSWRSKIP, ::MutSample, ::Unord) where T
     return SampleMultiAlgWRSWRSKIP_Mut(0.0, 0.0, 0, rng, Vector{Float64}(undef, n), Vector{T}(undef, n), nothing)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgWRSWRSKIP, ::ImmutSample, ::Ord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgWRSWRSKIP, ::ImmutSample, ::Ord) where T
     ord = collect(1:n)
     return SampleMultiAlgWRSWRSKIP_Immut(0.0, 0.0, 0, rng, Vector{Float64}(undef, n), Vector{T}(undef, n), ord)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgWRSWRSKIP, ::ImmutSample, ::Unord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgWRSWRSKIP, ::ImmutSample, ::Unord) where T
     return SampleMultiAlgWRSWRSKIP_Immut(0.0, 0.0, 0, rng, Vector{Float64}(undef, n), Vector{T}(undef, n), nothing)
 end
 

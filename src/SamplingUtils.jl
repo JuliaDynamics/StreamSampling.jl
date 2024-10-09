@@ -13,9 +13,6 @@ function infer_eltype(itr)
     ifelse(T2 !== Union{} && T2 <: T1, T2, T1)
 end
 
-get_sorted_indices(rng, n, N, ::Replace) = SortedRandRangeIter(rng, 1:N, n)
-get_sorted_indices(rng, n, N, ::NoReplace) = sort!(sample(rng, 1:N, n; replace=false))
-
 struct SortedRandRangeIter{R}
     rng::R
     range::UnitRange{Int}

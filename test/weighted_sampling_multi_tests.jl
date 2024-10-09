@@ -67,7 +67,7 @@ end
         @test ordered ? issorted(s) : true
 
         iter = Iterators.filter(x -> x != b + 1, a:b+1)
-        rs = ReservoirSample(Int, 5, method; ordered = ordered)
+        rs = ReservoirSample{Int}(5, method; ordered = ordered)
         for x in iter
             fit!(rs, x, weight(x))
         end

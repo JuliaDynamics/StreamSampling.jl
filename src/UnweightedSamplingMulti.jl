@@ -26,40 +26,40 @@ const SampleMultiOrdAlgL = SampleMultiAlgL{<:Vector}
 end
 const SampleMultiOrdAlgRSWRSKIP = SampleMultiAlgRSWRSKIP{<:Vector}
 
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgL, ::MutSample, ::Ord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgL, ::MutSample, ::Ord) where T
     return SampleMultiAlgL_Mut(0.0, 0, 0, rng, Vector{T}(undef, n), collect(1:n))
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgL, ::MutSample, ::Unord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgL, ::MutSample, ::Unord) where T
     return SampleMultiAlgL_Mut(0.0, 0, 0, rng, Vector{T}(undef, n), nothing)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgL, ::ImmutSample, ::Ord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgL, ::ImmutSample, ::Ord) where T
     return SampleMultiAlgL_Immut(0.0, 0, 0, rng, Vector{T}(undef, n), collect(1:n))
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgL, ::ImmutSample, ::Unord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgL, ::ImmutSample, ::Unord) where T
     return SampleMultiAlgL_Immut(0.0, 0, 0, rng, Vector{T}(undef, n), nothing)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgR, ::MutSample, ::Ord) 
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgR, ::MutSample, ::Ord) where T
     return SampleMultiAlgR_Mut(0, rng, Vector{T}(undef, n), collect(1:n))
 end        
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgR, ::MutSample, ::Unord) 
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgR, ::MutSample, ::Unord) where T
     return SampleMultiAlgR_Mut(0, rng, Vector{T}(undef, n), nothing)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgR, ::ImmutSample, ::Ord) 
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgR, ::ImmutSample, ::Ord) where T
     return SampleMultiAlgR_Immut(0, rng, Vector{T}(undef, n), collect(1:n))
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgR, ::ImmutSample, ::Unord) 
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgR, ::ImmutSample, ::Unord) where T
     return SampleMultiAlgR_Immut(0, rng, Vector{T}(undef, n), nothing)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgRSWRSKIP, ::MutSample, ::Ord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgRSWRSKIP, ::MutSample, ::Ord) where T
     return SampleMultiAlgRSWRSKIP_Mut(0, 0, rng, Vector{T}(undef, n), collect(1:n))
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgRSWRSKIP, ::MutSample, ::Unord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgRSWRSKIP, ::MutSample, ::Unord) where T
     return SampleMultiAlgRSWRSKIP_Mut(0, 0, rng, Vector{T}(undef, n), nothing)
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgRSWRSKIP, ::ImmutSample, ::Ord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgRSWRSKIP, ::ImmutSample, ::Ord) where T
     return SampleMultiAlgRSWRSKIP_Immut(0, 0, rng, Vector{T}(undef, n), collect(1:n))
 end
-function ReservoirSample(rng::AbstractRNG, T, n::Integer, ::AlgRSWRSKIP, ::ImmutSample, ::Unord)
+function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgRSWRSKIP, ::ImmutSample, ::Unord) where T
     return SampleMultiAlgRSWRSKIP_Immut(0, 0, rng, Vector{T}(undef, n), nothing)
 end
 

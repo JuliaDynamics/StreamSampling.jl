@@ -7,10 +7,10 @@
     rvalue::RT
 end
 
-function ReservoirSample(rng::R, T, ::AlgWRSWRSKIP, ::MutSample) where {R<:AbstractRNG}
+function ReservoirSample{T}(rng::AbstractRNG, ::AlgWRSWRSKIP, ::MutSample) where T
     return SampleSingleAlgWRSWRSKIP_Mut(0, 0.0, 0.0, rng, RefVal_Immut{T}())
 end
-function ReservoirSample(rng::R, T, ::AlgWRSWRSKIP, ::ImmutSample) where {R<:AbstractRNG}
+function ReservoirSample{T}(rng::AbstractRNG, ::AlgWRSWRSKIP, ::ImmutSample) where T
     return SampleSingleAlgWRSWRSKIP_Immut(0, 0.0, 0.0, rng, RefVal_Mut{T}())
 end
 

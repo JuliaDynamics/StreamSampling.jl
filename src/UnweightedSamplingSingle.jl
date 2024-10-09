@@ -6,10 +6,10 @@
     rvalue::RT
 end
 
-function ReservoirSample(rng::AbstractRNG, T, ::AlgRSWRSKIP, ::MutSample)
+function ReservoirSample{T}(rng::AbstractRNG, ::AlgRSWRSKIP, ::MutSample) where T
     return SampleSingleAlgRSWRSKIP_Mut(0, 0, rng, RefVal_Immut{T}())
 end
-function ReservoirSample(rng::AbstractRNG, T, ::AlgRSWRSKIP, ::ImmutSample)
+function ReservoirSample{T}(rng::AbstractRNG, ::AlgRSWRSKIP, ::ImmutSample) where T
     return SampleSingleAlgRSWRSKIP_Immut(0, 0, rng, RefVal_Mut{T}())
 end
 
