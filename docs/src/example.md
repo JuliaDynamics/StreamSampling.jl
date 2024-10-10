@@ -14,7 +14,7 @@ julia> using StreamSampling, Statistics, Random
 julia> function monitor(stream, thr)
            rng = Xoshiro(42)
            # we use a reservoir sample of 10^4 elements
-           rs = ReservoirSample(rng, Int, 10^4)
+           rs = ReservoirSample{Int}(rng, 10^4)
            # we loop over the stream and fit the data in the reservoir
            for (i, e) in enumerate(stream)
                fit!(rs, e)
