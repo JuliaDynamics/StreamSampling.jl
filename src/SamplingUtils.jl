@@ -57,20 +57,16 @@ end
 end
 @inline function Base.iterate(it::SeqSampleIter, state)
     i, nv, Nv, q1, q2, threshold, vprime = state
-    if nv > 1 && threshold < Nv
+    if nv > 1
         s, vprime = skip(it.rng, nv, Nv, vprime, q1, q2)
         i, nv, Nv, q1, q2, threshold = new_state(it, s, i, nv, Nv, q1, q2, threshold)
         return (i, (i, nv, Nv, q1, q2, threshold, vprime))
-    elseif nv > 1
-        s = seqsample_a(it.rng, it.N - i, nv)
-        nv -= 1
-        i += s+1
-        return (i, ((nv === 0 ? i : it.N+1), nv, Nv, q1, q2, threshold, vprime))
     else
-        i === it.N+1 && return nothing
+        nv === 0 && return nothing
         s = trunc(Int, Nv * vprime)
         i += s+1
-        return (i, (it.N+1, nv, Nv, q1, q2, threshold, vprime))
+        nv -= 1
+        return (i, (i, nv, Nv, q1, q2, threshold, vprime))
     end
 end
 
@@ -129,7 +125,7 @@ end
     return i, nv, Nv, q1, q2, threshold
 end
 
-@inline function seqsample_a!(rng::AbstractRNG, n, k)
+@inline function seqsample_a(rng::AbstractRNG, n, k)
     if k > 1
         i = 0
         q = (n-k)/n
@@ -138,9 +134,9 @@ end
             n -= 1
             q *= (n-k)/n
         end
-        return i
+        return i, n
     else
-        return trunc(Int, n * rand(rng))
+        return trunc(Int, n * rand(rng)), n
     end
 end
 
