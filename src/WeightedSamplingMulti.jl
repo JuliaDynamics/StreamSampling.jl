@@ -5,7 +5,7 @@ const OrdWeighted = BinaryHeap{Tuple{T, Int64, Float64}, Base.Order.By{typeof(la
     seen_k::Int
     n::Int
     const rng::R
-    const value::BH
+    value::BH
 end
 const SampleMultiOrdAlgARes = Union{SampleMultiAlgARes_Immut{<:OrdWeighted}, SampleMultiAlgARes_Mut{<:OrdWeighted}}
 
@@ -15,7 +15,7 @@ const SampleMultiOrdAlgARes = Union{SampleMultiAlgARes_Immut{<:OrdWeighted}, Sam
     seen_k::Int
     const n::Int
     const rng::R
-    const value::BH
+    value::BH
 end
 const SampleMultiOrdAlgAExpJ = Union{SampleMultiAlgAExpJ_Immut{<:OrdWeighted}, SampleMultiAlgAExpJ_Mut{<:OrdWeighted}}
 
@@ -157,7 +157,11 @@ end
 
 function Base.empty!(s::SampleMultiAlgARes_Mut)
     s.seen_k = 0
-    empty!(s.value)
+    if s isa SampleMultiAlgWRSWRSKIP_Mut{<:Vector}
+        s.value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), extract_T(s.value)[])
+    else
+        s.value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), extract_T(s.value)[])
+    end
     sizehint!(s.value, s.n)
     return s
 end
@@ -165,7 +169,11 @@ function Base.empty!(s::SampleMultiAlgAExpJ_Mut)
     s.state = 0.0
     s.min_priority = 0.0
     s.seen_k = 0
-    empty!(s.value)
+    if s isa SampleMultiAlgWRSWRSKIP_Mut{<:Vector}
+        s.value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), extract_T(s.value)[])
+    else
+        s.value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), extract_T(s.value)[])
+    end
     sizehint!(s.value, s.n)
     return s
 end
@@ -175,6 +183,8 @@ function Base.empty!(s::SampleMultiAlgWRSWRSKIP_Mut)
     s.seen_k = 0
     return s
 end
+
+extract_T(::DataStructures.BinaryHeap{T}) where T = T
 
 function Base.merge(ss::SampleMultiAlgWRSWRSKIP...)
     newvalue = reduce_samples(TypeUnion(), ss...)
@@ -256,7 +266,7 @@ function OnlineStatsBase.value(s::Union{SampleMultiAlgARes, SampleMultiAlgAExpJ}
 end
 function OnlineStatsBase.value(s::SampleMultiAlgWRSWRSKIP)
     if nobs(s) < length(s.value)
-        return sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value))
+        return nobs(s) == 0 ? s.value[1:0] : sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value))
     else
         return s.value
     end

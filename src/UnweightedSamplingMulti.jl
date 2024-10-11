@@ -226,7 +226,7 @@ function OnlineStatsBase.value(s::Union{SampleMultiAlgR, SampleMultiAlgL})
 end
 function OnlineStatsBase.value(s::SampleMultiAlgRSWRSKIP)
     if nobs(s) < length(s.value)
-        return sample(s.rng, s.value[1:nobs(s)], length(s.value))
+        return nobs(s) == 0 ? s.value[1:0] : sample(s.rng, s.value[1:nobs(s)], length(s.value))
     else
         return s.value
     end

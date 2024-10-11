@@ -1,5 +1,5 @@
 
-@testset "merge tests" begin
+@testset "merge/merge! tests" begin
     rng = StableRNG(43)
     iters = (1:2, 3:10)
     reps = 10^5

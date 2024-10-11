@@ -76,31 +76,43 @@ end
         @test nobs(rs) == 10
 
         weight2(el) = el <= 5 ? 1.0 : 2.0
-        rng = StableRNG(41)
-        iters = (a:b, Iterators.filter(x -> x != b+1, a:b+1))
+        weight3(el) = el <= 5 ? 1.0 : 2.0
+        wfuncs = (weight2, weight3)
+        rngs = (StableRNG(41), StableRNG(42))
+        iters = (a:b, Iterators.filter(x -> x != b+1, a:b+1), (a:floor(Int, b/2), (floor(Int, b/2)+1):b))
         sizes = (1, 2)
         for it in iters
             for size in sizes
                 reps = 10^(size+3)
                 dict_res = Dict{Vector, Int}()
                 for _ in 1:reps
-                    s = shuffle!(rng, itsample(rng, it, weight2, size, method; ordered=ordered))
+                    if typeof(it) <: Tuple
+                        if method == AlgWRSWRSKIP() && ordered == false
+                            s = shuffle!(rngs[1], itsample(rngs, it, wfuncs, size))
+                        else
+                            break
+                        end
+                    else
+                        s = shuffle!(rngs[1], itsample(rngs[1], it, wfuncs[1], size, method; ordered=ordered))
+                    end
                     if s in keys(dict_res)
                         dict_res[s] += 1
                     else
                         dict_res[s] = 1
                     end
                 end
-                cases = method == AlgWRSWRSKIP() ? 10^size : factorial(10)/factorial(10-size)
-                pairs_dict = collect(pairs(dict_res))
-                if method == AlgWRSWRSKIP()
-                    ps_exact = [prob_replace(k) for (k, v) in pairs_dict]
-                else
-                    ps_exact = [prob_no_replace(k) for (k, v) in pairs_dict if length(unique(k)) == size]
+                if !(typeof(it) <: Tuple) || (method == AlgWRSWRSKIP() && ordered == false)
+                    cases = method == AlgWRSWRSKIP() ? 10^size : factorial(10)/factorial(10-size)
+                    pairs_dict = collect(pairs(dict_res))
+                    if method == AlgWRSWRSKIP()
+                        ps_exact = [prob_replace(k) for (k, v) in pairs_dict]
+                    else
+                        ps_exact = [prob_no_replace(k) for (k, v) in pairs_dict if length(unique(k)) == size]
+                    end
+                    count_est = [v for (k, v) in pairs_dict]
+                    chisq_test = ChisqTest(count_est, ps_exact)
+                    @test pvalue(chisq_test) > 0.05
                 end
-                count_est = [v for (k, v) in pairs_dict]
-                chisq_test = ChisqTest(count_est, ps_exact)
-                @test pvalue(chisq_test) > 0.05
             end
         end
     end
