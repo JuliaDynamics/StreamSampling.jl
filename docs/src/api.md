@@ -27,6 +27,6 @@ AlgRSWRSKIP
 AlgARes
 AlgAExpJ
 AlgWRSWRSKIP
-AlgORDS
+AlgD
 AlgORDSWR
 ```
