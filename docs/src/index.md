@@ -71,8 +71,9 @@ julia> r
  75
 ```
 
-This has the advantage to require `O(1)` memory, while reservoir sample techniques requires `O(k)` memory where `k`
-is the number of elements in the sample.
+The advantage of `StreamSample` iterators in respect to `ReservoirSample` is that they require `O(1)`
+memory if not collected, while reservoir techniques require `O(k)` memory where `k` is the number
+of elements in the sample.
 
-Consult the [API page](https://juliadynamics.github.io/StreamSampling.jl/stable/api) for more information about the
-package interface.
+Consult the [API page](https://juliadynamics.github.io/StreamSampling.jl/stable/api) for more information
+about the package interface.
