@@ -9,11 +9,11 @@ struct SampleMultiAlgORD{T,R,I,D} <: AbstractStreamSample
     end
 end
 
-function StreamSample{T}(rng::AbstractRNG, iter, n, N, ::AlgORDSWR) where T
-    return SampleMultiAlgORD{T}(rng, iter, n, SortedRandRangeIter(rng, 1:N, n))
+function StreamSample{T}(rng::AbstractRNG, iter, n, N, ::AlgD) where T
+    return SampleMultiAlgORD{T}(rng, iter, min(n, N), SeqSampleIter(rng, N, min(n, N)))
 end
-function StreamSample{T}(rng::AbstractRNG, iter, n, N, ::AlgORDS) where T
-    return SampleMultiAlgORD{T}(rng, iter, min(n, N), sort!(sample(rng, 1:N, min(n, N); replace=false)))
+function StreamSample{T}(rng::AbstractRNG, iter, n, N, ::AlgORDSWR) where T
+    return SampleMultiAlgORD{T}(rng, iter, n, SeqSampleIterWR(rng, N, n))
 end
 
 @inline function Base.iterate(s::SampleMultiAlgORD)

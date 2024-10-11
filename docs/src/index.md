@@ -29,9 +29,11 @@ you can simply use the `fit!` function to update the reservoir:
 ```julia
 julia> using StreamSampling
 
+julia> st = 1:100;
+
 julia> rs = ReservoirSample{Int}(5);
 
-julia> for x in 1:100
+julia> for x in st
            fit!(rs, x)
        end
 
@@ -50,11 +52,11 @@ also possible to iterate over a `StreamSample` like so
 ```julia
 julia> using StreamSampling
 
-julia> iter = 1:100;
+julia> st = 1:100;
 
-julia> ss = StreamSample{Int}(iter, 5, 100);
+julia> ss = StreamSample{Int}(st, 5, 100);
 
-julia> r = Int[];
+julia> m = Int[];
 
 julia> for x in ss
            push!(r, x)
@@ -69,4 +71,8 @@ julia> r
  75
 ```
 
-Consult the [API page](https://juliadynamics.github.io/StreamSampling.jl/stable/api) for more information about the package interface.
+This has the advantage to require `O(1)` memory, while reservoir sample techniques requires `O(k)` memory where `k`
+is the number of elements in the sample.
+
+Consult the [API page](https://juliadynamics.github.io/StreamSampling.jl/stable/api) for more information about the
+package interface.

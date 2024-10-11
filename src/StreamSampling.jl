@@ -17,7 +17,7 @@ using StatsBase
 
 export fit!, merge!, value, ordvalue, nobs, itsample
 export AbstractReservoirSample, ReservoirSample, StreamSample
-export AlgL, AlgR, AlgRSWRSKIP, AlgARes, AlgAExpJ, AlgWRSWRSKIP, AlgORDS, AlgORDSWR
+export AlgL, AlgR, AlgRSWRSKIP, AlgARes, AlgAExpJ, AlgWRSWRSKIP, AlgD, AlgORDSWR
 
 struct ImmutSample end
 struct MutSample end
@@ -34,8 +34,11 @@ abstract type ReservoirAlgorithm <: StreamAlgorithm end
 """
 Implements random sampling without replacement. To be used with [`StreamSample`](@ref)
 or [`itsample`](@ref).
+
+Adapted from algorithm D described in "An Efficient Algorithm for Sequential Random Sampling,
+J. S. Vitter, 1987".
 """
-struct AlgORDS <: StreamAlgorithm end
+struct AlgD <: StreamAlgorithm end
 
 """
 Implements random stream sampling with replacement. To be used with [`StreamSample`](@ref)
