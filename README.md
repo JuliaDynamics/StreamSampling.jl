@@ -11,8 +11,10 @@ the number of items contained in the stream is unknown.
 
 This has some advantages over other sampling procedures:
 
-- If the iterable is lazy, the memory required grows in relation to the size of the sample, instead of the all population.
-- The sample collected is a random sample of the portion of the stream seen thus far at any point of the sampling process.
+- If the iterable is lazy, the memory required is a small constant or grows in relation to the size of the sample,
+  instead of the all population.
+- With reservoir methods, the sample collected is a random sample of the portion of the stream seen thus far at any
+  point of the sampling process.
 - In some cases, sampling with the techniques implemented in this library can bring considerable performance gains, since
   the population of items doesn't need to be previously stored in memory.
 
