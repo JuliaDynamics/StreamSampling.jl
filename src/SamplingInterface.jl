@@ -111,16 +111,16 @@ available by calling `length(iter)`.
 """
 struct StreamSample{T} 1 === 1 end
 
-function StreamSample{T}(iter, n, N, method::StreamAlgorithm = AlgORDS()) where T
+function StreamSample{T}(iter, n, N, method::StreamAlgorithm = AlgD()) where T
     return StreamSample{T}(Random.default_rng(), iter, n, N, method)
 end
-function StreamSample{T}(iter, n, method::StreamAlgorithm = AlgORDS()) where T
+function StreamSample{T}(iter, n, method::StreamAlgorithm = AlgD()) where T
     return StreamSample{T}(Random.default_rng(), iter, n, length(iter), method)
 end
-function StreamSample{T}(rng::AbstractRNG, iter, n, method::StreamAlgorithm = AlgORDS()) where T
+function StreamSample{T}(rng::AbstractRNG, iter, n, method::StreamAlgorithm = AlgD()) where T
     return StreamSample{T}(rng, iter, n, length(iter), method)
 end
-function StreamSample{T}(rng::AbstractRNG, iter, n, N, method::StreamAlgorithm = AlgORDS()) where T
+function StreamSample{T}(rng::AbstractRNG, iter, n, N, method::StreamAlgorithm = AlgD()) where T
     return StreamSample{T}(rng, iter, n, N, method)
 end
 
