@@ -56,7 +56,7 @@ julia> st = 1:100;
 
 julia> ss = StreamSample{Int}(st, 5, 100);
 
-julia> m = Int[];
+julia> r = Int[];
 
 julia> for x in ss
            push!(r, x)
