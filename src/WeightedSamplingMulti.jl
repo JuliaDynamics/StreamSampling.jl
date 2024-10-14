@@ -124,7 +124,7 @@ end
         @inbounds s.value[s.seen_k] = el
         @inbounds s.weights[s.seen_k] = w
         if s.seen_k == n
-            new_values = sample(s.rng, s.value, weights(s.weights), n; ordered = is_ordered(s))
+            new_values = sample(s.rng, s.value, Weights(s.weights, s.state), n; ordered = is_ordered(s))
             @inbounds for i in 1:n
                 s.value[i] = new_values[i]
             end
@@ -133,22 +133,13 @@ end
         end
     elseif s.skip_w <= s.state
         p = w/s.state
-        z = (1-p)^(n-3)
-        q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p),1.0))
-        k = choose(n, p, q, z)
-        @inbounds begin
-            if k == 1
-                r = rand(s.rng, 1:n)
-                s.value[r] = el
-                update_order_single!(s, r)
-            else
-                for j in 1:k
-                    r = rand(s.rng, j:n)
-                    s.value[r] = el
-                    s.value[r], s.value[j] = s.value[j], s.value[r]
-                    update_order_multi!(s, r, j)
-                end
-            end 
+        z = exp((n-4)*log1p(-p))
+        q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p)*(1-p),1.0))
+        k = @inline choose(n, p, q, z)
+        @inbounds for j in 1:k
+            r = rand(s.rng, j:n)
+            s.value[r], s.value[j] = s.value[j], el
+            update_order_multi!(s, r, j)
         end
         s = @inline recompute_skip!(s, n)
     end
@@ -233,7 +224,7 @@ function recompute_skip!(s::SampleMultiAlgAExpJ)
     return s
 end
 function recompute_skip!(s::SampleMultiAlgWRSWRSKIP, n)
-    q = rand(s.rng)^(1/n)
+    q = exp(-randexp(s.rng)/n)
     @update s.skip_w = s.state/q
     return s
 end

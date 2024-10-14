@@ -107,22 +107,13 @@ end
         end
     elseif s.skip_k < s.seen_k
         p = 1/s.seen_k
-        z = (1-p)^(n-3)
-        q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p),1.0))
-        k = choose(n, p, q, z)
-        @inbounds begin
-            if k == 1
-                r = rand(s.rng, 1:n)
-                s.value[r] = el
-                update_order_single!(s, r)
-            else
-                for j in 1:k
-                    r = rand(s.rng, j:n)
-                    s.value[r] = el
-                    s.value[r], s.value[j] = s.value[j], s.value[r]
-                    update_order_multi!(s, r, j)
-                end
-            end 
+        z = exp((n-4)*log1p(-p))
+        q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p)*(1-p),1.0))
+        k = @inline choose(n, p, q, z)
+        @inbounds for j in 1:k
+            r = rand(s.rng, j:n)
+            s.value[r], s.value[j] = s.value[j], el
+            update_order_multi!(s, r, j)
         end
         s = recompute_skip!(s, n)
     end
@@ -164,7 +155,7 @@ function recompute_skip!(s::SampleMultiAlgL, n)
     return s
 end
 function recompute_skip!(s::SampleMultiAlgRSWRSKIP, n)
-    q = rand(s.rng)^(1/n)
+    q = exp(-randexp(s.rng)/n)
     @update s.skip_k = ceil(Int, s.seen_k/q)-1
     return s
 end
@@ -172,12 +163,14 @@ end
 function choose(n, p, q, z)
     m = 1-p
     s = z
-    z = s*m*m*(m + n*p)
+    z = s*m*m*m*(m + n*p)
     z > q && return 1
-    z += n*p*(n-1)*p*s*m/2
+    z += n*p*(n-1)*p*s*m*m/2
     z > q && return 2
-    z += n*p*(n-1)*p*(n-2)*p*s/6
+    z += n*p*(n-1)*p*(n-2)*p*s*m/6
     z > q && return 3
+    z += n*p*(n-1)*p*(n-2)*p*(n-3)*p*s/24
+    z > q && return 4
     b = Binomial(n, p)
     return quantile(b, q)
 end
@@ -226,7 +219,11 @@ function OnlineStatsBase.value(s::Union{SampleMultiAlgR, SampleMultiAlgL})
 end
 function OnlineStatsBase.value(s::SampleMultiAlgRSWRSKIP)
     if nobs(s) < length(s.value)
-        return nobs(s) == 0 ? s.value[1:0] : sample(s.rng, s.value[1:nobs(s)], length(s.value))
+        if nobs(s) == 0
+            return s.value[1:0]
+        else
+            return sample(s.rng, s.value[1:nobs(s)], length(s.value))
+        end
     else
         return s.value
     end
@@ -241,7 +238,11 @@ function ordvalue(s::Union{SampleMultiOrdAlgR, SampleMultiOrdAlgL})
 end
 function ordvalue(s::SampleMultiOrdAlgRSWRSKIP)
     if nobs(s) < length(s.value)
-        return sample(s.rng, s.value[1:nobs(s)], length(s.value); ordered=true)
+        if nobs(s) == 0
+            return s.value[1:0]
+        else
+            return sample(s.rng, s.value[1:nobs(s)], length(s.value); ordered=true)
+        end
     else
         return s.value[sortperm(s.ord)]
     end
