@@ -110,12 +110,10 @@ end
         z = exp((n-3)*log1p(-p))
         q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p),1.0))
         k = choose(n, p, q, z)
-        @inbounds begin
-            for j in 1:k
-                r = rand(s.rng, j:n)
-                s.value[r], s.value[j] = s.value[j], el
-                update_order_multi!(s, r, j)
-            end 
+        @inbounds for j in 1:k
+            r = rand(s.rng, j:n)
+            s.value[r], s.value[j] = s.value[j], el
+            update_order_multi!(s, r, j)
         end
         s = recompute_skip!(s, n)
     end
