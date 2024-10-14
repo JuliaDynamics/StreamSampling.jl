@@ -19,28 +19,28 @@ function weighted_reservoir_sample_seq(rng, a, ws, n)
     w_sum = sum(view_w_f_n)
     reservoir = sample(rng, @view(a[1:m]), Weights(view_w_f_n, w_sum), n)
     length(a) <= n && return reservoir, w_sum
-    w_skip = skip(rng, w_sum, n)
+    w_skip = @inline skip(rng, w_sum, n)
     @inbounds for i in n+1:length(a)
         w_el = ws[i]
         w_sum += w_el
         if w_sum > w_skip
             p = w_el/w_sum
             q = 1-p
-            z = q^(n-4)
+            z = exp((n-4)*log1p(-p))
             t = rand(rng, Uniform(z*q*q*q*q,1.0))
-            k = choose(n, p, q, t, z)
-            for j in 1:k
+            k = @inline choose(n, p, q, t, z)
+            @inbounds for j in 1:k
                 r = rand(rng, j:n)
-                @inbounds reservoir[r], reservoir[j] = reservoir[j], a[i]
+                reservoir[r], reservoir[j] = reservoir[j], a[i]
             end 
-            w_skip = skip(rng, w_sum, n)
+            w_skip = @inline skip(rng, w_sum, n)
         end
     end
     return reservoir, w_sum
 end
 
 function skip(rng, w_sum::AbstractFloat, n)
-    k = rand(rng)^(1/n)
+    k = exp(-randexp(rng)/n)
     return w_sum/k
 end
 
