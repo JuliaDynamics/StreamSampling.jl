@@ -49,7 +49,7 @@
         @test all(x -> a <= x <= b, value(rs))
         @test nobs(rs) == 10
 
-        rngs = (StableRNG(41), StableRNG(40))
+        rngs = (StableRNG(43), StableRNG(44))
         iters = (a:b, Iterators.filter(x -> x != b + 1, a:b+1), (a:floor(Int, b/2), (floor(Int, b/2)+1):b))
         sizes = (2, 3)
         for it in iters
