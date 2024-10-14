@@ -124,7 +124,7 @@ end
         @inbounds s.value[s.seen_k] = el
         @inbounds s.weights[s.seen_k] = w
         if s.seen_k == n
-            new_values = sample(s.rng, s.value, weights(s.weights), n; ordered = is_ordered(s))
+            new_values = sample(s.rng, s.value, Weights(s.weights, s.state), n; ordered = is_ordered(s))
             @inbounds for i in 1:n
                 s.value[i] = new_values[i]
             end
@@ -133,22 +133,13 @@ end
         end
     elseif s.skip_w <= s.state
         p = w/s.state
-        z = (1-p)^(n-3)
+        z = exp((n-3)*log1p(-p))
         q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p),1.0))
         k = choose(n, p, q, z)
-        @inbounds begin
-            if k == 1
-                r = rand(s.rng, 1:n)
-                s.value[r] = el
-                update_order_single!(s, r)
-            else
-                for j in 1:k
-                    r = rand(s.rng, j:n)
-                    s.value[r] = el
-                    s.value[r], s.value[j] = s.value[j], s.value[r]
-                    update_order_multi!(s, r, j)
-                end
-            end 
+        @inbounds for j in 1:k
+            r = rand(s.rng, j:n)
+            s.value[r], s.value[j] = s.value[j], el
+            update_order_multi!(s, r, j)
         end
         s = @inline recompute_skip!(s, n)
     end
@@ -233,7 +224,7 @@ function recompute_skip!(s::SampleMultiAlgAExpJ)
     return s
 end
 function recompute_skip!(s::SampleMultiAlgWRSWRSKIP, n)
-    q = rand(s.rng)^(1/n)
+    q = exp(-randexp(s.rng)/n)
     @update s.skip_w = s.state/q
     return s
 end
@@ -266,7 +257,11 @@ function OnlineStatsBase.value(s::Union{SampleMultiAlgARes, SampleMultiAlgAExpJ}
 end
 function OnlineStatsBase.value(s::SampleMultiAlgWRSWRSKIP)
     if nobs(s) < length(s.value)
-        return nobs(s) == 0 ? s.value[1:0] : sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value))
+        if nobs(s) == 0
+            return s.value[1:0]
+        else
+            return sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value))
+        end
     else
         return s.value
     end
@@ -282,7 +277,11 @@ function ordvalue(s::Union{SampleMultiOrdAlgARes, SampleMultiOrdAlgAExpJ})
 end
 function ordvalue(s::SampleMultiOrdAlgWRSWRSKIP)
     if nobs(s) < length(s.value)
-        return sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value); ordered=true)
+        if nobs(s) == 0
+            return s.value[1:0]
+        else
+            return sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value); ordered=true)
+        end
     else
         return s.value[sortperm(s.ord)]
     end
