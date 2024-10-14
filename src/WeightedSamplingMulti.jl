@@ -135,7 +135,7 @@ end
         p = w/s.state
         z = exp((n-4)*log1p(-p))
         q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p)*(1-p),1.0))
-        k = choose(n, p, q, z)
+        k = @inline choose(n, p, q, z)
         @inbounds for j in 1:k
             r = rand(s.rng, j:n)
             s.value[r], s.value[j] = s.value[j], el
