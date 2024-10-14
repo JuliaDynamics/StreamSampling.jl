@@ -99,7 +99,7 @@ end
     if s.seen_k <= n
         @inbounds s.value[s.seen_k] = el
         if s.seen_k === n
-            s = recompute_skip!(s, n)
+            s = @inline recompute_skip!(s, n)
             new_values = sample(s.rng, s.value, n, ordered=is_ordered(s))
             @inbounds for i in 1:n
                 s.value[i] = new_values[i]
@@ -115,7 +115,7 @@ end
             s.value[r], s.value[j] = s.value[j], el
             update_order_multi!(s, r, j)
         end
-        s = recompute_skip!(s, n)
+        s = @inline recompute_skip!(s, n)
     end
     return s
 end
@@ -151,7 +151,7 @@ end
 
 function recompute_skip!(s::SampleMultiAlgL, n)
     @update s.state += randexp(s.rng)
-    @update s.skip_k = s.seen_k-ceil(Int, randexp(s.rng)/log(1-exp(-s.state/n)))
+    @update s.skip_k = s.seen_k-ceil(Int, randexp(s.rng)/log1p(-exp(-s.state/n)))
     return s
 end
 function recompute_skip!(s::SampleMultiAlgRSWRSKIP, n)
