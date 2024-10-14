@@ -133,8 +133,8 @@ end
         end
     elseif s.skip_w <= s.state
         p = w/s.state
-        z = exp((n-3)*log1p(-p))
-        q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p),1.0))
+        z = exp((n-4)*log1p(-p))
+        q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p)*(1-p),1.0))
         k = choose(n, p, q, z)
         @inbounds for j in 1:k
             r = rand(s.rng, j:n)
@@ -257,11 +257,7 @@ function OnlineStatsBase.value(s::Union{SampleMultiAlgARes, SampleMultiAlgAExpJ}
 end
 function OnlineStatsBase.value(s::SampleMultiAlgWRSWRSKIP)
     if nobs(s) < length(s.value)
-        if nobs(s) == 0
-            return s.value[1:0]
-        else
-            return sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value))
-        end
+        return nobs(s) == 0 ? s.value[1:0] : sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value))
     else
         return s.value
     end
@@ -277,11 +273,7 @@ function ordvalue(s::Union{SampleMultiOrdAlgARes, SampleMultiOrdAlgAExpJ})
 end
 function ordvalue(s::SampleMultiOrdAlgWRSWRSKIP)
     if nobs(s) < length(s.value)
-        if nobs(s) == 0
-            return s.value[1:0]
-        else
-            return sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value); ordered=true)
-        end
+        return sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value); ordered=true)
     else
         return s.value[sortperm(s.ord)]
     end
