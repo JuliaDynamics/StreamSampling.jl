@@ -155,7 +155,7 @@ function recompute_skip!(s::SampleMultiAlgL, n)
     return s
 end
 function recompute_skip!(s::SampleMultiAlgRSWRSKIP, n)
-    q = rand(s.rng)^(1/n)
+    q = exp(-randexp(s.rng)/n)
     @update s.skip_k = ceil(Int, s.seen_k/q)-1
     return s
 end
