@@ -107,8 +107,8 @@ end
         end
     elseif s.skip_k < s.seen_k
         p = 1/s.seen_k
-        z = exp((n-3)*log1p(-p))
-        q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p),1.0))
+        z = exp((n-4)*log1p(-p))
+        q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p)*(1-p),1.0))
         k = choose(n, p, q, z)
         @inbounds for j in 1:k
             r = rand(s.rng, j:n)
@@ -163,12 +163,14 @@ end
 function choose(n, p, q, z)
     m = 1-p
     s = z
-    z = s*m*m*(m + n*p)
+    z = s*m*m*m*(m + n*p)
     z > q && return 1
-    z += n*p*(n-1)*p*s*m/2
+    z += n*p*(n-1)*p*s*m*m/2
     z > q && return 2
-    z += n*p*(n-1)*p*(n-2)*p*s/6
+    z += n*p*(n-1)*p*(n-2)*p*s*m/6
     z > q && return 3
+    z += n*p*(n-1)*p*(n-2)*p*(n-3)*p*s/24
+    z > q && return 4
     b = Binomial(n, p)
     return quantile(b, q)
 end
