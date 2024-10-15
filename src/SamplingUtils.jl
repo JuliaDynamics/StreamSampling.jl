@@ -34,6 +34,7 @@ Base.eltype(::SeqSampleIterWR) = Int
 Base.IteratorSize(::SeqSampleIterWR) = Base.HasLength()
 Base.length(s::SeqSampleIterWR) = s.n
 
+# courtesy of StatsBase.jl for part of the implementation
 struct SeqSampleIter{R}
     rng::R
     N::Int

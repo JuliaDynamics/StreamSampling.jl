@@ -65,14 +65,59 @@ a = Iterators.filter(x -> x != 1, 1:10^8)
 wv_const(x) = 1.0
 wv_incr(x) = Float64(x)
 wv_decr(x) = 1/x
-wvs = (wv_decr, wv_const, wv_incr)
+wvs = ((:wv_decr, wv_decr), 
+       (:wv_const, wv_const),
+       (:wv_incr, wv_incr))
 
-for wv in wvs
-    for m in (AlgWRSWRSKIP(), AlgAExpJWR())
+benchs = []
+for (wvn, wv) in wvs
+    for m in (AlgAExpJWR(), AlgWRSWRSKIP())
+        bs = []
         for sz in [10^i for i in 0:7]
-            b = @benchmark itsample($a, $wv, $sz, $m) seconds=10
-            println(wv, " ", m, " ", sz, " ", median(b.times))
+            b = @benchmark itsample($a, $wv, $sz, $m) seconds=20
+            push!(bs, median(b.times))
+            println(median(b.times))
         end
+        push!(benchs, (wvn, m, bs))
+        println(benchs)
     end
 end
 
+using CairoMakie
+
+f = Figure(backgroundcolor = RGBf(0.98, 0.98, 0.98), size = (1100, 700));
+
+f.title = "Comparison between AExpJ-WR and WRSWR-SKIP Algorithms"
+
+ax1 = Axis(f[1, 1], yscale=log10, xscale=log10, 
+       yminorticksvisible = true, yminorgridvisible = true, 
+       yminorticks = IntervalsBetween(10))
+ax2 = Axis(f[1, 2], yscale=log10, xscale=log10, 
+       yminorticksvisible = true, yminorgridvisible = true, 
+       yminorticks = IntervalsBetween(10))
+ax3 = Axis(f[1, 3], yscale=log10, xscale=log10, 
+       yminorticksvisible = true, yminorgridvisible = true, 
+       yminorticks = IntervalsBetween(10))
+
+for x in benchs
+    label = x[1] == :wv_const ? (x[2] == AlgAExpJWR() ? "ExpJ-WR" : "WRSWR-SKIP") : ""
+    ax = x[1] == :wv_decr ? ax1 : (x[1] == :wv_const ? ax2 : ax3)
+    marker = x[2] == AlgAExpJWR() ? :circle : (:xcross)
+    scatterlines!(ax, [10^i/10^8 for i in 3:7], x[3][4:end] ./ 10^6, marker = marker, 
+                  label = label, markersize = 12, linestyle = :dot)
+end
+
+Legend(f[2,:], ax2, labelsize=10, framevisible = false)
+
+for ax in [ax1, ax2, ax3]
+    ax.xtickformat = x -> string.(round.(x.*100, digits=10)) .* "%"
+    #ax.ytickformat = y -> y .* "^"
+    ax.title = ax == ax1 ? "decreasing weights" : (ax == ax2 ? "constant weights" : "increasing weights")
+    ax.xticks = [10^(i)/10^8 for i in 3:7]
+    ax.yticks = [10^i for i in 2:4]
+    ax.xlabel = "sample ratio"
+    ax == ax1 && (ax.ylabel = "time (ms)")
+end
+
+save("comparison_WRSWR_SKIP_alg_stream.png", f)
+f

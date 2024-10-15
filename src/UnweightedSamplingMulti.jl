@@ -1,5 +1,6 @@
 
 @hybrid struct SampleMultiAlgR{O,T,R} <: AbstractReservoirSample
+    const n::Int
     seen_k::Int
     const rng::R
     const value::Vector{T}
@@ -8,6 +9,7 @@ end
 const SampleMultiOrdAlgR = SampleMultiAlgR{<:Vector}
 
 @hybrid struct SampleMultiAlgL{O,T,R} <: AbstractReservoirSample
+    const n::Int
     state::Float64
     skip_k::Int
     seen_k::Int
@@ -18,6 +20,7 @@ end
 const SampleMultiOrdAlgL = SampleMultiAlgL{<:Vector}
 
 @hybrid struct SampleMultiAlgRSWRSKIP{O,T,R} <: AbstractReservoirSample
+    const n::Int
     skip_k::Int
     seen_k::Int
     const rng::R
@@ -27,44 +30,44 @@ end
 const SampleMultiOrdAlgRSWRSKIP = SampleMultiAlgRSWRSKIP{<:Vector}
 
 function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgL, ::MutSample, ::Ord) where T
-    return SampleMultiAlgL_Mut(0.0, 0, 0, rng, Vector{T}(undef, n), collect(1:n))
+    return SampleMultiAlgL_Mut(n, 0.0, 0, 0, rng, Vector{T}(undef, n), collect(1:n))
 end
 function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgL, ::MutSample, ::Unord) where T
-    return SampleMultiAlgL_Mut(0.0, 0, 0, rng, Vector{T}(undef, n), nothing)
+    return SampleMultiAlgL_Mut(n, 0.0, 0, 0, rng, Vector{T}(undef, n), nothing)
 end
 function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgL, ::ImmutSample, ::Ord) where T
-    return SampleMultiAlgL_Immut(0.0, 0, 0, rng, Vector{T}(undef, n), collect(1:n))
+    return SampleMultiAlgL_Immut(n, 0.0, 0, 0, rng, Vector{T}(undef, n), collect(1:n))
 end
 function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgL, ::ImmutSample, ::Unord) where T
-    return SampleMultiAlgL_Immut(0.0, 0, 0, rng, Vector{T}(undef, n), nothing)
+    return SampleMultiAlgL_Immut(n, 0.0, 0, 0, rng, Vector{T}(undef, n), nothing)
 end
 function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgR, ::MutSample, ::Ord) where T
-    return SampleMultiAlgR_Mut(0, rng, Vector{T}(undef, n), collect(1:n))
+    return SampleMultiAlgR_Mut(n, 0, rng, Vector{T}(undef, n), collect(1:n))
 end        
 function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgR, ::MutSample, ::Unord) where T
-    return SampleMultiAlgR_Mut(0, rng, Vector{T}(undef, n), nothing)
+    return SampleMultiAlgR_Mut(n, 0, rng, Vector{T}(undef, n), nothing)
 end
 function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgR, ::ImmutSample, ::Ord) where T
-    return SampleMultiAlgR_Immut(0, rng, Vector{T}(undef, n), collect(1:n))
+    return SampleMultiAlgR_Immut(n, 0, rng, Vector{T}(undef, n), collect(1:n))
 end
 function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgR, ::ImmutSample, ::Unord) where T
-    return SampleMultiAlgR_Immut(0, rng, Vector{T}(undef, n), nothing)
+    return SampleMultiAlgR_Immut(n, 0, rng, Vector{T}(undef, n), nothing)
 end
 function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgRSWRSKIP, ::MutSample, ::Ord) where T
-    return SampleMultiAlgRSWRSKIP_Mut(0, 0, rng, Vector{T}(undef, n), collect(1:n))
+    return SampleMultiAlgRSWRSKIP_Mut(n, 0, 0, rng, Vector{T}(undef, n), collect(1:n))
 end
 function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgRSWRSKIP, ::MutSample, ::Unord) where T
-    return SampleMultiAlgRSWRSKIP_Mut(0, 0, rng, Vector{T}(undef, n), nothing)
+    return SampleMultiAlgRSWRSKIP_Mut(n, 0, 0, rng, Vector{T}(undef, n), nothing)
 end
 function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgRSWRSKIP, ::ImmutSample, ::Ord) where T
-    return SampleMultiAlgRSWRSKIP_Immut(0, 0, rng, Vector{T}(undef, n), collect(1:n))
+    return SampleMultiAlgRSWRSKIP_Immut(n, 0, 0, rng, Vector{T}(undef, n), collect(1:n))
 end
 function ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgRSWRSKIP, ::ImmutSample, ::Unord) where T
-    return SampleMultiAlgRSWRSKIP_Immut(0, 0, rng, Vector{T}(undef, n), nothing)
+    return SampleMultiAlgRSWRSKIP_Immut(n, 0, 0, rng, Vector{T}(undef, n), nothing)
 end
 
 @inline function OnlineStatsBase._fit!(s::SampleMultiAlgR, el)
-    n = length(s.value)
+    n = s.n
     s = @inline update_state!(s)
     if s.seen_k <= n
         @inbounds s.value[s.seen_k] = el
@@ -78,7 +81,7 @@ end
     return s
 end
 @inline function OnlineStatsBase._fit!(s::SampleMultiAlgL, el)
-    n = length(s.value)
+    n = s.n
     s = @inline update_state!(s)
     if s.seen_k <= n
         @inbounds s.value[s.seen_k] = el
@@ -94,7 +97,7 @@ end
     return s
 end
 @inline function OnlineStatsBase._fit!(s::SampleMultiAlgRSWRSKIP, el)
-    n = length(s.value)
+    n = s.n
     s = @inline update_state!(s)
     if s.seen_k <= n
         @inbounds s.value[s.seen_k] = el
@@ -105,11 +108,13 @@ end
                 s.value[i] = new_values[i]
             end
         end
-    elseif s.skip_k < s.seen_k
+        return s
+    end
+    if s.skip_k < s.seen_k
         p = 1/s.seen_k
         z = exp((n-4)*log1p(-p))
-        q = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p)*(1-p),1.0))
-        k = @inline choose(n, p, q, z)
+        c = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p)*(1-p),1.0))
+        k = @inline choose(n, p, c, z)
         @inbounds for j in 1:k
             r = rand(s.rng, j:n)
             s.value[r], s.value[j] = s.value[j], el
@@ -160,19 +165,18 @@ function recompute_skip!(s::SampleMultiAlgRSWRSKIP, n)
     return s
 end
 
-function choose(n, p, q, z)
-    m = 1-p
-    s = z
-    z = s*m*m*m*(m + n*p)
-    z > q && return 1
-    z += n*p*(n-1)*p*s*m*m/2
-    z > q && return 2
-    z += n*p*(n-1)*p*(n-2)*p*s*m/6
-    z > q && return 3
-    z += n*p*(n-1)*p*(n-2)*p*(n-3)*p*s/24
-    z > q && return 4
+function choose(n, p, c, z)
+    q = 1-p
+    k = z*q*q*q*(q + n*p)
+    k > c && return 1
+    k += n*p*(n-1)*p*z*q*q/2
+    k > c && return 2
+    k += n*p*(n-1)*p*(n-2)*p*z*q/6
+    k > c && return 3
+    k += n*p*(n-1)*p*(n-2)*p*(n-3)*p*z/24
+    k > c && return 4
     b = Binomial(n, p)
-    return quantile(b, q)
+    return quantile(b, c)
 end
 
 update_order!(s::Union{SampleMultiAlgR, SampleMultiAlgL}, j) = nothing
@@ -197,7 +201,7 @@ function Base.merge(ss::SampleMultiAlgRSWRSKIP...)
     newvalue = reduce_samples(TypeUnion(), ss...)
     skip_k = sum(getfield(s, :skip_k) for s in ss)
     seen_k = sum(getfield(s, :seen_k) for s in ss)
-    return SampleMultiAlgRSWRSKIP_Mut(skip_k, seen_k, ss[1].rng, newvalue, nothing)
+    return SampleMultiAlgRSWRSKIP_Mut(ss[1].n, skip_k, seen_k, ss[1].rng, newvalue, nothing)
 end
 
 function Base.merge!(s1::SampleMultiAlgRSWRSKIP{<:Nothing}, ss::SampleMultiAlgRSWRSKIP...)

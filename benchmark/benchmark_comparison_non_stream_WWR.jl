@@ -125,43 +125,43 @@ end
 rng = Xoshiro(42);
 rngs = Tuple(Xoshiro(rand(rng, 1:10000)) for _ in 1:Threads.nthreads());
 
-a = collect(1:10^7);
+a = collect(1:10^8);
 wsa = Float64.(a);
 
 times_other_parallel = Float64[]
-for i in 0:6
-    b = @benchmark sample_parallel_2_pass($rngs, $a, $wsa, 10^$i)
+for i in 0:7
+    b = @benchmark sample_parallel_2_pass($rngs, $a, $wsa, 10^$i) seconds=20
     push!(times_other_parallel, median(b.times)/10^6)
     println("other $(10^i): $(median(b.times)/10^6) ms")
 end
 
 times_other = Float64[]
-for i in 0:6
-    b = @benchmark sample($rng, $a, Weights($wsa), 10^$i; replace = true)
+for i in 0:7
+    b = @benchmark sample($rng, $a, Weights($wsa), 10^$i; replace = true) seconds=20
     push!(times_other, median(b.times)/10^6)
     println("other $(10^i): $(median(b.times)/10^6) ms")
 end
 
 ## single thread
 times_single_thread = Float64[]
-for i in 0:6
-    b = @benchmark weighted_reservoir_sample($rng, $a, $wsa, 10^$i)
+for i in 0:7
+    b = @benchmark weighted_reservoir_sample($rng, $a, $wsa, 10^$i) seconds=20
     push!(times_single_thread, median(b.times)/10^6)
     println("sequential $(10^i): $(median(b.times)/10^6) ms")
 end
 
 # multi thread 1 pass - 6 threads
 times_multi_thread = Float64[]
-for i in 0:6
-    b = @benchmark weighted_reservoir_sample_parallel_1_pass($rngs, $a, $wsa, 10^$i)
+for i in 0:7
+    b = @benchmark weighted_reservoir_sample_parallel_1_pass($rngs, $a, $wsa, 10^$i) seconds=20
     push!(times_multi_thread, median(b.times)/10^6)
     println("parallel $(10^i): $(median(b.times)/10^6) ms")
 end
 
 # multi thread 2 pass - 6 threads
 times_multi_thread_2 = Float64[]
-for i in 0:6
-    b = @benchmark weighted_reservoir_sample_parallel_2_pass($rngs, $a, $wsa, 10^$i)
+for i in 0:7
+    b = @benchmark weighted_reservoir_sample_parallel_2_pass($rngs, $a, $wsa, 10^$i) seconds=20
     push!(times_multi_thread_2, median(b.times)/10^6)
     println("parallel $(10^i): $(median(b.times)/10^6) ms")
 end
@@ -170,13 +170,13 @@ py"""
 import numpy as np
 import timeit
 
-a = np.arange(1, 10**7+1, dtype=np.int64);
-wsa = np.arange(1, 10**7+1, dtype=np.float64)
+a = np.arange(1, 10**8+1, dtype=np.int64);
+wsa = np.arange(1, 10**8+1, dtype=np.float64)
 p = wsa/np.sum(wsa);
 
 def sample_times_numpy():
     times_numpy = []
-    for i in range(7):
+    for i in range(8):
         ts = []
         for j in range(11):
             t = timeit.timeit("np.random.choice(a, size=10**i, replace=True, p=p)", 
@@ -196,20 +196,20 @@ ax1 = Axis(f[1, 1], yscale=log10, xscale=log10,
 	   yminorticksvisible = true, yminorgridvisible = true, 
 	   yminorticks = IntervalsBetween(10))
 
-scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_numpy[2:end], label = "numpy.choice sequential", marker = :circle, markersize = 12, linestyle = :dot)
-scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_other[2:end], label = "StatsBase.sample sequential", marker = :rect, markersize = 12, linestyle = :dot)
-scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_other_parallel[2:end], label = "StatsBase.sample parallel (2 passes)", marker = :diamond, markersize = 12, linestyle = :dot)
-scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_single_thread[2:end], label = "WRSWR-SKIP sequential", marker = :hexagon, markersize = 12, linestyle = :dot)
-scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_multi_thread[2:end], label = "WRSWR-SKIP parallel (1 pass)", marker = :cross, markersize = 12, linestyle = :dot)
-scatterlines!(ax1, [10^i/10^7 for i in 1:6], times_multi_thread_2[2:end], label = "WRSWR-SKIP parallel (2 passes)", marker = :xcross, markersize = 12, linestyle = :dot)
+scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_numpy[3:end], label = "numpy.choice sequential", marker = :circle, markersize = 12, linestyle = :dot)
+scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_other[3:end], label = "StatsBase.sample sequential", marker = :rect, markersize = 12, linestyle = :dot)
+scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_other_parallel[3:end], label = "StatsBase.sample parallel (2 passes)", marker = :diamond, markersize = 12, linestyle = :dot)
+scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_single_thread[3:end], label = "WRSWR-SKIP sequential", marker = :hexagon, markersize = 12, linestyle = :dot)
+scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_multi_thread[3:end], label = "WRSWR-SKIP parallel (1 pass)", marker = :cross, markersize = 12, linestyle = :dot)
+scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_multi_thread_2[3:end], label = "WRSWR-SKIP parallel (2 passes)", marker = :xcross, markersize = 12, linestyle = :dot)
 Legend(f[1,2], ax1, labelsize=10, framevisible = false)
 
 ax1.xtickformat = x -> string.(round.(x.*100, digits=10)) .* "%"
 ax1.title = "Comparison between weighted sampling algorithms in a non-streaming context"
-ax1.xticks = [10^(i)/10^7 for i in 1:6]
+ax1.xticks = [10^(i)/10^8 for i in 2:7]
 
 ax1.xlabel = "sample ratio"
 ax1.ylabel = "time (ms)"
 
 f
-save("comparison_WRSWR_SKIP_alg.png", f)
+save("comparison_WRSWR_SKIP_alg_no_stream.png", f)
