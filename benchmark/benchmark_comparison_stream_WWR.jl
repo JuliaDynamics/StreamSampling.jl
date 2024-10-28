@@ -73,7 +73,7 @@ benchs = []
 for (wvn, wv) in wvs
     for m in (AlgAExpJWR(), AlgWRSWRSKIP())
         bs = []
-        for sz in [10^i for i in 0:7]
+        for sz in [10^i for i in 3:7]
             b = @benchmark itsample($a, $wv, $sz, $m) seconds=20
             push!(bs, median(b.times))
             println(median(b.times))
@@ -99,15 +99,17 @@ ax3 = Axis(f[1, 3], yscale=log10, xscale=log10,
        yminorticksvisible = true, yminorgridvisible = true, 
        yminorticks = IntervalsBetween(10))
 
+#ax4 = Axis(f[2, 1])
+
 for x in benchs
     label = x[1] == :wv_const ? (x[2] == AlgAExpJWR() ? "ExpJ-WR" : "WRSWR-SKIP") : ""
     ax = x[1] == :wv_decr ? ax1 : (x[1] == :wv_const ? ax2 : ax3)
     marker = x[2] == AlgAExpJWR() ? :circle : (:xcross)
-    scatterlines!(ax, [10^i/10^8 for i in 3:7], x[3][4:end] ./ 10^6, marker = marker, 
+    scatterlines!(ax, [10^i/10^8 for i in 3:7], x[3] ./ 10^6, marker = marker, 
                   label = label, markersize = 12, linestyle = :dot)
 end
 
-Legend(f[2,:], ax2, labelsize=10, framevisible = false)
+Legend(ax4, labelsize=10, framevisible = false, orientation = :horizontal)
 
 for ax in [ax1, ax2, ax3]
     ax.xtickformat = x -> string.(round.(x.*100, digits=10)) .* "%"

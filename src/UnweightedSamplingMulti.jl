@@ -71,12 +71,12 @@ end
     s = @inline update_state!(s)
     if s.seen_k <= n
         @inbounds s.value[s.seen_k] = el
-    else
-        j = rand(s.rng, 1:s.seen_k)
-        if j <= n
-            @inbounds s.value[j] = el
-            update_order!(s, j)
-        end
+        return s
+    end
+    j = rand(s.rng, 1:s.seen_k)
+    if j <= n
+        @inbounds s.value[j] = el
+        update_order!(s, j)
     end
     return s
 end
@@ -88,7 +88,9 @@ end
         if s.seen_k === n
             s = @inline recompute_skip!(s, n)
         end
-    elseif s.skip_k < s.seen_k
+        return s
+    end
+    if s.skip_k < s.seen_k
         j = rand(s.rng, 1:n)
         @inbounds s.value[j] = el
         update_order!(s, j)

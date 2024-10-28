@@ -202,7 +202,7 @@ scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_other_parallel[3:end], label 
 scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_single_thread[3:end], label = "WRSWR-SKIP sequential", marker = :hexagon, markersize = 12, linestyle = :dot)
 scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_multi_thread[3:end], label = "WRSWR-SKIP parallel (1 pass)", marker = :cross, markersize = 12, linestyle = :dot)
 scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_multi_thread_2[3:end], label = "WRSWR-SKIP parallel (2 passes)", marker = :xcross, markersize = 12, linestyle = :dot)
-Legend(f[1,2], ax1, labelsize=10, framevisible = false)
+Legend(f[2,1], ax1, labelsize=10, framevisible = false, orientation = :horizontal)
 
 ax1.xtickformat = x -> string.(round.(x.*100, digits=10)) .* "%"
 ax1.title = "Comparison between weighted sampling algorithms in a non-streaming context"

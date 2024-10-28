@@ -3,7 +3,7 @@ using Random, Printf, BenchmarkTools
 using CairoMakie
 
 rng = Xoshiro(42);
-stream = Iterators.filter(x -> x != 10, 1:10^7);
+stream = Iterators.filter(x -> x != 1, 1:10^8);
 pop = collect(stream);
 w(el) = Float64(el);
 weights = Weights(w.(stream));
@@ -11,7 +11,7 @@ weights = Weights(w.(stream));
 algs = (AlgL(), AlgRSWRSKIP(), AlgAExpJ(), AlgWRSWRSKIP());
 algsweighted = (AlgAExpJ(), AlgWRSWRSKIP());
 algsreplace = (AlgRSWRSKIP(), AlgWRSWRSKIP());
-sizes = (10^3, 10^4, 10^5, 10^6)
+sizes = (10^4, 10^5, 10^6, 10^7)
 
 p = Dict((0, 0) => 1, (0, 1) => 2, (1, 0) => 3, (1, 1) => 4);
 m_times = Matrix{Vector{Float64}}(undef, (3, 4));
@@ -24,13 +24,13 @@ for m in algs
         replace = m in algsreplace
         weighted = m in algsweighted
         if weighted
-            b1 = @benchmark itsample($rng, $stream, $w, $size, $m) evals=1
-            b2 = @benchmark sample($rng, collect($stream), Weights($w.($stream)), $size; replace = $replace) evals=1
-            b3 = @benchmark sample($rng, $pop, $weights, $size; replace = $replace) evals=1
+            b1 = @benchmark itsample($rng, $stream, $w, $size, $m) seconds=20
+            b2 = @benchmark sample($rng, collect($stream), Weights($w.($stream)), $size; replace = $replace) seconds=20
+            b3 = @benchmark sample($rng, $pop, $weights, $size; replace = $replace) seconds=20
         else
-            b1 = @benchmark itsample($rng, $stream, $size, $m) evals=1
-            b2 = @benchmark sample($rng, collect($stream), $size; replace = $replace) evals=1
-            b3 = @benchmark sample($rng, $pop, $size; replace = $replace) evals=1
+            b1 = @benchmark itsample($rng, $stream, $size, $m) evals=1 seconds=20
+            b2 = @benchmark sample($rng, collect($stream), $size; replace = $replace) seconds=20
+            b3 = @benchmark sample($rng, $pop, $size; replace = $replace) seconds=20
         end
         ts = [median(b1.times), median(b2.times), median(b3.times)] .* 1e-6
         ms = [b1.memory, b2.memory, b3.memory] .* 1e-6
@@ -39,6 +39,7 @@ for m in algs
             push!(m_times[r, c], ts[r])
             push!(m_mems[r, c], ms[r])
         end
+        println("c")
     end
 end
 

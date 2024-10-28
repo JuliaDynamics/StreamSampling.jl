@@ -91,13 +91,13 @@ end
     s = @inline update_state!(s, w)
     priority = -randexp(s.rng)/w
     if s.seen_k <= n
-        push_value!(s, el, priority)
-    else
-        min_priority = last(first(s.value))
-        if priority > min_priority
-            pop!(s.value)
-            push_value!(s, el, priority)
-        end
+        @inline push_value!(s, el, priority)
+        return s
+    end
+    min_priority = last(first(s.value))
+    if priority > min_priority
+        pop!(s.value)
+        @inline push_value!(s, el, priority)
     end
     return s
 end
@@ -106,14 +106,16 @@ end
     s = @inline update_state!(s, w)
     if s.seen_k <= n
         priority = exp(-randexp(s.rng)/w)
-        push_value!(s, el, priority)
+        @inline push_value!(s, el, priority)
         if s.seen_k == n 
             s = @inline recompute_skip!(s)
         end
-    elseif s.state <= 0.0
+        return s
+    end
+    if s.state <= 0.0
         priority = @inline compute_skip_priority(s, w)
         pop!(s.value)
-        push_value!(s, el, priority)
+        @inline push_value!(s, el, priority)
         s = @inline recompute_skip!(s)
     end
     return s
