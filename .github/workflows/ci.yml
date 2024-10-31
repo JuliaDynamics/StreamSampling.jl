@@ -59,7 +59,7 @@ jobs:
             Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()'
       - run: |
-          export JULIA_CPU_THREADS = 2
+          export JULIA_CPU_THREADS=2
           julia --project=./docs -e '
             using Documenter: doctest
             using StreamSampling
