@@ -59,12 +59,11 @@ jobs:
             Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()'
       - run: |
-          export JULIA_CPU_THREADS=2
           julia --project=./docs -e '
             using Documenter: doctest
             using StreamSampling
             doctest(StreamSampling)'
-      - run: julia --project=./docs ./docs/make.jl
+      - run: julia -t 2 --project=./docs ./docs/make.jl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
