@@ -64,7 +64,7 @@ function weighted_reservoir_sample_parallel_1_pass(rngs, a, ws, n)
     nt = Threads.nthreads()
     ss = Vector{Vector{eltype(a)}}(undef, nt)
     w_sums = Vector{Float64}(undef, nt)
-    chunks_inds = chunks(a; n=nt)
+    chunks_inds = index_chunks(a; n=nt)
     Threads.@threads for (i, inds) in enumerate(chunks_inds)
         s = weighted_reservoir_sample_seq(rngs[i], @view(a[inds]), @view(ws[inds]), n)
         ss[i], w_sums[i] = s
@@ -84,7 +84,7 @@ end
 
 function weighted_reservoir_sample_parallel_2_pass(rngs, a, ws, n)
     nt = Threads.nthreads()
-    chunks_inds = chunks(a; n=nt)
+    chunks_inds = index_chunks(a; n=nt)
     w_sums = Vector{Float64}(undef, nt)
     Threads.@threads for (i, inds) in enumerate(chunks_inds)
         w_sums[i] = sum(@view(ws[inds]))
@@ -102,7 +102,7 @@ end
 
 function sample_parallel_2_pass(rngs, a, ws, n)
     nt = Threads.nthreads()
-    chunks_inds = chunks(a; n=nt)
+    chunks_inds = index_chunks(a; n=nt)
     w_sums = Vector{Float64}(undef, nt)
     Threads.@threads for (i, inds) in enumerate(chunks_inds)
         w_sums[i] = sum(@view(ws[inds]))
@@ -190,26 +190,28 @@ def sample_times_numpy():
 """
 times_numpy = py"sample_times_numpy()"
                
-f = Figure(backgroundcolor = RGBf(0.98, 0.98, 0.98), size = (1100, 700));
+f = Figure(backgroundcolor = RGBf(0.98, 0.98, 0.98), size = (700, 600), dpi=1200);
 
 ax1 = Axis(f[1, 1], yscale=log10, xscale=log10, 
 	   yminorticksvisible = true, yminorgridvisible = true, 
-	   yminorticks = IntervalsBetween(10))
+	   yminorticks = IntervalsBetween(10), xticklabelsize=15, yticklabelsize=15, titlesize=16,
+       xlabelsize=17, ylabelsize=17,)
 
-scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_numpy[3:end], label = "numpy.choice sequential", marker = :circle, markersize = 12, linestyle = :dot)
-scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_other[3:end], label = "StatsBase.sample sequential", marker = :rect, markersize = 12, linestyle = :dot)
-scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_other_parallel[3:end], label = "StatsBase.sample parallel (2 passes)", marker = :diamond, markersize = 12, linestyle = :dot)
-scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_single_thread[3:end], label = "WRSWR-SKIP sequential", marker = :hexagon, markersize = 12, linestyle = :dot)
-scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_multi_thread[3:end], label = "WRSWR-SKIP parallel (1 pass)", marker = :cross, markersize = 12, linestyle = :dot)
-scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_multi_thread_2[3:end], label = "WRSWR-SKIP parallel (2 passes)", marker = :xcross, markersize = 12, linestyle = :dot)
-Legend(f[2,1], ax1, labelsize=10, framevisible = false, orientation = :horizontal)
+scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_numpy[3:end]./10^3, label = "numpy.choice sequential", marker = :circle, markersize = 12, linestyle = :dot)
+scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_other[3:end]./10^3, label = "StatsBase.sample sequential", marker = :rect, markersize = 12, linestyle = :dot)
+scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_other_parallel[3:end]./10^3, label = "StatsBase.sample parallel (2 passes)", marker = :diamond, markersize = 12, linestyle = :dot)
+scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_single_thread[3:end]./10^3, label = "WRSWR-SKIP sequential", marker = :hexagon, markersize = 12, linestyle = :dot)
+scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_multi_thread[3:end]./10^3, label = "WRSWR-SKIP parallel (1 pass)", marker = :cross, markersize = 12, linestyle = :dot)
+scatterlines!(ax1, [10^i/10^8 for i in 2:7], times_multi_thread_2[3:end]./10^3, label = "WRSWR-SKIP parallel (2 passes)", marker = :xcross, markersize = 12, linestyle = :dot)
+Legend(f[2,1], ax1, labelsize=12, framevisible = false, orientation = :horizontal, nbanks = 3)
 
 ax1.xtickformat = x -> string.(round.(x.*100, digits=10)) .* "%"
 ax1.title = "Comparison between weighted sampling algorithms in a non-streaming context"
 ax1.xticks = [10^(i)/10^8 for i in 2:7]
+ax1.yticks = [10^float(i) for i in -1:1]
 
 ax1.xlabel = "sample ratio"
-ax1.ylabel = "time (ms)"
+ax1.ylabel = "time (s)"
 
 f
 save("comparison_WRSWR_SKIP_alg_no_stream.png", f)
