@@ -139,7 +139,7 @@ end
     end
     if s.skip_w <= s.state
         p = w/s.state
-        k = @inline choose(rng, n, p)
+        k = @inline choose(s.rng, n, p)
         @inbounds for j in 1:k
             r = rand(s.rng, j:n)
             s.value[r], s.value[j] = s.value[j], el
