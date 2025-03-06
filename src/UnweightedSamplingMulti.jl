@@ -114,7 +114,7 @@ end
     end
     if s.skip_k < s.seen_k
         p = 1/s.seen_k
-        k = @inline choose(rng, n, p)
+        k = @inline choose(s.rng, n, p)
         if k == 1
             r = rand(s.rng, 1:n)
             s.value[r] = el
