@@ -114,13 +114,17 @@ end
     end
     if s.skip_k < s.seen_k
         p = 1/s.seen_k
-        z = exp((n-4)*log1p(-p))
-        c = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p)*(1-p),1.0))
-        k = @inline choose(n, p, c, z)
-        @inbounds for j in 1:k
-            r = rand(s.rng, j:n)
-            s.value[r], s.value[j] = s.value[j], el
-            update_order_multi!(s, r, j)
+        k = @inline choose(rng, n, p)
+        if k == 1
+            r = rand(s.rng, 1:n)
+            s.value[r] = el
+            update_order_single!(s, r)
+        else
+            @inbounds for j in 1:k
+                r = rand(s.rng, j:n)
+                s.value[r], s.value[j] = s.value[j], el
+                update_order_multi!(s, r, j)
+            end
         end
         s = @inline recompute_skip!(s, n)
     end
@@ -167,18 +171,30 @@ function recompute_skip!(s::SampleMultiAlgRSWRSKIP, n)
     return s
 end
 
-function choose(n, p, c, z)
+@inline function choose(rng, n, p)
+    z = exp(n*log1p(-p))
+    t = rand(rng, Uniform(z, 1.0))
+    s = n*p
     q = 1-p
-    k = z*q*q*q*(q + n*p)
-    k > c && return 1
-    k += n*p*(n-1)*p*z*q*q/2
-    k > c && return 2
-    k += n*p*(n-1)*p*(n-2)*p*z*q/6
-    k > c && return 3
-    k += n*p*(n-1)*p*(n-2)*p*(n-3)*p*z/24
-    k > c && return 4
-    b = Binomial(n, p)
-    return quantile(b, c)
+    x = z + z*s/q
+    x > t && return 1
+    s *= (n-1)*p
+    q *= 1-p
+    x += (s*z/q)/2
+    x > t && return 2
+    s *= (n-2)*p
+    q *= 1-p
+    x += (s*z/q)/6
+    x > t && return 3
+    s *= (n-3)*p
+    q *= 1-p
+    x += (s*z/q)/24
+    x > t && return 4
+    s *= (n-4)*p
+    q *= 1-p
+    x += (s*z/q)/120
+    x > t && return 5
+    return quantile(Binomial(n, p), t)
 end
 
 update_order!(s::Union{SampleMultiAlgR, SampleMultiAlgL}, j) = nothing
