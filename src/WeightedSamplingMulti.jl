@@ -139,9 +139,7 @@ end
     end
     if s.skip_w <= s.state
         p = w/s.state
-        z = exp((n-4)*log1p(-p))
-        c = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p)*(1-p), 1.0))
-        k = @inline choose(n, p, c, z)
+        k = @inline choose(rng, n, p)
         @inbounds for j in 1:k
             r = rand(s.rng, j:n)
             s.value[r], s.value[j] = s.value[j], el
