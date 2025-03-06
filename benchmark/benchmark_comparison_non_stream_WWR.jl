@@ -9,50 +9,68 @@ using CairoMakie
 ## sequential ##
 ################
 
+using AliasTables
+using Random, StatsBase, Distributions
+
 function weighted_reservoir_sample(rng, a, ws, n)
     return shuffle!(rng, weighted_reservoir_sample_seq(rng, a, ws, n)[1])
 end
 
 function weighted_reservoir_sample_seq(rng, a, ws, n)
-    m = min(length(a), n)
-    view_w_f_n = @view(ws[1:m])
-    w_sum = sum(view_w_f_n)
-    reservoir = sample(rng, @view(a[1:m]), Weights(view_w_f_n, w_sum), n)
-    length(a) <= n && return reservoir, w_sum
-    w_skip = @inline skip(rng, w_sum, n)
+    @assert length(a) >= n
+    view_w_f_n = @view(ws[1:n])
+    reservoir = rand(rng, AliasTable(view_w_f_n), n)
+    w_sum, w_sum_chunk = sum(view_w_f_n), 0.0
+    w_skip_chunk = skip(rng, w_sum, n)
     @inbounds for i in n+1:length(a)
         w_el = ws[i]
-        w_sum += w_el
-        if w_sum > w_skip
-            p = w_el/w_sum
-            q = 1-p
-            z = exp((n-4)*log1p(-p))
-            t = rand(rng, Uniform(z*q*q*q*q,1.0))
-            k = @inline choose(n, p, q, t, z)
-            @inbounds for j in 1:k
-                r = rand(rng, j:n)
-                reservoir[r], reservoir[j] = reservoir[j], a[i]
-            end 
-            w_skip = @inline skip(rng, w_sum, n)
+        w_sum_chunk += w_el
+        if w_sum_chunk > w_skip_chunk
+            w_sum_new = w_sum + w_sum_chunk
+            p = w_el/w_sum_new
+            k = choose(rng, n, p)
+            if k == 1
+                reservoir[rand(rng, 1:n)] = a[i]
+            else
+                for j in 1:k
+        	    reservoir[rand(rng, j:n)], reservoir[j] = reservoir[j], a[i]
+                end
+            end
+            w_skip_chunk = skip(rng, w_sum_new, n)
+            w_sum, w_sum_chunk = w_sum_new, 0.0
         end
     end
-    return reservoir, w_sum
+    return reservoir, w_sum + w_sum_chunk
 end
 
-function skip(rng, w_sum::AbstractFloat, n)
-    k = exp(-randexp(rng)/n)
-    return w_sum/k
+function skip(rng, w_sum, n)
+    z = exp(-randexp(rng)/n)
+    return w_sum*((1-z)/z)
 end
 
-function choose(n, p, q, t, z)
-    x = z*q*q*q*(q + n*p)
+@inline function choose(rng, n, p)
+    z = exp(n*log1p(-p))
+    t = rand(rng, Uniform(z, 1.0))
+    s = n*p
+    q = 1-p
+    x = z + z*s/q
     x > t && return 1
-    x += n*p*(n-1)*p*z*q*q/2
+    s *= (n-1)*p
+    q *= 1-p
+    x += (s*z/q)/2
     x > t && return 2
-    x += n*p*(n-1)*p*(n-2)*p*z*q/6
+    s *= (n-2)*p
+    q *= 1-p
+    x += (s*z/q)/6
     x > t && return 3
-    x += n*p*(n-1)*p*(n-2)*p*(n-3)*p*z/24
+    s *= (n-3)*p
+    q *= 1-p
+    x += (s*z/q)/24
     x > t && return 4
+    s *= (n-4)*p
+    q *= 1-p
+    x += (s*z/q)/120
+    x > t && return 5
     return quantile(Binomial(n, p), t)
 end
 
