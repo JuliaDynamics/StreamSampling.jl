@@ -140,10 +140,16 @@ end
     if s.skip_w <= s.state
         p = w/s.state
         k = @inline choose(s.rng, n, p)
-        @inbounds for j in 1:k
-            r = rand(s.rng, j:n)
-            s.value[r], s.value[j] = s.value[j], el
-            update_order_multi!(s, r, j)
+        if k == 1
+            r = rand(s.rng, 1:n)
+            s.value[r] = el
+            update_order_single!(s, r)
+        else
+            @inbounds for j in 1:k
+                r = rand(s.rng, j:n)
+                s.value[r], s.value[j] = s.value[j], el
+                update_order_multi!(s, r, j)
+            end
         end
         s = @inline recompute_skip!(s, n)
     end
