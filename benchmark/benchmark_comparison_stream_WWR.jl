@@ -58,7 +58,7 @@ function update_state!(s::SampleMultiAlgAExpJWR, w)
 end
 
 function OnlineStatsBase.value(s::SampleMultiAlgAExpJWR)
-    return shuffle!(s.rng, last.(s.value.valtree))
+    return StreamSampling.faster_shuffle!(s.rng, last.(s.value.valtree))
 end
 
 a = Iterators.filter(x -> x != 1, 1:10^8)
