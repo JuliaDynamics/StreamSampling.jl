@@ -146,7 +146,7 @@ end
             update_order_single!(s, r)
         else
             @inbounds for j in 1:k
-                r = rand(s.rng, j:n)
+                r = @inline rand(s.rng, Random.Sampler(s.rng, j:n, Val(1)))
                 s.value[r], s.value[j] = s.value[j], el
                 update_order_multi!(s, r, j)
             end
