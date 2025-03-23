@@ -145,3 +145,12 @@ Base.IteratorEltype(::SeqSampleIter) = Base.HasEltype()
 Base.eltype(::SeqSampleIter) = Int
 Base.IteratorSize(::SeqSampleIter) = Base.HasLength()
 Base.length(s::SeqSampleIter) = s.n
+
+function faster_shuffle!(rng::AbstractRNG, vec::AbstractVector)
+    for i in 2:length(vec)
+        endi = (i-1) % UInt
+        j = @inline rand(rng, Random.Sampler(rng, UInt(0):endi, Val(1))) % Int + 1
+        vec[i], vec[j] = vec[j], vec[i]
+    end
+    vec
+end
