@@ -139,13 +139,17 @@ end
     end
     if s.skip_w <= s.state
         p = w/s.state
-        z = exp((n-4)*log1p(-p))
-        c = rand(s.rng, Uniform(z*(1-p)*(1-p)*(1-p)*(1-p), 1.0))
-        k = @inline choose(n, p, c, z)
-        @inbounds for j in 1:k
-            r = rand(s.rng, j:n)
-            s.value[r], s.value[j] = s.value[j], el
-            update_order_multi!(s, r, j)
+        k = @inline choose(s.rng, n, p)
+        if k == 1
+            r = @inline rand(s.rng, Random.Sampler(s.rng, 1:n, Val(1)))
+            s.value[r] = el
+            update_order_single!(s, r)
+        else
+            @inbounds for j in 1:k
+                r = @inline rand(s.rng, Random.Sampler(s.rng, j:n, Val(1)))
+                s.value[r], s.value[j] = s.value[j], el
+                update_order_multi!(s, r, j)
+            end
         end
         s = @inline recompute_skip!(s, n)
     end

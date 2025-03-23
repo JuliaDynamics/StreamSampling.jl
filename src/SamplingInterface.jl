@@ -185,7 +185,7 @@ Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, n::Int, me
     else
         m = method isa AlgL || method isa AlgR || method isa AlgD ? AlgD() : AlgORDSWR()
         s = collect(StreamSample{iter_type}(rng, iter, n, length(iter), m))
-        return ordered ? s : shuffle!(rng, s)
+        return ordered ? s : faster_shuffle!(rng, s)
     end
 end
 function itsample(rng::AbstractRNG, iter, wv::Function, method = AlgWRSWRSKIP(); iter_type = infer_eltype(iter))
@@ -206,7 +206,7 @@ function itsample(rngs::Tuple, iters::Tuple, n::Int,; iter_types = infer_eltype.
         vs[i], ps[i] = update_all_p!(s, iters[i])
     end
     ps /= sum(ps)
-    return shuffle!(rngs[1], reduce_samples(rngs, ps, vs))
+    return faster_shuffle!(rngs[1], reduce_samples(rngs, ps, vs))
 end
 function itsample(rngs::Tuple, iters::Tuple, wfuncs::Tuple, n::Int; iter_types = infer_eltype.(iters))
     n_it = length(iters)
@@ -217,7 +217,7 @@ function itsample(rngs::Tuple, iters::Tuple, wfuncs::Tuple, n::Int; iter_types =
         vs[i], ps[i] = update_all_p!(s, iters[i], wfuncs[i])
     end
     ps /= sum(ps)
-    return shuffle!(rngs[1], reduce_samples(rngs, ps, vs))
+    return faster_shuffle!(rngs[1], reduce_samples(rngs, ps, vs))
 end
 
 function update_all!(s, iter)
@@ -236,13 +236,13 @@ function update_all!(s, iter, ordered::Bool)
     for x in iter
         s = fit!(s, x)
     end
-    return ordered ? ordvalue(s) : shuffle!(s.rng, value(s))
+    return ordered ? ordvalue(s) : faster_shuffle!(s.rng, value(s))
 end
 function update_all!(s, iter, ordered, wv)
     for x in iter
         s = fit!(s, x, wv(x))
     end
-    return ordered ? ordvalue(s) : shuffle!(s.rng, value(s))
+    return ordered ? ordvalue(s) : faster_shuffle!(s.rng, value(s))
 end
 
 function update_all_p!(s, iter)
