@@ -141,7 +141,7 @@ end
         p = w/s.state
         k = @inline choose(s.rng, n, p)
         if k == 1
-            r = rand(s.rng, 1:n)
+            r = @inline rand(s.rng, Random.Sampler(s.rng, 1:n, Val(1)))
             s.value[r] = el
             update_order_single!(s, r)
         else
