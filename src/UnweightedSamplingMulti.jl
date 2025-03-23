@@ -73,7 +73,7 @@ end
         @inbounds s.value[s.seen_k] = el
         return s
     end
-    j = rand(s.rng, 1:s.seen_k)
+    j = @inline rand(s.rng, Random.Sampler(s.rng, 1:s.seen_k, Val(1)))
     if j <= n
         @inbounds s.value[j] = el
         update_order!(s, j)
@@ -91,7 +91,7 @@ end
         return s
     end
     if s.skip_k < s.seen_k
-        j = rand(s.rng, 1:n)
+        j = @inline rand(s.rng, Random.Sampler(s.rng, 1:n, Val(1)))
         @inbounds s.value[j] = el
         update_order!(s, j)
         s = @inline recompute_skip!(s, n)
