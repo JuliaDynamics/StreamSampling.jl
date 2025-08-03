@@ -96,8 +96,8 @@ struct AlgAExpJ <: ReservoirAlgorithm end
 Implements weighted random reservoir sampling with replacement. To be used with [`ReservoirSample`](@ref)
 or [`itsample`](@ref).
 
-Adapted from algorithm WRSWR-SKIP described in "Weighted Reservoir Sampling with Replacement from Multiple
-Data Streams, A. Meligrana, 2024". 
+Adapted from algorithm WRSWR-SKIP described in "Investigating Methods for Weighted Reservoir Sampling with
+Replacement, A. Meligrana, 2024".
 """
 struct AlgWRSWRSKIP <: ReservoirAlgorithm end
 
