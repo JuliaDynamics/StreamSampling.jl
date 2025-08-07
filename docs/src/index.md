@@ -23,7 +23,7 @@ julia> itsample(st, 5)
  91
 ```
 
-In some cases, one needs to control the updates the `ReservoirSample` will be subject to. In this case
+In some cases, one needs to control the updates the `ReservoirSampler` will be subject to. In this case
 you can simply use the `fit!` function to update the reservoir:
 
 ```julia
@@ -31,7 +31,7 @@ julia> using StreamSampling
 
 julia> st = 1:100;
 
-julia> rs = ReservoirSample{Int}(5);
+julia> rs = ReservoirSampler{Int}(5);
 
 julia> for x in st
            fit!(rs, x)
@@ -47,14 +47,14 @@ julia> value(rs)
 ```
 
 If the total number of elements in the stream is known beforehand and the sampling is unweighted, it is
-also possible to iterate over a `StreamSample` like so
+also possible to iterate over a `StreamSampler` like so
 
 ```julia
 julia> using StreamSampling
 
 julia> st = 1:100;
 
-julia> ss = StreamSample{Int}(st, 5, 100);
+julia> ss = StreamSampler{Int}(st, 5, 100);
 
 julia> r = Int[];
 
@@ -71,7 +71,7 @@ julia> r
  75
 ```
 
-The advantage of `StreamSample` iterators in respect to `ReservoirSample` is that they require `O(1)`
+The advantage of `StreamSampler` iterators in respect to `ReservoirSampler` is that they require `O(1)`
 memory if not collected, while reservoir techniques require `O(k)` memory where `k` is the number
 of elements in the sample.
 

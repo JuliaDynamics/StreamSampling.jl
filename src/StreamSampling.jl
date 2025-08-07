@@ -16,7 +16,7 @@ using Random
 using StatsBase
 
 export fit!, merge!, value, ordvalue, nobs, itsample
-export AbstractReservoirSample, ReservoirSample, StreamSample
+export AbstractReservoirSampler, ReservoirSampler, StreamSampler
 export AlgL, AlgR, AlgRSWRSKIP, AlgARes, AlgAExpJ, AlgWRSWRSKIP, AlgD, AlgORDSWR
 
 struct ImmutSample end
@@ -25,14 +25,14 @@ struct MutSample end
 struct Ord end
 struct Unord end
 
-abstract type AbstractStreamSample end
-abstract type AbstractReservoirSample <: OnlineStat{Any} end
+abstract type AbstractStreamSampler end
+abstract type AbstractReservoirSampler <: OnlineStat{Any} end
 
 abstract type StreamAlgorithm end
 abstract type ReservoirAlgorithm <: StreamAlgorithm end
 
 """
-Implements random sampling without replacement. To be used with [`StreamSample`](@ref)
+Implements random sampling without replacement. To be used with [`StreamSampler`](@ref)
 or [`itsample`](@ref).
 
 Adapted from algorithm D described in "An Efficient Algorithm for Sequential Random Sampling,
@@ -41,7 +41,7 @@ J. S. Vitter, 1987".
 struct AlgD <: StreamAlgorithm end
 
 """
-Implements random stream sampling with replacement. To be used with [`StreamSample`](@ref)
+Implements random stream sampling with replacement. To be used with [`StreamSampler`](@ref)
 or [`itsample`](@ref).
 
 Adapted from algorithm 4 described in "Generating Sorted Lists of Random Numbers, J. L. Bentley
@@ -50,7 +50,7 @@ et al., 1980".
 struct AlgORDSWR <: StreamAlgorithm end
 
 """
-Implements random reservoir sampling without replacement. To be used with [`ReservoirSample`](@ref)
+Implements random reservoir sampling without replacement. To be used with [`ReservoirSampler`](@ref)
 or [`itsample`](@ref).
 
 Adapted from algorithm R described in "Random sampling with a reservoir, J. S. Vitter, 1985".
@@ -58,7 +58,7 @@ Adapted from algorithm R described in "Random sampling with a reservoir, J. S. V
 struct AlgR <: ReservoirAlgorithm end
 
 """
-Implements random reservoir sampling without replacement. To be used with [`ReservoirSample`](@ref)
+Implements random reservoir sampling without replacement. To be used with [`ReservoirSampler`](@ref)
 or [`itsample`](@ref).
 
 Adapted from algorithm L described in "Random sampling with a reservoir, J. S. Vitter, 1985".
@@ -66,7 +66,7 @@ Adapted from algorithm L described in "Random sampling with a reservoir, J. S. V
 struct AlgL <: ReservoirAlgorithm end
 
 """
-Implements random reservoir sampling with replacement. To be used with [`ReservoirSample`](@ref)
+Implements random reservoir sampling with replacement. To be used with [`ReservoirSampler`](@ref)
 or [`itsample`](@ref).
 
 Adapted fron algorithm RSWR-SKIP described in "Reservoir-based Random Sampling with Replacement from 
@@ -75,7 +75,7 @@ Data Stream, B. Park et al., 2008".
 struct AlgRSWRSKIP <: ReservoirAlgorithm end
 
 """
-Implements weighted random reservoir sampling without replacement. To be used with [`ReservoirSample`](@ref)
+Implements weighted random reservoir sampling without replacement. To be used with [`ReservoirSampler`](@ref)
 or [`itsample`](@ref).
 
 Adapted from algorithm A-Res described in "Weighted random sampling with a reservoir, P. S. Efraimidis
@@ -84,7 +84,7 @@ et al., 2006".
 struct AlgARes <: ReservoirAlgorithm end
 
 """
-Implements weighted random reservoir sampling without replacement. To be used with [`ReservoirSample`](@ref)
+Implements weighted random reservoir sampling without replacement. To be used with [`ReservoirSampler`](@ref)
 or [`itsample`](@ref).
 
 Adapted from algorithm A-ExpJ described in "Weighted random sampling with a reservoir, P. S. Efraimidis
@@ -93,7 +93,7 @@ et al., 2006".
 struct AlgAExpJ <: ReservoirAlgorithm end
 
 """
-Implements weighted random reservoir sampling with replacement. To be used with [`ReservoirSample`](@ref)
+Implements weighted random reservoir sampling with replacement. To be used with [`ReservoirSampler`](@ref)
 or [`itsample`](@ref).
 
 Adapted from algorithm WRSWR-SKIP described in "Investigating Methods for Weighted Reservoir Sampling with

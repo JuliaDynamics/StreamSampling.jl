@@ -9,7 +9,7 @@
         @test a <= z <= b
         
         iter = Iterators.filter(x -> x != b + 1, a:b+1)
-        rs = ReservoirSample{Int}(method)
+        rs = ReservoirSampler{Int}(method)
         for x in iter
             fit!(rs, x, wv(x))
         end

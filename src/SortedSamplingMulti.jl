@@ -1,5 +1,5 @@
 
-struct SampleMultiAlgORD{T,R,I,D} <: AbstractStreamSample
+struct SampleMultiAlgORD{T,R,I,D} <: AbstractStreamSampler
     rng::R
     it::I
     n::Int
@@ -9,10 +9,10 @@ struct SampleMultiAlgORD{T,R,I,D} <: AbstractStreamSample
     end
 end
 
-function StreamSample{T}(rng::AbstractRNG, iter, n, N, ::AlgD) where T
+function StreamSampler{T}(rng::AbstractRNG, iter, n, N, ::AlgD) where T
     return SampleMultiAlgORD{T}(rng, iter, min(n, N), SeqSampleIter(rng, N, min(n, N)))
 end
-function StreamSample{T}(rng::AbstractRNG, iter, n, N, ::AlgORDSWR) where T
+function StreamSampler{T}(rng::AbstractRNG, iter, n, N, ::AlgORDSWR) where T
     return SampleMultiAlgORD{T}(rng, iter, n, SeqSampleIterWR(rng, N, n))
 end
 

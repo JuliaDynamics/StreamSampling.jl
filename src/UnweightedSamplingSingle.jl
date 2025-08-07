@@ -1,15 +1,15 @@
 
-@hybrid struct SampleSingleAlgRSWRSKIP{RT,R} <: AbstractReservoirSample
+@hybrid struct SampleSingleAlgRSWRSKIP{RT,R} <: AbstractReservoirSampler
     seen_k::Int
     skip_k::Int
     const rng::R
     rvalue::RT
 end
 
-function ReservoirSample{T}(rng::AbstractRNG, ::AlgRSWRSKIP, ::MutSample) where T
+function ReservoirSampler{T}(rng::AbstractRNG, ::AlgRSWRSKIP, ::MutSample) where T
     return SampleSingleAlgRSWRSKIP_Mut(0, 0, rng, RefVal_Immut{T}())
 end
-function ReservoirSample{T}(rng::AbstractRNG, ::AlgRSWRSKIP, ::ImmutSample) where T
+function ReservoirSampler{T}(rng::AbstractRNG, ::AlgRSWRSKIP, ::ImmutSample) where T
     return SampleSingleAlgRSWRSKIP_Immut(0, 0, rng, RefVal_Mut{T}())
 end
 

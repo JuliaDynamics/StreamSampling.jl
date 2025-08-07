@@ -6,7 +6,7 @@ consult the [ReadMe](https://github.com/JuliaDynamics/StreamSampling.jl).
 ## General Functionalities
 
 ```@docs
-ReservoirSample
+ReservoirSampler
 fit!
 merge!
 merge
@@ -14,7 +14,7 @@ empty!
 value
 ordvalue
 nobs
-StreamSample
+StreamSampler
 itsample
 ```
 

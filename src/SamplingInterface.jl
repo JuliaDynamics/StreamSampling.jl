@@ -1,7 +1,7 @@
 
 """
-    ReservoirSample{T}([rng], method = AlgRSWRSKIP())
-    ReservoirSample{T}([rng], n::Int, method = AlgL(); ordered = false)
+    ReservoirSampler{T}([rng], method = AlgRSWRSKIP())
+    ReservoirSampler{T}([rng], n::Int, method = AlgL(); ordered = false)
 
 Initializes a reservoir sample which can then be fitted with [`fit!`](@ref).
 The first signature represents a sample where only a single element is collected.
@@ -10,118 +10,118 @@ they were collected with [`ordvalue`](@ref).
 
 Look at the [`Sampling Algorithms`](@ref) section for the supported methods. 
 """
-struct ReservoirSample{T} 1 === 1 end
+struct ReservoirSampler{T} 1 === 1 end
 
-function ReservoirSample{T}(method::ReservoirAlgorithm = AlgRSWRSKIP()) where T
-    return ReservoirSample{T}(Random.default_rng(), method, MutSample())
+function ReservoirSampler{T}(method::ReservoirAlgorithm = AlgRSWRSKIP()) where T
+    return ReservoirSampler{T}(Random.default_rng(), method, MutSample())
 end
-function ReservoirSample{T}(rng::AbstractRNG, method::ReservoirAlgorithm = AlgRSWRSKIP()) where T
-    return ReservoirSample{T}(rng, method, MutSample())
+function ReservoirSampler{T}(rng::AbstractRNG, method::ReservoirAlgorithm = AlgRSWRSKIP()) where T
+    return ReservoirSampler{T}(rng, method, MutSample())
 end
-Base.@constprop :aggressive function ReservoirSample{T}(n::Integer, method::ReservoirAlgorithm=AlgL(); 
+Base.@constprop :aggressive function ReservoirSampler{T}(n::Integer, method::ReservoirAlgorithm=AlgL(); 
         ordered = false) where T
-    return ReservoirSample{T}(Random.default_rng(), n, method, MutSample(), ordered ? Ord() : Unord())
+    return ReservoirSampler{T}(Random.default_rng(), n, method, MutSample(), ordered ? Ord() : Unord())
 end
-Base.@constprop :aggressive function ReservoirSample{T}(rng::AbstractRNG, n::Integer, 
+Base.@constprop :aggressive function ReservoirSampler{T}(rng::AbstractRNG, n::Integer, 
         method::ReservoirAlgorithm=AlgL(); ordered = false) where T
-    return ReservoirSample{T}(rng, n, method, MutSample(), ordered ? Ord() : Unord())
+    return ReservoirSampler{T}(rng, n, method, MutSample(), ordered ? Ord() : Unord())
 end
 
 """
-    fit!(rs::AbstractReservoirSample, el)
-    fit!(rs::AbstractReservoirSample, el, w)
+    fit!(rs::AbstractReservoirSampler, el)
+    fit!(rs::AbstractReservoirSampler, el, w)
 
 Updates the reservoir sample by taking into account the element passed.
 If the sampling is weighted also the weight of the elements needs to be
 passed.
 """
-@inline OnlineStatsBase.fit!(s::AbstractReservoirSample, el) = OnlineStatsBase._fit!(s, el)
-@inline OnlineStatsBase.fit!(s::AbstractReservoirSample, el, w) = OnlineStatsBase._fit!(s, el, w)
+@inline OnlineStatsBase.fit!(s::AbstractReservoirSampler, el) = OnlineStatsBase._fit!(s, el)
+@inline OnlineStatsBase.fit!(s::AbstractReservoirSampler, el, w) = OnlineStatsBase._fit!(s, el, w)
 
 """
-    value(rs::AbstractReservoirSample)
+    value(rs::AbstractReservoirSampler)
 
 Returns the elements collected in the sample at the current 
 sampling stage.
 
 Note that even if the sampling respects the schema it is assigned
-when [`ReservoirSample`](@ref) is instantiated, some ordering in 
+when [`ReservoirSampler`](@ref) is instantiated, some ordering in 
 the sample can be more probable than others. To represent each one 
 with the same probability call `shuffle!` over the result.
 """
-OnlineStatsBase.value(s::AbstractReservoirSample) = error("Abstract version")
+OnlineStatsBase.value(s::AbstractReservoirSampler) = error("Abstract version")
 
 """
-    ordvalue(rs::AbstractReservoirSample)
+    ordvalue(rs::AbstractReservoirSampler)
 
 Returns the elements collected in the sample at the current 
 sampling stage in the order they were collected. This applies
-only when `ordered = true` is passed in [`ReservoirSample`](@ref).
+only when `ordered = true` is passed in [`ReservoirSampler`](@ref).
 """
-ordvalue(s::AbstractReservoirSample) = error("Not an ordered sample")
+ordvalue(s::AbstractReservoirSampler) = error("Not an ordered sample")
 
 """
-    nobs(rs::AbstractReservoirSample)
+    nobs(rs::AbstractReservoirSampler)
 
 Returns the total number of elements that have been observed so far 
 during the sampling process.
 """
-OnlineStatsBase.nobs(s::AbstractReservoirSample) = s.seen_k
+OnlineStatsBase.nobs(s::AbstractReservoirSampler) = s.seen_k
 
 """
-    Base.empty!(rs::AbstractReservoirSample)
+    Base.empty!(rs::AbstractReservoirSampler)
 
 Resets the reservoir sample to its initial state. 
 Useful to avoid allocating a new sample in some cases.
 """
-function Base.empty!(::AbstractReservoirSample)
+function Base.empty!(::AbstractReservoirSampler)
     error("Abstract Version")
 end
 
 """
-    Base.merge!(rs::AbstractReservoirSample, rs::AbstractReservoirSample...)
+    Base.merge!(rs::AbstractReservoirSampler, rs::AbstractReservoirSampler...)
 
 Updates the first reservoir sample by merging its value with the values
 of the other samples. Currently only supported for samples with replacement.
 """
-function Base.merge!(::AbstractReservoirSample)
+function Base.merge!(::AbstractReservoirSampler)
     error("Abstract Version")
 end
 
 """
-    Base.merge(rs::AbstractReservoirSample...)
+    Base.merge(rs::AbstractReservoirSampler...)
 
 Creates a new reservoir sample by merging the values
 of the samples passed. Currently only supported for sample
 with replacement.
 """
-function OnlineStatsBase.merge(::AbstractReservoirSample)
+function OnlineStatsBase.merge(::AbstractReservoirSampler)
     error("Abstract Version")
 end
 
 """
-    StreamSample{T}([rng], iter, n, [N], method = AlgD())
+    StreamSampler{T}([rng], iter, n, [N], method = AlgD())
 
 Initializes a stream sample, which can then be iterated over
 to return the sampling elements of the iterable `iter` which
 is assumed to have a eltype of `T`. The methods implemented in
-[`StreamSample`](@ref) require the knowledge of the total number
+[`StreamSampler`](@ref) require the knowledge of the total number
 of elements in the stream `N`, if not provided it is assumed to be
 available by calling `length(iter)`.
 """
-struct StreamSample{T} 1 === 1 end
+struct StreamSampler{T} 1 === 1 end
 
-function StreamSample{T}(iter, n, N, method::StreamAlgorithm = AlgD()) where T
-    return StreamSample{T}(Random.default_rng(), iter, n, N, method)
+function StreamSampler{T}(iter, n, N, method::StreamAlgorithm = AlgD()) where T
+    return StreamSampler{T}(Random.default_rng(), iter, n, N, method)
 end
-function StreamSample{T}(iter, n, method::StreamAlgorithm = AlgD()) where T
-    return StreamSample{T}(Random.default_rng(), iter, n, length(iter), method)
+function StreamSampler{T}(iter, n, method::StreamAlgorithm = AlgD()) where T
+    return StreamSampler{T}(Random.default_rng(), iter, n, length(iter), method)
 end
-function StreamSample{T}(rng::AbstractRNG, iter, n, method::StreamAlgorithm = AlgD()) where T
-    return StreamSample{T}(rng, iter, n, length(iter), method)
+function StreamSampler{T}(rng::AbstractRNG, iter, n, method::StreamAlgorithm = AlgD()) where T
+    return StreamSampler{T}(rng, iter, n, length(iter), method)
 end
-function StreamSample{T}(rng::AbstractRNG, iter, n, N, method::StreamAlgorithm = AlgD()) where T
-    return StreamSample{T}(rng, iter, n, N, method)
+function StreamSampler{T}(rng::AbstractRNG, iter, n, N, method::StreamAlgorithm = AlgD()) where T
+    return StreamSampler{T}(rng, iter, n, N, method)
 end
 
 """
@@ -171,7 +171,7 @@ end
 Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, method = AlgRSWRSKIP();
         iter_type = infer_eltype(iter))
     if Base.IteratorSize(iter) isa Base.SizeUnknown
-        s = ReservoirSample{iter_type}(rng, method, ImmutSample())
+        s = ReservoirSampler{iter_type}(rng, method, ImmutSample())
         return update_all!(s, iter)
     else 
         return sorted_sample_single(rng, iter)
@@ -180,21 +180,21 @@ end
 Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, n::Int, method = AlgL(); 
         iter_type = infer_eltype(iter), ordered = false)
     if Base.IteratorSize(iter) isa Base.SizeUnknown
-        s = ReservoirSample{iter_type}(rng, n, method, ImmutSample(), ordered ? Ord() : Unord())
+        s = ReservoirSampler{iter_type}(rng, n, method, ImmutSample(), ordered ? Ord() : Unord())
         return update_all!(s, iter, ordered)
     else
         m = method isa AlgL || method isa AlgR || method isa AlgD ? AlgD() : AlgORDSWR()
-        s = collect(StreamSample{iter_type}(rng, iter, n, length(iter), m))
+        s = collect(StreamSampler{iter_type}(rng, iter, n, length(iter), m))
         return ordered ? s : shuffle!(rng, s)
     end
 end
 function itsample(rng::AbstractRNG, iter, wv::Function, method = AlgWRSWRSKIP(); iter_type = infer_eltype(iter))
-    s = ReservoirSample{iter_type}(rng, method, ImmutSample())
+    s = ReservoirSampler{iter_type}(rng, method, ImmutSample())
     return update_all!(s, iter, wv)
 end
 Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, wv::Function, n::Int, method = AlgAExpJ(); 
         iter_type = infer_eltype(iter), ordered = false)
-    s = ReservoirSample{iter_type}(rng, n, method, ImmutSample(), ordered ? Ord() : Unord())
+    s = ReservoirSampler{iter_type}(rng, n, method, ImmutSample(), ordered ? Ord() : Unord())
     return update_all!(s, iter, ordered, wv)
 end
 function itsample(rngs::Tuple, iters::Tuple, n::Int,; iter_types = infer_eltype.(iters))
@@ -202,7 +202,7 @@ function itsample(rngs::Tuple, iters::Tuple, n::Int,; iter_types = infer_eltype.
     vs = Vector{Vector{Union{iter_types...}}}(undef, n_it)
     ps = Vector{Float64}(undef, n_it)
     Threads.@threads for i in 1:n_it
-        s = ReservoirSample{iter_types[i]}(rngs[i], n, AlgRSWRSKIP(), ImmutSample(), Unord())
+        s = ReservoirSampler{iter_types[i]}(rngs[i], n, AlgRSWRSKIP(), ImmutSample(), Unord())
         vs[i], ps[i] = update_all_p!(s, iters[i])
     end
     ps /= sum(ps)
@@ -213,7 +213,7 @@ function itsample(rngs::Tuple, iters::Tuple, wfuncs::Tuple, n::Int; iter_types =
     vs = Vector{Vector{Union{iter_types...}}}(undef, n_it)
     ps = Vector{Float64}(undef, n_it)
     Threads.@threads for i in 1:n_it
-        s = ReservoirSample{iter_types[i]}(rngs[i], n, AlgWRSWRSKIP(), ImmutSample(), Unord())
+        s = ReservoirSampler{iter_types[i]}(rngs[i], n, AlgWRSWRSKIP(), ImmutSample(), Unord())
         vs[i], ps[i] = update_all_p!(s, iters[i], wfuncs[i])
     end
     ps /= sum(ps)

@@ -8,7 +8,7 @@ using Random
 
 struct AlgAExpJWR end
 
-struct SampleMultiAlgAExpJWR{B, R, T} <: AbstractReservoirSample
+struct SampleMultiAlgAExpJWR{B, R, T} <: AbstractReservoirSampler
     n::Int
     seen_k::Int
     w_sum::Float64
@@ -18,7 +18,7 @@ struct SampleMultiAlgAExpJWR{B, R, T} <: AbstractReservoirSample
     weights::Vector{Float64}
 end
 
-function StreamSampling.ReservoirSample{T}(rng::AbstractRNG, n::Integer, ::AlgAExpJWR,
+function StreamSampling.ReservoirSampler{T}(rng::AbstractRNG, n::Integer, ::AlgAExpJWR,
         ::StreamSampling.ImmutSample, ::StreamSampling.Unord) where T
     value = BinaryHeap(Base.By(first, DataStructures.FasterForward()), Tuple{Float64,T}[])
     sizehint!(value, n)
