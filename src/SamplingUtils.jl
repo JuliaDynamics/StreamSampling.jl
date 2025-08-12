@@ -13,26 +13,26 @@ function infer_eltype(itr)
     ifelse(T2 !== Union{} && T2 <: T1, T2, T1)
 end
 
-struct SeqSampleIterWR{R}
+struct SeqIterWRSampler{R}
     rng::R
     N::Int
     n::Int
 end
 
-@inline function Base.iterate(s::SeqSampleIterWR)
+@inline function Base.iterate(s::SeqIterWRSampler)
     curmax = -log(Float64(s.N)) + randexp(s.rng)/s.n
     return (s.N - ceil(Int, exp(-curmax)) + 1, (s.n-1, curmax))
 end
-@inline function Base.iterate(s::SeqSampleIterWR, state)
+@inline function Base.iterate(s::SeqIterWRSampler, state)
     state[1] == 0 && return nothing
     curmax = state[2] + randexp(s.rng)/state[1]
     return (s.N - ceil(Int, exp(-curmax)) + 1, (state[1]-1, curmax))
 end
 
-Base.IteratorEltype(::SeqSampleIterWR) = Base.HasEltype()
-Base.eltype(::SeqSampleIterWR) = Int
-Base.IteratorSize(::SeqSampleIterWR) = Base.HasLength()
-Base.length(s::SeqSampleIterWR) = s.n
+Base.IteratorEltype(::SeqIterWRSampler) = Base.HasEltype()
+Base.eltype(::SeqIterWRSampler) = Int
+Base.IteratorSize(::SeqIterWRSampler) = Base.HasLength()
+Base.length(s::SeqIterWRSampler) = s.n
 
 # courtesy of StatsBase.jl for part of the implementation
 struct SeqSampleIter{R}
@@ -145,3 +145,18 @@ Base.IteratorEltype(::SeqSampleIter) = Base.HasEltype()
 Base.eltype(::SeqSampleIter) = Int
 Base.IteratorSize(::SeqSampleIter) = Base.HasLength()
 Base.length(s::SeqSampleIter) = s.n
+
+function fshuffle!(rng::AbstractRNG, vec::AbstractVector)
+    for i in 2:length(vec)
+        endi = (i-1) % UInt
+        j = @inline rand(rng, Random.Sampler(rng, UInt(0):endi, Val(1))) % Int + 1
+        vec[i], vec[j] = vec[j], vec[i]
+    end
+    vec
+end
+
+function ordmemory(n)
+    ord = Base.Memory{Int}(undef, n)
+    for i in eachindex(ord) ord[i] = i end
+    ord
+end

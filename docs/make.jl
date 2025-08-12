@@ -1,4 +1,6 @@
 using Documenter
+
+using BenchmarkTools
 using StreamSampling
 
 println("Documentation Build")
@@ -7,9 +9,11 @@ makedocs(
     sitename = "StreamSampling.jl",
     pages = [  
         "StreamSampling.jl" => "index.md",
+        "Basics" => "basics.md",
         "An Illustrative Example" => "example.md",
         "API" => "api.md",
-        "Benchmark Comparison" => "benchmark.md"
+        "Performance Tips" => "perf_tips.md", 
+        "Benchmarks" => "benchmark.md"
     ],
     warnonly = [:doctest, :missing_docs, :cross_references],
 )

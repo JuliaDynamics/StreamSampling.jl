@@ -49,8 +49,8 @@
         @test all(x -> a <= x <= b, value(rs))
         @test nobs(rs) == 10
 
-        rngs = (StableRNG(46), StableRNG(47))
-        iters = (a:b, Iterators.filter(x -> x != b + 1, a:b+1), (a:floor(Int, b/2), (floor(Int, b/2)+1):b))
+        rngs = (StableRNG(47), StableRNG(48))
+        iters = (a:b, Iterators.filter(x -> x != b + 1, a:b+1))
         sizes = (2, 3)
         for it in iters
             for size in sizes

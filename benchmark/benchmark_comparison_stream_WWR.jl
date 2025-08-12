@@ -8,7 +8,7 @@ using Random
 
 struct AlgAExpJWR end
 
-struct SampleMultiAlgAExpJWR{B, R, T} <: AbstractReservoirSampler
+struct MultiAlgAExpJSamplerWR{B, R, T} <: AbstractReservoirSampler
     n::Int
     seen_k::Int
     w_sum::Float64
@@ -19,15 +19,15 @@ struct SampleMultiAlgAExpJWR{B, R, T} <: AbstractReservoirSampler
 end
 
 function StreamSampling.ReservoirSampler{T}(rng::AbstractRNG, n::Integer, ::AlgAExpJWR,
-        ::StreamSampling.ImmutSample, ::StreamSampling.Unord) where T
+        ::StreamSampling.ImmutSampler, ::StreamSampling.Unord) where T
     value = BinaryHeap(Base.By(first, DataStructures.FasterForward()), Tuple{Float64,T}[])
     sizehint!(value, n)
     v = Vector{T}(undef, n)
     w = Vector{Float64}(undef, n)
-    return SampleMultiAlgAExpJWR(n, 0, 0.0, rng, value, v, w)
+    return MultiAlgAExpJSamplerWR(n, 0, 0.0, rng, value, v, w)
 end
 
-@inline function OnlineStatsBase._fit!(s::SampleMultiAlgAExpJWR, el, w)
+@inline function OnlineStatsBase._fit!(s::MultiAlgAExpJSamplerWR, el, w)
     n = s.n
     s = @inline update_state!(s, w)
     if s.seen_k <= n
@@ -51,14 +51,14 @@ end
 
 skip_single(rng, n) = n/rand(rng)
 
-function update_state!(s::SampleMultiAlgAExpJWR, w)
+function update_state!(s::MultiAlgAExpJSamplerWR, w)
     @update s.seen_k += 1
     @update s.w_sum += w
     return s
 end
 
-function OnlineStatsBase.value(s::SampleMultiAlgAExpJWR)
-    return shuffle!(s.rng, last.(s.value.valtree))
+function OnlineStatsBase.value(s::MultiAlgAExpJSamplerWR)
+    return StreamSampling.fshuffle!(s.rng, last.(s.value.valtree))
 end
 
 a = Iterators.filter(x -> x != 1, 1:10^8)
