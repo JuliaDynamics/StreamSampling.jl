@@ -9,8 +9,8 @@ hood to update the reservoir.
 Let's compare the performance of mutable and immutable samplers
 with a simple benchmark
 
-```julia
-using BenchmarkTools
+```@example 1
+using StreamSampling, BenchmarkTools
 
 function fit_iter!(rs, iter)
 	for i in iter
@@ -24,11 +24,11 @@ iter = 1:10^7;
 
 Running with both version we get
 
-```julia
+```@example 1
 @btime fit_iter!(rs, $iter) setup=(rs = ReservoirSampler{Int}(10, AlgRSWRSKIP(); mutable = true))
 ```
 
-```julia
+```@example 1
 @btime fit_iter!(rs, $iter) setup=(rs = ReservoirSampler{Int}(10, AlgRSWRSKIP(); mutable = false))
 ```
 
@@ -47,19 +47,19 @@ merge them together at the end.
 
 Suppose for instance to have these 2 iterators
 
-```julia
+```@example 1
 iters = [1:100, 101:200]
 ```
 
 then you create two reservoirs of the same type
 
-```julia
+```@example 1
 rs = [ReservoirSampler{Int}(10, AlgRSWRSKIP()) for i in 1:length(iters)]
 ```
 
 and after that you can just update them in parallel like so
 
-```julia
+```@example 1
 Threads.@threads for i in 1:length(iters)
 	for e in iters[i]
 		fit!(rs[i], e)
@@ -70,6 +70,6 @@ end
 then you can obtain a unique reservoir containing a summary of the union of the streams
 with
 
-```julia
+```@example 1
 merge(rs...)
 ```
