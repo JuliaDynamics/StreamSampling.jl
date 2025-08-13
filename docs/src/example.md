@@ -9,7 +9,7 @@ assume that the monitored statistic in this case is the mean of the data, and
 you want that to be lower than a certain threshold otherwise some malfunctioning
 is expected.
 
-```julia
+```@example 1
 using StreamSampling, Statistics, Random
 
 function monitor(stream, thr)
@@ -29,21 +29,21 @@ end
 
 We use some toy data for illustration
 
-```julia
+```@example 1
 stream = 1:10^8; # the data stream
 thr = 2*10^7; # the threshold for the mean monitoring
 ```
 
 Then, we run the monitoring
 
-```julia
+```@example 1
 rs = monitor(stream, thr);
 ```
 
 The number of observations until the detection is triggered is
 given by
 
-```julia
+```@example 1
 nobs(rs)
 ```
 
