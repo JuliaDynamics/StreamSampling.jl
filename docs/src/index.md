@@ -9,7 +9,7 @@ StreamSampling
 
 ```julia
 using Pkg
-Pkg.add("BeforeIT")
+Pkg.add("StreamSampling")
 ```
 
 ## Reproducibility
