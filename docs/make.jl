@@ -9,7 +9,7 @@ using Documenter
 makedocs(
     sitename = "StreamSampling.jl",
     pages = [
-        "StreamSampling.jl" => "index.md",
+        "Introduction" => "index.md",
         "Basics" => "basics.md",
         "An Illustrative Example" => "example.md",
         "Performance Tips" => "perf_tips.md", 
