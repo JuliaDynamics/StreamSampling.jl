@@ -25,12 +25,17 @@ iter = 1:10^7;
 
 Running with both version we get
 
-```@example 1
-@benchmark fit_iter!(rs, $iter) setup=(rs = ReservoirSampler{Int}(10, AlgRSWRSKIP(); mutable = true))
+```julia
+@btime fit_iter!(rs, $iter) setup=(rs = ReservoirSampler{Int}(10, AlgRSWRSKIP(); mutable = true))
 ```
-
-```@example 1
+```julia
+  6.535 ms (2 allocations: 144 bytes)
+```
+```
 @benchmark fit_iter!(rs, $iter) setup=(rs = ReservoirSampler{Int}(10, AlgRSWRSKIP(); mutable = false))
+```
+```julia
+  4.816 ms (2 allocations: 144 bytes)
 ```
 
 As you can see, the immutable version is 50% faster than 
