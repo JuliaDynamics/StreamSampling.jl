@@ -4,7 +4,10 @@
 By default, a `ReservoirSampler` is mutable, however, it is
 also possible to use an immutable version which supports
 all the basic operations. It uses `Accessors.jl` under the
-hood to update the reservoir:
+hood to update the reservoir.
+
+Let's compare the performance of mutable and immutable samplers
+with a simple benchmark
 
 ```julia
 using BenchmarkTools
@@ -16,9 +19,16 @@ function fit_iter!(rs, iter)
 	return rs
 end
 
-iter = 1:10^7
+iter = 1:10^7;
+```
 
+Running with both version we get
+
+```julia
 @btime fit_iter!(rs, $iter) setup=(rs = ReservoirSampler{Int}(10, AlgRSWRSKIP(); mutable = true))
+```
+
+```julia
 @btime fit_iter!(rs, $iter) setup=(rs = ReservoirSampler{Int}(10, AlgRSWRSKIP(); mutable = false))
 ```
 

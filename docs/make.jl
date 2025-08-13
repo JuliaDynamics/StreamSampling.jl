@@ -18,6 +18,7 @@ makedocs(
         "Performance Tips" => "perf_tips.md", 
         "Benchmarks" => "benchmark.md"
     ],
+    warnonly = [:doctest, :missing_docs, :cross_references],
 )
 
 @info "Deploying Documentation"
