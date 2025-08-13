@@ -4,12 +4,10 @@ using StreamSampling
 
 using BenchmarkTools
 using Documenter
-using Literate
 
 @info "Building Documentation"
 makedocs(
     sitename = "StreamSampling.jl",
-    format = Documenter.HTML(prettyurls = false, size_threshold = 409600),
     pages = [
         "StreamSampling.jl" => "index.md",
         "Basics" => "basics.md",
