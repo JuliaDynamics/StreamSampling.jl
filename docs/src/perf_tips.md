@@ -31,8 +31,8 @@ Running with both version we get
 ```julia
   6.535 ms (2 allocations: 144 bytes)
 ```
-```
-@benchmark fit_iter!(rs, $iter) setup=(rs = ReservoirSampler{Int}(10, AlgRSWRSKIP(); mutable = false))
+```julia
+@btime fit_iter!(rs, $iter) setup=(rs = ReservoirSampler{Int}(10, AlgRSWRSKIP(); mutable = false))
 ```
 ```julia
   4.816 ms (2 allocations: 144 bytes)
