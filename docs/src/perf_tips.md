@@ -1,5 +1,6 @@
+# Performance Tips
 
-# Use Immutable Reservoir Samplers
+## Use Immutable Reservoir Samplers
 
 By default, a `ReservoirSampler` is mutable, however, it is
 also possible to use an immutable version which supports
@@ -39,7 +40,7 @@ will be faster than the mutable one. Be careful though, because
 calling `fit!` on an immutable sampler won't modify it in-place,
 but only create a new updated instance.
 
-# Parallel Sampling from Multiple Streams
+## Parallel Sampling from Multiple Streams
 
 Let's say that you want to split the sampling of an iterator. If you can split the iterator into
 different partitions then you can update in parallel a reservoir sample for each partition and then
