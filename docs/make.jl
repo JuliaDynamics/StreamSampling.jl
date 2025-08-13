@@ -8,6 +8,7 @@ using Documenter
 @info "Building Documentation"
 makedocs(
     sitename = "StreamSampling.jl",
+    modules = [StreamSampling],
     pages = [
         "Introduction" => "index.md",
         "Basics" => "basics.md",
