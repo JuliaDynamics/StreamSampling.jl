@@ -14,10 +14,10 @@ with a simple benchmark
 using StreamSampling, BenchmarkTools
 
 function fit_iter!(rs, iter)
-	for i in iter
-		rs = fit!(rs, i) # the reassignment is necessary when `rs` is immutable
-	end
-	return rs
+    for i in iter
+        rs = fit!(rs, i) # the reassignment is necessary when `rs` is immutable
+    end
+    return rs
 end
 
 iter = 1:10^7;
@@ -62,9 +62,9 @@ and after that you can just update them in parallel like so
 
 ```@example 1
 Threads.@threads for i in 1:length(iters)
-	for e in iters[i]
-		fit!(rs[i], e)
-	end
+    for e in iters[i]
+        fit!(rs[i], e)
+    end
 end
 ```
 
