@@ -4,11 +4,11 @@
 st = 1:100;
 
 itsample(st, 5)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">5-element Vector{Int64}:
- 90
- 19
- 95
- 82
- 75</code></pre><p>In some cases, one needs to control the updates the <code>ReservoirSampler</code> will be subject to. In this case you can simply use the <code>fit!</code> function to update the reservoir:</p><pre><code class="language-julia hljs">st = 1:100;
+ 100
+  32
+  46
+  10
+  95</code></pre><p>In some cases, one needs to control the updates the <code>ReservoirSampler</code> will be subject to. In this case you can simply use the <code>fit!</code> function to update the reservoir:</p><pre><code class="language-julia hljs">st = 1:100;
 
 rs = ReservoirSampler{Int}(5);
 
@@ -17,11 +17,11 @@ for x in st
 end
 
 value(rs)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">5-element Vector{Int64}:
- 39
- 70
- 57
- 66
- 22</code></pre><p>If the total number of elements in the stream is known beforehand and the sampling is unweighted, it is also possible to iterate over a <code>StreamSampler</code> like so</p><pre><code class="language-julia hljs">st = 1:100;
+ 14
+ 11
+ 17
+ 16
+ 73</code></pre><p>If the total number of elements in the stream is known beforehand and the sampling is unweighted, it is also possible to iterate over a <code>StreamSampler</code> like so</p><pre><code class="language-julia hljs">st = 1:100;
 
 ss = StreamSampler{Int}(st, 5, 100);
 
@@ -32,8 +32,8 @@ for x in ss
 end
 
 r</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">5-element Vector{Int64}:
- 15
- 22
- 71
- 97
- 98</code></pre><p>The advantage of <code>StreamSampler</code> iterators in respect to <code>ReservoirSampler</code> is that they require <code>O(1)</code> memory if not collected, while reservoir techniques require <code>O(k)</code> memory where <code>k</code> is the number of elements in the sample.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="index.html">« StreamSampling.jl</a><a class="docs-footer-nextpage" href="example.html">An Illustrative Example »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Wednesday 13 August 2025 00:34">Wednesday 13 August 2025</span>. Using Julia version 1.11.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ 11
+ 60
+ 74
+ 79
+ 80</code></pre><p>The advantage of <code>StreamSampler</code> iterators in respect to <code>ReservoirSampler</code> is that they require <code>O(1)</code> memory if not collected, while reservoir techniques require <code>O(k)</code> memory where <code>k</code> is the number of elements in the sample.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="index.html">« StreamSampling.jl</a><a class="docs-footer-nextpage" href="example.html">An Illustrative Example »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Wednesday 13 August 2025 00:37">Wednesday 13 August 2025</span>. Using Julia version 1.11.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
