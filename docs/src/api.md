@@ -1,12 +1,15 @@
 # API
 
-This is the API page of the package. For a general overview of the functionalities 
-consult the [ReadMe](https://github.com/JuliaDynamics/StreamSampling.jl).
-
-## General Functionalities
+## Types
 
 ```@docs
 ReservoirSampler
+StreamSampler
+```
+
+## Methods
+
+```@docs
 fit!
 merge!
 merge
@@ -14,11 +17,10 @@ empty!
 value
 ordvalue
 nobs
-StreamSampler
 itsample
 ```
 
-## Sampling Algorithms
+## Algorithms
 
 ```@docs
 AlgR

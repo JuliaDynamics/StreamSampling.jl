@@ -1,5 +1,6 @@
+# Performance Tips
 
-# Use Immutable Reservoir Samplers
+## Use Immutable Reservoir Samplers
 
 By default, a `ReservoirSampler` is mutable, however, it is
 also possible to use an immutable version which supports
@@ -9,8 +10,8 @@ hood to update the reservoir.
 Let's compare the performance of mutable and immutable samplers
 with a simple benchmark
 
-```julia
-using BenchmarkTools
+```@example 1
+using StreamSampling, BenchmarkTools
 
 function fit_iter!(rs, iter)
 	for i in iter
@@ -24,11 +25,11 @@ iter = 1:10^7;
 
 Running with both version we get
 
-```julia
+```@example 1
 @btime fit_iter!(rs, $iter) setup=(rs = ReservoirSampler{Int}(10, AlgRSWRSKIP(); mutable = true))
 ```
 
-```julia
+```@example 1
 @btime fit_iter!(rs, $iter) setup=(rs = ReservoirSampler{Int}(10, AlgRSWRSKIP(); mutable = false))
 ```
 
@@ -39,7 +40,7 @@ will be faster than the mutable one. Be careful though, because
 calling `fit!` on an immutable sampler won't modify it in-place,
 but only create a new updated instance.
 
-# Parallel Sampling from Multiple Streams
+## Parallel Sampling from Multiple Streams
 
 Let's say that you want to split the sampling of an iterator. If you can split the iterator into
 different partitions then you can update in parallel a reservoir sample for each partition and then
@@ -47,19 +48,19 @@ merge them together at the end.
 
 Suppose for instance to have these 2 iterators
 
-```julia
+```@example 1
 iters = [1:100, 101:200]
 ```
 
 then you create two reservoirs of the same type
 
-```julia
+```@example 1
 rs = [ReservoirSampler{Int}(10, AlgRSWRSKIP()) for i in 1:length(iters)]
 ```
 
 and after that you can just update them in parallel like so
 
-```julia
+```@example 1
 Threads.@threads for i in 1:length(iters)
 	for e in iters[i]
 		fit!(rs[i], e)
@@ -70,6 +71,6 @@ end
 then you can obtain a unique reservoir containing a summary of the union of the streams
 with
 
-```julia
+```@example 1
 merge(rs...)
 ```
