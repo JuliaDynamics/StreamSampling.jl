@@ -12,9 +12,9 @@ makedocs(
         "StreamSampling.jl" => "index.md",
         "Basics" => "basics.md",
         "An Illustrative Example" => "example.md",
-        "API" => "api.md",
         "Performance Tips" => "perf_tips.md", 
-        "Benchmarks" => "benchmark.md"
+        "Benchmarks" => "benchmark.md",
+        "API" => "api.md",
     ],
     warnonly = [:doctest, :missing_docs, :cross_references],
 )

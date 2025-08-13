@@ -1,8 +1,15 @@
 
-# StreamSampling.jl
+# Introduction
 
 ```@docs
 StreamSampling
+```
+
+## Installation
+
+```julia
+using Pkg
+Pkg.add("StreamSampling")
 ```
 
 ## Reproducibility
