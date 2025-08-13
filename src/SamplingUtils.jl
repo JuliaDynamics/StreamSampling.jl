@@ -156,7 +156,7 @@ function fshuffle!(rng::AbstractRNG, vec::AbstractVector)
 end
 
 function ordmemory(n)
-    ord = Base.Memory{Int}(undef, n)
+    ord = Memory{Int}(undef, n)
     for i in eachindex(ord) ord[i] = i end
     ord
 end

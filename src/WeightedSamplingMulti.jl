@@ -25,11 +25,11 @@ const MultiOrdAlgAExpJSampler = Union{MultiAlgAExpJSampler_Immut{<:OrdWeighted},
     skip_w::F
     seen_k::Int
     const rng::R
-    const weights::Base.Memory{F}
+    const weights::Memory{F}
     const value::Vector{T}
     const ord::O
 end
-const MultiOrdAlgWRSWRSKIPSampler = Union{MultiAlgWRSWRSKIPSampler_Immut{<:Base.Memory}, MultiAlgWRSWRSKIPSampler_Mut{<:Base.Memory}}
+const MultiOrdAlgWRSWRSKIPSampler = Union{MultiAlgWRSWRSKIPSampler_Immut{<:Memory}, MultiAlgWRSWRSKIPSampler_Mut{<:Memory}}
 
 function ReservoirSampler{T,F}(rng::AbstractRNG, n::Integer, ::AlgAExpJ, ::MutSampler, ::Ord) where {T,F}
     value = BinaryHeap(Base.By(last, DataStructures.FasterForward()), Tuple{T, Int, F}[])
@@ -73,17 +73,17 @@ function ReservoirSampler{T,F}(rng::AbstractRNG, n::Integer, ::AlgARes, ::ImmutS
 end
 function ReservoirSampler{T,F}(rng::AbstractRNG, n::Integer, ::AlgWRSWRSKIP, ::MutSampler, ::Ord) where {T,F}
     ord = ordmemory(n)
-    return MultiAlgWRSWRSKIPSampler_Mut(n, zero(F), zero(F), 0, rng, Base.Memory{F}(undef, n), Vector{T}(undef, n), ord)
+    return MultiAlgWRSWRSKIPSampler_Mut(n, zero(F), zero(F), 0, rng, Memory{F}(undef, n), Vector{T}(undef, n), ord)
 end
 function ReservoirSampler{T,F}(rng::AbstractRNG, n::Integer, ::AlgWRSWRSKIP, ::MutSampler, ::Unord) where {T,F}
-    return MultiAlgWRSWRSKIPSampler_Mut(n, zero(F), zero(F), 0, rng, Base.Memory{F}(undef, n), Vector{T}(undef, n), nothing)
+    return MultiAlgWRSWRSKIPSampler_Mut(n, zero(F), zero(F), 0, rng, Memory{F}(undef, n), Vector{T}(undef, n), nothing)
 end
 function ReservoirSampler{T,F}(rng::AbstractRNG, n::Integer, ::AlgWRSWRSKIP, ::ImmutSampler, ::Ord) where {T,F}
     ord = ordmemory(n)
-    return MultiAlgWRSWRSKIPSampler_Immut(n, zero(F), zero(F), 0, rng, Base.Memory{F}(undef, n), Vector{T}(undef, n), ord)
+    return MultiAlgWRSWRSKIPSampler_Immut(n, zero(F), zero(F), 0, rng, Memory{F}(undef, n), Vector{T}(undef, n), ord)
 end
 function ReservoirSampler{T,F}(rng::AbstractRNG, n::Integer, ::AlgWRSWRSKIP, ::ImmutSampler, ::Unord) where {T,F}
-    return MultiAlgWRSWRSKIPSampler_Immut(n, zero(F), zero(F), 0, rng, Base.Memory{F}(undef, n), Vector{T}(undef, n), nothing)
+    return MultiAlgWRSWRSKIPSampler_Immut(n, zero(F), zero(F), 0, rng, Memory{F}(undef, n), Vector{T}(undef, n), nothing)
 end
 
 @inline function OnlineStatsBase._fit!(s::Union{MultiAlgAResSampler, MultiOrdAlgAResSampler}, el, w)

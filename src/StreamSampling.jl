@@ -7,6 +7,8 @@ module StreamSampling
     read(path, String)
 end StreamSampling
 
+isdefined(@__MODULE__, :Memory) || const Memory = Vector # Compat for Julia < 1.11
+
 using Accessors
 using DataStructures
 using Distributions

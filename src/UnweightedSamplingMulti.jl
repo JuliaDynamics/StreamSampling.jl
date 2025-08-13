@@ -6,7 +6,7 @@
     const value::Vector{T}
     const ord::O
 end
-const MultiOrdAlgRSampler = MultiAlgRSampler{<:Base.Memory}
+const MultiOrdAlgRSampler = MultiAlgRSampler{<:Memory}
 
 @hybrid struct MultiAlgLSampler{O,T,R,F} <: AbstractReservoirSampler
     const n::Int
@@ -17,7 +17,7 @@ const MultiOrdAlgRSampler = MultiAlgRSampler{<:Base.Memory}
     const value::Vector{T}
     const ord::O
 end
-const MultiOrdAlgLSampler = MultiAlgLSampler{<:Base.Memory}
+const MultiOrdAlgLSampler = MultiAlgLSampler{<:Memory}
 
 @hybrid struct MultiAlgRSWRSKIPSampler{O,T,R} <: AbstractReservoirSampler
     const n::Int
@@ -27,7 +27,7 @@ const MultiOrdAlgLSampler = MultiAlgLSampler{<:Base.Memory}
     const value::Vector{T}
     const ord::O
 end
-const MultiOrdAlgRSWRSKIPSampler = MultiAlgRSWRSKIPSampler{<:Base.Memory}
+const MultiOrdAlgRSWRSKIPSampler = MultiAlgRSWRSKIPSampler{<:Memory}
 
 function ReservoirSampler{T,F}(rng::AbstractRNG, n::Integer, ::AlgL, ::MutSampler, ::Ord) where {T,F}
     return MultiAlgLSampler_Mut(n, zero(F), 0, 0, rng, Vector{T}(undef, n), ordmemory(n))
