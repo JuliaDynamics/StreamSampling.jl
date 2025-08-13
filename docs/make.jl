@@ -1,15 +1,22 @@
-using Documenter
+
+@info "Loading packages..."
 using StreamSampling
 
-println("Documentation Build")
+using BenchmarkTools
+using Documenter
+using Literate
+
+@info "Building Documentation"
 makedocs(
-    modules = [StreamSampling],
     sitename = "StreamSampling.jl",
-    pages = [  
+    format = Documenter.HTML(prettyurls = false, size_threshold = 409600),
+    pages = [
         "StreamSampling.jl" => "index.md",
+        "Basics" => "basics.md",
         "An Illustrative Example" => "example.md",
         "API" => "api.md",
-        "Benchmark Comparison" => "benchmark.md"
+        "Performance Tips" => "perf_tips.md", 
+        "Benchmarks" => "benchmark.md"
     ],
     warnonly = [:doctest, :missing_docs, :cross_references],
 )
@@ -24,4 +31,4 @@ if CI
         devbranch = "main",
     )
 end
-println("Finished boulding and deploying docs.")
+println("Finished building and deploying docs.")

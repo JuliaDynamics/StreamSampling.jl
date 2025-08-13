@@ -10,7 +10,7 @@ using CairoMakie
 ################
 
 function weighted_reservoir_sample(rng, a, ws, n)
-    return shuffle!(rng, weighted_reservoir_sample_seq(rng, a, ws, n)[1])
+    return StreamSampling.fshuffle!(rng, weighted_reservoir_sample_seq(rng, a, ws, n)[1])
 end
 
 function weighted_reservoir_sample_seq(rng, a, ws, n)
@@ -25,12 +25,9 @@ function weighted_reservoir_sample_seq(rng, a, ws, n)
         w_sum += w_el
         if w_sum > w_skip
             p = w_el/w_sum
-            q = 1-p
-            z = exp((n-4)*log1p(-p))
-            t = rand(rng, Uniform(z*q*q*q*q,1.0))
-            k = @inline choose(n, p, q, t, z)
+            k = StreamSampling.choose(rng, n, p)
             @inbounds for j in 1:k
-                r = rand(rng, j:n)
+                r = rand(s.rng, Random.Sampler(s.rng, j:n, Val(1)))
                 reservoir[r], reservoir[j] = reservoir[j], a[i]
             end 
             w_skip = @inline skip(rng, w_sum, n)
@@ -42,18 +39,6 @@ end
 function skip(rng, w_sum::AbstractFloat, n)
     k = exp(-randexp(rng)/n)
     return w_sum/k
-end
-
-function choose(n, p, q, t, z)
-    x = z*q*q*q*(q + n*p)
-    x > t && return 1
-    x += n*p*(n-1)*p*z*q*q/2
-    x > t && return 2
-    x += n*p*(n-1)*p*(n-2)*p*z*q/6
-    x > t && return 3
-    x += n*p*(n-1)*p*(n-2)*p*(n-3)*p*z/24
-    x > t && return 4
-    return quantile(Binomial(n, p), t)
 end
 
 #####################
@@ -75,7 +60,7 @@ function weighted_reservoir_sample_parallel_1_pass(rngs, a, ws, n)
     Threads.@threads for i in 1:nt
         ss[i] = sample(rngs[i], ss[i], ns[i]; replace = false)
     end
-    return shuffle!(rngs[1], reduce(vcat, ss))
+    return fshuffle!(rngs[1], reduce(vcat, ss))
 end
 
 #####################
@@ -97,7 +82,7 @@ function weighted_reservoir_sample_parallel_2_pass(rngs, a, ws, n)
         s = weighted_reservoir_sample_seq(rngs[i], @view(a[inds]), @view(ws[inds]), ns[i])
         ss[i] = s[1]
     end
-    return shuffle!(rngs[1], reduce(vcat, ss))
+    return fshuffle!(rngs[1], reduce(vcat, ss))
 end
 
 function sample_parallel_2_pass(rngs, a, ws, n)
@@ -115,7 +100,7 @@ function sample_parallel_2_pass(rngs, a, ws, n)
         s = sample(rngs[i], @view(a[inds]), Weights(@view(ws[inds])), ns[i]; replace = true)
         ss[i] = s
     end
-    return shuffle!(rngs[1], reduce(vcat, ss))
+    return fshuffle!(rngs[1], reduce(vcat, ss))
 end
 
 ################

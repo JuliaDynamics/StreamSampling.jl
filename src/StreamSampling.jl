@@ -7,6 +7,8 @@ module StreamSampling
     read(path, String)
 end StreamSampling
 
+isdefined(@__MODULE__, :Memory) || const Memory = Vector # Compat for Julia < 1.11
+
 using Accessors
 using DataStructures
 using Distributions
@@ -19,20 +21,21 @@ export fit!, merge!, value, ordvalue, nobs, itsample
 export AbstractReservoirSampler, ReservoirSampler, StreamSampler
 export AlgL, AlgR, AlgRSWRSKIP, AlgARes, AlgAExpJ, AlgWRSWRSKIP, AlgD, AlgORDSWR
 
-struct ImmutSample end
-struct MutSample end
+struct ImmutSampler end
+struct MutSampler end
 
 struct Ord end
 struct Unord end
 
 abstract type AbstractStreamSampler end
 abstract type AbstractReservoirSampler <: OnlineStat{Any} end
+abstract type AbstractWeightedReservoirSampler <: AbstractReservoirSampler end
 
 abstract type StreamAlgorithm end
 abstract type ReservoirAlgorithm <: StreamAlgorithm end
 
 """
-Implements random sampling without replacement. To be used with [`StreamSampler`](@ref)
+Implements random stream sampling without replacement. To be used with [`StreamSampler`](@ref)
 or [`itsample`](@ref).
 
 Adapted from algorithm D described in "An Efficient Algorithm for Sequential Random Sampling,

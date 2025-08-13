@@ -1,3 +1,4 @@
+
 # An Illustrative Example
 
 Suppose to receive data about some process in the form of a stream and you want
@@ -9,43 +10,41 @@ you want that to be lower than a certain threshold otherwise some malfunctioning
 is expected.
 
 ```julia
-julia> using StreamSampling, Statistics, Random
+using StreamSampling, Statistics, Random
 
-julia> function monitor(stream, thr)
-           rng = Xoshiro(42)
-           # we use a reservoir sample of 10^4 elements
-           rs = ReservoirSampler{Int}(rng, 10^4)
-           # we loop over the stream and fit the data in the reservoir
-           for (i, e) in enumerate(stream)
-               fit!(rs, e)
-               # we check the mean value every 1000 iterations
-               if iszero(mod(i, 1000)) && mean(value(rs)) >= thr
-                   return rs
-               end
-           end
-       end
+function monitor(stream, thr)
+    rng = Xoshiro(42)
+    # we use a reservoir sample of 10^4 elements
+    rs = ReservoirSampler{Int}(rng, 10^4)
+    # we loop over the stream and fit the data in the reservoir
+    for (i, e) in enumerate(stream)
+        fit!(rs, e)
+        # we check the mean value every 1000 iterations
+        if iszero(mod(i, 1000)) && mean(value(rs)) >= thr
+            return rs
+        end
+    end
+end
 ```
 
 We use some toy data for illustration
 
 ```julia
-julia> stream = 1:10^8; # the data stream
-
-julia> thr = 2*10^7; # the threshold for the mean monitoring
+stream = 1:10^8; # the data stream
+thr = 2*10^7; # the threshold for the mean monitoring
 ```
 
 Then, we run the monitoring
 
 ```julia
-julia> rs = monitor(stream, thr);
+rs = monitor(stream, thr);
 ```
 
 The number of observations until the detection is triggered is
 given by
 
 ```julia
-julia> nobs(rs)
-40009000
+nobs(rs)
 ```
 
 which is very close to the true value of `4*10^7 - 1` observations.

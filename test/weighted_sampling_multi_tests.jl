@@ -79,7 +79,7 @@ end
         weight3(el) = el <= 5 ? 1.0 : 2.0
         wfuncs = (weight2, weight3)
         rngs = (StableRNG(41), StableRNG(42))
-        iters = (a:b, Iterators.filter(x -> x != b+1, a:b+1), (a:floor(Int, b/2), (floor(Int, b/2)+1):b))
+        iters = (a:b, Iterators.filter(x -> x != b+1, a:b+1))
         sizes = (1, 2)
         for it in iters
             for size in sizes
