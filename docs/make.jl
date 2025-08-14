@@ -12,7 +12,7 @@ makedocs(
     pages = [
         "Introduction" => "index.md",
         "Basics" => "basics.md",
-        "An Illustrative Example" => "example.md",
+        "Some Applications" => "example.md",
         "Performance Tips" => "perf_tips.md", 
         "Benchmarks" => "benchmark.md",
         "API" => "api.md",
