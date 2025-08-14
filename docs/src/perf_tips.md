@@ -39,9 +39,9 @@ Running with both version we get
 ```
 
 As you can see, the immutable version is 50% faster than 
-the mutable one. In general, more the ratio between reservoir 
-size and stream size is smaller, more the immutable version
-will be faster than the mutable one. Be careful though, because
+the mutable one. In general, the smaller the ratio between reservoir 
+size and stream size, the faster the immutable version
+will be than the mutable one. Be careful though, because
 calling `fit!` on an immutable sampler won't modify it in-place,
 but only create a new updated instance.
 
