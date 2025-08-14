@@ -211,7 +211,7 @@ end
 function Base.merge!(s1::MultiAlgAResSampler, ss::MultiAlgAResSampler...)
     length(typeof(s1.value.valtree).parameters) == 3 && error("Merging ordered reservoirs is not possible")
     s1.n > minimum(s.n for s in ss) && error("The size of the mutated reservoir should be the minimum size between all merged reservoir")
-    empty!(s1.value)
+    empty!(s1.value.valtree)
     newvalue = reduce_samples(TypeS(), s1, ss...)
     for e in newvalue
         push!(s1.value, e[1] => e[2])
@@ -222,7 +222,7 @@ end
 function Base.merge!(s1::MultiAlgAExpJSampler, ss::MultiAlgAExpJSampler...)
     length(typeof(s1.value.valtree).parameters) == 3 && error("Merging ordered reservoirs is not possible")
     s1.n > minimum(s.n for s in ss) && error("The size of the mutated reservoir should be the minimum size between all merged reservoir")
-    empty!(s1.value)
+    empty!(s1.value.valtree)
     newvalue = reduce_samples(TypeS(), s1, ss...)
     for e in newvalue
         push!(s1.value, e[1] => e[2])
