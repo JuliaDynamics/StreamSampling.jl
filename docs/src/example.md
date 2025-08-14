@@ -62,7 +62,7 @@ with `julia -t6 --gcthreads=6,1` on my machine
 
 ```julia
 function psample_large_hdf5_file(filename, rngs, n, alg)
-    rsv = [ReservoirSampler{DATATYPE}(rngs[i], n, alg) for i in 1:Threads.nthreads()]
+    rsv = [ReservoirSampler{dtype}(rngs[i], n, alg) for i in 1:Threads.nthreads()]
     h5open(filename, "r") do file
         dset = file["data"]
         for c in chunks(1:numchunks; n=ceil(Int, numchunks/Threads.nthreads()))
