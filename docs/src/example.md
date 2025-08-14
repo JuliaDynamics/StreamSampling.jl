@@ -87,8 +87,8 @@ rngs = [Xoshiro(i) for i in 1:Threads.nthreads()]
 
 As you can see, the speed-up is not linear in the number of threads. This is mainly due to
 the fact that accessing the chunks is single-threaded, so one would need to use `MPI.jl` as 
-explained at https://juliaio.github.io/HDF5.jl/stable/mpi/ to improve the multi-threading
-performance. Though, we are already sampling at 500MB/S, which is not bad!
+explained at [https://juliaio.github.io/HDF5.jl/stable/mpi/](https://juliaio.github.io/HDF5.jl/stable/mpi/) 
+to improve the multi-threading performance. Though, we are already sampling at 500MB/S, which is not bad!
 
 ## Monitoring
 
