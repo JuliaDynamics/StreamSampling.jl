@@ -31,12 +31,10 @@ function generate_file(filename, format)
             end
         end
     elseif format == :arrow
-        open(Arrow.Writer, filename) do writer
-            for i in 1:numchunks
-                starttpl, endtpl = (i-1)*chunktpl+1, min(i*chunktpl, totaltpl)
-                Arrow.write(writer, (data=map(i -> (a=rand(), b=rand(), c=rand(), d=rand()), 
-                                              1:endtpl-starttpl+1),))
-            end
+        for i in 1:numchunks
+            starttpl, endtpl = (i-1)*chunktpl+1, min(i*chunktpl, totaltpl)
+            Arrow.append("random_data.arrow", (data=map(i -> (a=rand(), b=rand(), c=rand(), d=rand()), 
+                                               1:endtpl-starttpl+1),);file=false)
         end
     end
 end
@@ -129,9 +127,8 @@ rngs = [Xoshiro(i) for i in 1:Threads.nthreads()]
 
 As you can see, the speed-up is not linear in the number of threads for an hdf5 file. This is
 mainly due to the fact that accessing the chunks is single-threaded, so one would need to use
-`MPI.jl` as  explained at https://juliaio.github.io/HDF5.jl/stable/mpi/ to improve the multi-threading
-performance. Though, we are already sampling at 500MB/s, which is not bad!
-
+`MPI.jl` as  explained at [HDF5.jl/stable/mpi/](https://juliaio.github.io/HDF5.jl/stable/mpi/) to
+improve the multi-threading performance. Though, we are already sampling at 500MB/s, which is not bad!
 Using `Arrow.jl` gives an even better performance, and a scalability which is better than
 linear somehow, reaching a 2GB/s sampling speed!
 
