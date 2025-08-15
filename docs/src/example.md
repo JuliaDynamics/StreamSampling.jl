@@ -31,12 +31,10 @@ function generate_file(filename, format)
             end
         end
     elseif format == :arrow
-        open(Arrow.Writer, filename) do writer
-            for i in 1:numchunks
-                starttpl, endtpl = (i-1)*chunktpl+1, min(i*chunktpl, totaltpl)
-                Arrow.write(writer, (data=map(i -> (a=rand(), b=rand(), c=rand(), d=rand()), 
-                                              1:endtpl-starttpl+1),))
-            end
+        for i in 1:numchunks
+            starttpl, endtpl = (i-1)*chunktpl+1, min(i*chunktpl, totaltpl)
+            Arrow.append("random_data.arrow", (data=map(i -> (a=rand(), b=rand(), c=rand(), d=rand()), 
+                                               1:endtpl-starttpl+1),);file=false)
         end
     end
 end
