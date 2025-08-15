@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Some Applications · StreamSampling.jl</title><meta name="title" content="Some Applications · StreamSampling.jl"/><meta property="og:title" content="Some Applications · StreamSampling.jl"/><meta property="twitter:title" content="Some Applications · StreamSampling.jl"/><meta name="description" content="Documentation for StreamSampling.jl."/><meta property="og:description" content="Documentation for StreamSampling.jl."/><meta property="twitter:description" content="Documentation for StreamSampling.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">StreamSampling.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li><a class="tocitem" href="../basics/">Basics</a></li><li class="is-active"><a class="tocitem" href>Some Applications</a><ul class="internal"><li><a class="tocitem" href="#Sampling-from-Data-on-Disk"><span>Sampling from Data on Disk</span></a></li><li><a class="tocitem" href="#Monitoring"><span>Monitoring</span></a></li></ul></li><li><a class="tocitem" href="../perf_tips/">Performance Tips</a></li><li><a class="tocitem" href="../benchmark/">Benchmarks</a></li><li><a class="tocitem" href="../api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Some Applications</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Some Applications</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/StreamSampling.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/JuliaDynamics/StreamSampling.jl/blob/main/docs/src/example.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Some-Applications"><a class="docs-heading-anchor" href="#Some-Applications">Some Applications</a><a id="Some-Applications-1"></a><a class="docs-heading-anchor-permalink" href="#Some-Applications" title="Permalink"></a></h1><h2 id="Sampling-from-Data-on-Disk"><a class="docs-heading-anchor" href="#Sampling-from-Data-on-Disk">Sampling from Data on Disk</a><a id="Sampling-from-Data-on-Disk-1"></a><a class="docs-heading-anchor-permalink" href="#Sampling-from-Data-on-Disk" title="Permalink"></a></h2><p>Suppose we want to sample from large datasets stored on disk. <code>StreamSampling.jl</code> is very suited for this task. Let&#39;s simulate this task by generating some data in  HDF5 and arrow formats and batch sampling them. You will need 20GB of space on disk for running this example. If not available you can set a smaller size for <code>totaltpl</code>.</p><p>We first generate the datasets and store them with</p><pre><code class="language-julia hljs">using StreamSampling, Random, ChunkSplitters
+using HDF5, Arrow
+
+const dtype = @NamedTuple{a::Float64, b::Float64, c::Float64, d::Float64}
+const totaltpl = 10^10÷32
+const chunktpl = 5*10^5
+const numchunks = ceil(Int, totaltpl / chunktpl)
+
+function generate_file(filename, format)
+    if format == :hdf5
+        h5open(filename, &quot;w&quot;) do file
+            dset = create_dataset(file, &quot;data&quot;, dtype, (totaltpl,), chunk=(chunktpl,))
+            Threads.@threads for i in 1:numchunks
+                starttpl, endtpl = (i-1)*chunktpl+1, min(i*chunktpl, totaltpl)
+                dset[starttpl:endtpl] = map(i -&gt; (a=rand(), b=rand(), c=rand(), d=rand()), 
+                                            1:endtpl-starttpl+1)
+            end
+        end
+    elseif format == :arrow
+        for i in 1:numchunks
+            starttpl, endtpl = (i-1)*chunktpl+1, min(i*chunktpl, totaltpl)
+            Arrow.append(&quot;random_data.arrow&quot;, (data=map(i -&gt; (a=rand(), b=rand(), c=rand(), d=rand()), 
+                                               1:endtpl-starttpl+1),);file=false)
+        end
+    end
+end
+
+!isfile(&quot;random_data.h5&quot;) &amp;&amp; generate_file(&quot;random_data.h5&quot;, :hdf5)
+!isfile(&quot;random_data.arrow&quot;) &amp;&amp; generate_file(&quot;random_data.arrow&quot;, :arrow)</code></pre><p>Then we can sample them using 1 thread with</p><pre><code class="language-julia hljs">function sample_file(filename, rng, n, alg, format)
+    rs = ReservoirSampler{dtype}(rng, n, alg)
+    if format == :hdf5
+        h5open(filename, &quot;r&quot;) do file
+            dset = file[&quot;data&quot;]
+            for i in 1:numchunks
+                starttpl, endtpl = (i-1)*chunktpl+1, min(i*chunktpl, totaltpl)
+                data_chunk = dset[starttpl:endtpl]
+                for d in data_chunk
+                    fit!(rs, d)
+                end
+            end
+        end
+    elseif format == :arrow
+        rs = ReservoirSampler{dtype}(rng, n, alg)
+        data = Arrow.Table(filename).data
+        @inbounds for i in 1:length(data)
+            fit!(rs, data[i])
+        end
+    end
+    return rs
+end
+
+rng = Xoshiro(42)
+@time rs = sample_file(&quot;random_data.h5&quot;, rng, 10^7, AlgRSWRSKIP(), :hdf5)</code></pre><pre><code class="language-julia hljs"> 43.514238 seconds (937.21 M allocations: 42.502 GiB, 2.57% gc time)</code></pre><pre><code class="language-julia hljs">@time rs = sample_file(&quot;random_data.arrow&quot;, rng, 10^7, AlgRSWRSKIP(), :arrow)</code></pre><pre><code class="language-julia hljs"> 38.635389 seconds (1.25 G allocations: 33.500 GiB, 3.52% gc time, 75763 lock conflicts)</code></pre><p>We can try to improve the performance by using multiple threads. Here, I started Julia with <code>julia -t4 --gcthreads=4,1</code> on my machine</p><pre><code class="language-julia hljs">function psample_file(filename, rngs, n, alg, format)
+    rsv = [ReservoirSampler{dtype}(rngs[i], n, alg) for i in 1:Threads.nthreads()]
+    if format == :hdf5
+        h5open(filename, &quot;r&quot;) do file
+            dset = file[&quot;data&quot;]
+            for c in chunks(1:numchunks; n=ceil(Int, numchunks/Threads.nthreads()))
+                Threads.@threads for (j, i) in collect(enumerate(c))
+                    starttpl, endtpl = (i-1)*chunktpl+1, min(i*chunktpl, totaltpl)
+                    data_chunk, rs = dset[starttpl:endtpl], rsv[j]
+                    for d in data_chunk
+                        fit!(rs, d)
+                    end
+                end
+            end
+        end
+    elseif format == :arrow
+        data = Arrow.Table(filename).data
+        Threads.@threads for (i,c) in enumerate(chunks(1:length(data), n=Threads.nthreads()))
+            @inbounds for j in c
+                fit!(rsv[i], data[j])
+            end
+        end
+    end
+    return merge(rsv...)
+end
+
+rngs = [Xoshiro(i) for i in 1:Threads.nthreads()]
+@time rs = psample_file(&quot;random_data.h5&quot;, rngs, 10^7, AlgRSWRSKIP(), :hdf5)</code></pre><pre><code class="language-julia hljs"> 23.240628 seconds (937.23 M allocations: 45.185 GiB, 9.52% gc time, 9375 lock conflicts)</code></pre><pre><code class="language-julia hljs">@time rs = psample_file(&quot;random_data.arrow&quot;, rngs, 10^7, AlgRSWRSKIP(), :arrow)</code></pre><pre><code class="language-julia hljs"> 5.868995 seconds (175.91 k allocations: 3.288 GiB, 6.44% gc time, 64714 lock conflicts)</code></pre><p>As you can see, the speed-up is not linear in the number of threads for an hdf5 file. This is mainly due to the fact that accessing the chunks is single-threaded, so one would need to use <code>MPI.jl</code> as  explained at <a href="https://juliaio.github.io/HDF5.jl/stable/mpi/">HDF5.jl/stable/mpi/</a> to improve the multi-threading performance. Though, we are already sampling at 500MB/s, which is not bad! Using <code>Arrow.jl</code> gives an even better performance, and a scalability which is better than linear somehow, reaching a 2GB/s sampling speed!</p><h2 id="Monitoring"><a class="docs-heading-anchor" href="#Monitoring">Monitoring</a><a id="Monitoring-1"></a><a class="docs-heading-anchor-permalink" href="#Monitoring" title="Permalink"></a></h2><p>Suppose to receive data about some process in the form of a stream and you want to detect if anything is going wrong in the data being received. A reservoir  sampling approach could be useful to evaluate properties on the data stream.  This is a demonstration of such a use case using <code>StreamSampling.jl</code>. We will assume that the monitored statistic in this case is the mean of the data, and  you want that to be lower than a certain threshold otherwise some malfunctioning is expected</p><pre><code class="language-julia hljs">using StreamSampling, Statistics, Random
+
+function monitor(stream, thr)
+    rng = Xoshiro(42)
+    # we use a reservoir sample of 10^4 elements
+    rs = ReservoirSampler{Int}(rng, 10^4)
+    # we loop over the stream and fit the data in the reservoir
+    for (i, e) in enumerate(stream)
+        fit!(rs, e)
+        # we check the mean value every 1000 iterations
+        if iszero(mod(i, 1000)) &amp;&amp; mean(value(rs)) &gt;= thr
+            return rs
+        end
+    end
+end</code></pre><p>We use some toy data for illustration</p><pre><code class="language-julia hljs">stream = 1:10^8; # the data stream
+thr = 2*10^7; # the threshold for the mean monitoring</code></pre><p>Then, we run the monitoring</p><pre><code class="language-julia hljs">rs = monitor(stream, thr);</code></pre><p>The number of observations until the detection is triggered is given by</p><pre><code class="language-julia hljs">nobs(rs)</code></pre><p>which is very close to the true value of <code>4*10^7 - 1</code> observations.</p><p>Note that in this case we could use an online mean methods,  instead of holding all the sample into memory. However,  the approach with the sample is more general because it allows to estimate any statistic about the stream. </p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../basics/">« Basics</a><a class="docs-footer-nextpage" href="../perf_tips/">Performance Tips »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Friday 15 August 2025 11:48">Friday 15 August 2025</span>. Using Julia version 1.11.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
