@@ -277,5 +277,3 @@ function ordvalue(s::MultiOrdAlgRSWRSKIPSampler)
         return s.value[sortperm(s.ord)]
     end
 end
-
-
