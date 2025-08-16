@@ -164,21 +164,21 @@ end
 
 macro quantile_fast(k)
     block = Expr(:block)
-    initial_code = quote
+    firstv = quote
         $(esc(:s)) = $(esc(:n)) * $(esc(:p))
         $(esc(:q)) = 1. - $(esc(:p))
         $(esc(:x)) = 1. + $(esc(:s)) / $(esc(:q))
         $(esc(:x)) > $(esc(:nt)) && return 1
     end
-    append!(block.args, initial_code.args)
+    append!(block.args, firstv.args)
     for i in 2:k
-        iteration_code = quote
+        nextv = quote
             $(esc(:s)) *= ($(esc(:n)) - $i) * $(esc(:p))
             $(esc(:q)) *= 1. - $(esc(:p))
             $(esc(:x)) += $(esc(:s)) / ($(esc(:q)) * $(factorial(i)))
             $(esc(:x)) > $(esc(:nt)) && return $i
         end
-        append!(block.args, iteration_code.args)
+        append!(block.args, nextv.args)
     end
     return block
 end
@@ -277,4 +277,5 @@ function ordvalue(s::MultiOrdAlgRSWRSKIPSampler)
         return s.value[sortperm(s.ord)]
     end
 end
+
 
