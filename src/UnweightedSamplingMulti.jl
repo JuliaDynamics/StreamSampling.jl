@@ -165,26 +165,27 @@ end
 @inline function choose(rng, n, p)
     z = exp(n*log1p(-p))
     t = rand(rng, Uniform(z, 1.0))
+    nt = t/z
     s = n*p
     q = 1-p
-    x = z + z*s/q
-    x > t && return 1
+    x = 1 + s/q
+    x > nt && return 1
     s *= (n-1)*p
     q *= 1-p
-    x += (s*z/q)/2
-    x > t && return 2
+    x += s/(q*2)
+    x > nt && return 2
     s *= (n-2)*p
     q *= 1-p
-    x += (s*z/q)/6
-    x > t && return 3
+    x += s/(q*6)
+    x > nt && return 3
     s *= (n-3)*p
     q *= 1-p
-    x += (s*z/q)/24
-    x > t && return 4
+    x += s/(q*24)
+    x > nt && return 4
     s *= (n-4)*p
     q *= 1-p
-    x += (s*z/q)/120
-    x > t && return 5
+    x += s/(q*120)
+    x > nt && return 5
     return quantile(Binomial(n, p), t)
 end
 
@@ -274,3 +275,4 @@ function ordvalue(s::MultiOrdAlgRSWRSKIPSampler)
         return s.value[sortperm(s.ord)]
     end
 end
+
