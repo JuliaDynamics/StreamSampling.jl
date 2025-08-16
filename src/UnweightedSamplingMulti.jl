@@ -162,30 +162,32 @@ function recompute_skip!(s::MultiAlgRSWRSKIPSampler, n)
     return s
 end
 
+macro quantile_fast(k)
+    block = Expr(:block)
+    initial_code = quote
+        $(esc(:s)) = $(esc(:n)) * $(esc(:p))
+        $(esc(:q)) = 1 - $(esc(:p))
+        $(esc(:x)) = 1 + $(esc(:s)) / $(esc(:q))
+        $(esc(:x)) > $(esc(:nt)) && return 1
+    end
+    append!(block.args, initial_code.args)
+    for i in 2:k
+        iteration_code = quote
+            $(esc(:s)) *= ($(esc(:n)) - $i) * $(esc(:p))
+            $(esc(:q)) *= 1 - $(esc(:p))
+            $(esc(:x)) += $(esc(:s)) / ($(esc(:q)) * $(factorial(i)))
+            $(esc(:x)) > $(esc(:nt)) && return $i
+        end
+        append!(block.args, iteration_code.args)
+    end
+    return block
+end
+
 @inline function choose(rng, n, p)
     z = exp(n*log1p(-p))
     t = rand(rng, Uniform(z, 1.0))
     nt = t/z
-    s = n*p
-    q = 1-p
-    x = 1 + s/q
-    x > nt && return 1
-    s *= (n-1)*p
-    q *= 1-p
-    x += s/(q*2)
-    x > nt && return 2
-    s *= (n-2)*p
-    q *= 1-p
-    x += s/(q*6)
-    x > nt && return 3
-    s *= (n-3)*p
-    q *= 1-p
-    x += s/(q*24)
-    x > nt && return 4
-    s *= (n-4)*p
-    q *= 1-p
-    x += s/(q*120)
-    x > nt && return 5
+    @quantile_fast(8)
     return quantile(Binomial(n, p), t)
 end
 
@@ -275,4 +277,5 @@ function ordvalue(s::MultiOrdAlgRSWRSKIPSampler)
         return s.value[sortperm(s.ord)]
     end
 end
+
 
