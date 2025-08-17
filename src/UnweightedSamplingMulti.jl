@@ -250,7 +250,7 @@ function OnlineStatsBase.value(s::Union{MultiAlgRSampler, MultiAlgLSampler})
     end
 end
 function OnlineStatsBase.value(s::MultiAlgRSWRSKIPSampler)
-    if nobs(s) <= length(s.value)
+    if nobs(s) < length(s.value)
         if nobs(s) == 0
             return s.value[1:0]
         else
@@ -279,4 +279,5 @@ function ordvalue(s::MultiOrdAlgRSWRSKIPSampler)
         return s.value[sortperm(s.ord)]
     end
 end
+
 
