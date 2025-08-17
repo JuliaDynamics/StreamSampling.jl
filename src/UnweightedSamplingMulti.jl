@@ -105,7 +105,9 @@ end
         @inbounds s.value[s.seen_k] = el
         if s.seen_k === n
             s = @inline recompute_skip!(s, n)
-            s.value .= sample(s.rng, s.value, n, ordered=is_ordered(s))
+            for (i, j) in enumerate(SeqIterWRSampler(s.rng, n, n))
+                @inbounds s.value[i] = j
+            end
         end
         return s
     end
@@ -277,5 +279,6 @@ function ordvalue(s::MultiOrdAlgRSWRSKIPSampler)
         return s.value[sortperm(s.ord)]
     end
 end
+
 
 
