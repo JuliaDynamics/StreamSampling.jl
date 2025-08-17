@@ -130,8 +130,17 @@ end
         @inbounds s.value[s.seen_k] = el
         @inbounds s.weights[s.seen_k] = w
         if s.seen_k == n
-            s.value .= sample(s.rng, s.value, Weights(s.weights, s.state), n; 
-                              ordered = is_ordered(s))
+            randexps = randexp(s.rng, n)
+            ratio = s.state/(sum(randexps) + randexp(s.rng))
+            j, csweights, limit = 1, first(s.weights), 0.0
+            for i in eachindex(s.value, s.weights, randexps)
+                limit += randexps[i] * ratio
+                while csweights < limit
+                    j += 1
+                    csweights += s.weights[j]
+                end
+                s.value[i] = j
+            end
             s = @inline recompute_skip!(s, n)
         end
         return s
