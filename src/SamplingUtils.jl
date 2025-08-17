@@ -19,11 +19,7 @@ struct SeqIterWRSampler{R}
     n::Int
 end
 
-@inline function Base.iterate(s::SeqIterWRSampler)
-    curmax = -log(Float64(s.N)) + randexp(s.rng)/s.n
-    return (s.N - ceil(Int, exp(-curmax)) + 1, (s.n-1, curmax))
-end
-@inline function Base.iterate(s::SeqIterWRSampler, state)
+@inline function Base.iterate(s::SeqIterWRSampler, state = (s.n, -log(Float64(s.N))))
     state[1] == 0 && return nothing
     curmax = state[2] + randexp(s.rng)/state[1]
     return (s.N - ceil(Int, exp(-curmax)) + 1, (state[1]-1, curmax))

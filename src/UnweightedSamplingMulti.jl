@@ -278,4 +278,3 @@ function ordvalue(s::MultiOrdAlgRSWRSKIPSampler)
     end
 end
 
-

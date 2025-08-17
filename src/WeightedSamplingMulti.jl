@@ -128,10 +128,18 @@ end
     s = @inline update_state!(s, w)
     if s.seen_k <= n
         @inbounds s.value[s.seen_k] = el
-        @inbounds s.weights[s.seen_k] = w
+        @inbounds s.weights[s.seen_k] = s.state
         if s.seen_k == n
-            s.value .= sample(s.rng, s.value, Weights(s.weights, s.state), n; 
-                              ordered = is_ordered(s))
+            j, curx = 1, 0.0
+            newvalues = similar(s.value)
+            @inbounds for i in n:-1:1
+                curx += (1-exp(-randexp(s.rng)/i))*(1-curx)
+                while s.weights[j] < curx * s.state
+                    j += 1
+                end
+                newvalues[i] = s.value[j]
+            end
+            s.value .= newvalues
             s = @inline recompute_skip!(s, n)
         end
         return s
@@ -302,8 +310,12 @@ function OnlineStatsBase.value(s::Union{MultiAlgAResSampler, MultiAlgAExpJSample
     end
 end
 function OnlineStatsBase.value(s::MultiAlgWRSWRSKIPSampler)
+    nobs(s) == 0 && return s.value[1:0]
     if nobs(s) < length(s.value)
-        return nobs(s) == 0 ? s.value[1:0] : sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value))
+        weightsnew = Vector{Float64}(undef, nobs(s))
+        weightsnew[1] = s.weights[1]
+        for i in 2:nobs(s) weightsnew[i] = s.weights[i] - s.weights[i-1] end
+        return sample(s.rng, s.value[1:nobs(s)], weights(weightsnew), length(s.value))
     else
         return s.value
     end
@@ -318,8 +330,12 @@ function ordvalue(s::Union{MultiOrdAlgAResSampler, MultiOrdAlgAExpJSampler})
     return first.(vals[sortperm(map(x -> x[2], vals))])
 end
 function ordvalue(s::MultiOrdAlgWRSWRSKIPSampler)
+    nobs(s) == 0 && return s.value[1:0]
     if nobs(s) < length(s.value)
-        return sample(s.rng, s.value[1:nobs(s)], weights(s.weights[1:nobs(s)]), length(s.value); ordered=true)
+        weightsnew = Vector{Float64}(undef, nobs(s))
+        weightsnew[1] = s.weights[1]
+        for i in 2:nobs(s) weightsnew[i] = s.weights[i] - s.weights[i-1] end
+        return sample(s.rng, s.value[1:nobs(s)], weights(weightsnew), length(s.value); ordered=true)
     else
         return s.value[sortperm(s.ord)]
     end
