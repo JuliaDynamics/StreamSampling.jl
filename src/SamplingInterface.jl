@@ -128,9 +128,26 @@ is assumed to have a `eltype` of `T`. The methods implemented in
 [`StreamSampler`](@ref) require the knowledge of the total number
 of elements in the stream `N`, if not provided it is assumed to be
 available by calling `length(iter)`.
+
+-----
+
+    StreamSampler{T}([rng], iter, wfunc, n, W, method = AlgORDWSWR())
+
+Initializes a weigthed stream sampler, which can then be iterated over
+to return the sampling elements of the iterable `iter` which
+is assumed to have a `eltype` of `T`. The methods implemented in
+[`StreamSampler`](@ref) for weighted streams require the knowledge
+of the total weight of the stream `W` and a weight function `wfunc`
+specifying how to map an element to its weight. 
 """
 struct StreamSampler{T} 1 === 1 end
 
+function StreamSampler{T}(iter, wfunc::Function, n, W, method::StreamAlgorithm = AlgORDWSWR()) where T
+    return StreamSampler{T}(Random.default_rng(), iter, wfunc, n, W, method)
+end
+function StreamSampler{T}(rng::AbstractRNG, iter, wfunc::Function, n, W, method::StreamAlgorithm = AlgORDWSWR()) where T
+    return StreamSampler{T}(rng, iter, wfunc, n, W, method)
+end
 function StreamSampler{T}(iter, n, N, method::StreamAlgorithm = AlgD()) where T
     return StreamSampler{T}(Random.default_rng(), iter, n, N, method)
 end
@@ -159,10 +176,11 @@ If the iterator is empty, it returns `nothing`.
     itsample([rng], iter, wfunc, n::Int, method = AlgAExpJ(); ordered = false)
 
 Return a vector of `n` random elements of the iterator, 
-optionally specifying a `rng` (which defaults to `Random.default_rng()`)
-a weight function `wfunc` and a `method`. `ordered` dictates whether an 
-ordered sample (also called a sequential sample, i.e. a sample where items 
-appear in the same order as in `iter`) must be collected.
+optionally specifying a `rng` (which defaults to `Random.default_rng()`),
+a weight function `wfunc` specifying how to map an element to its weight
+and a `method`. `ordered` dictates whether an ordered sample (also called a 
+sequential sample, i.e. a sample where items  appear in the same order as in
+`iter`) must be collected.
 
 If the iterator has less than `n` elements, in the case of sampling without
 replacement, it returns a vector of those elements.

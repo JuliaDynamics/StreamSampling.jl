@@ -1,4 +1,50 @@
 
+struct MultiAlgWeightedORDSampler{T,R,I,F}
+    rng::R
+    it::I
+    f::F
+    n::Int
+    W::Float64
+    function MultiAlgWeightedORDSampler{T}(rng::R, it::I, f::F, n, W) where {T,R,I,F}
+        return new{T,R,I,F}(rng, it, f, n, W)
+    end
+end
+
+@inline function Base.iterate(s::MultiAlgWeightedORDSampler)
+    local el, state_el
+    w, curx, k = 0.0, 0.0, 0
+    for i in s.n:-1:1
+        curx += (1-exp(-randexp(s.rng)/i))*(1-curx)
+        while w < curx * s.W
+            nstate = k == 0 ? iterate(s.it) : iterate(s.it, state_el)
+            nstate == nothing && return nothing
+            k += 1
+            el, state_el = nstate
+            w += s.f(el)
+        end
+        return (el, (el, w, state_el, curx, i-1))
+    end
+end
+@inline function Base.iterate(s::MultiAlgWeightedORDSampler, state)
+    state[end] == 0 && return nothing
+    el, w, state_el, curx, n = state
+    for i in n:-1:1
+        curx += (1-exp(-randexp(s.rng)/i))*(1-curx)
+        while w < curx * s.W
+            nstate = iterate(s.it, state_el)
+            nstate == nothing && return nothing
+            el, state_el = nstate
+            w += s.f(el)
+        end
+        return (el, (el, w, state_el, curx, i-1))
+    end
+end
+
+Base.IteratorEltype(::MultiAlgWeightedORDSampler) = Base.HasEltype()
+Base.eltype(::MultiAlgWeightedORDSampler{T}) where T = T
+Base.IteratorSize(::MultiAlgWeightedORDSampler) = Base.HasLength()
+Base.length(s::MultiAlgWeightedORDSampler) = s.n
+
 struct MultiAlgORDSampler{T,R,I,D} <: AbstractStreamSampler
     rng::R
     it::I
@@ -9,6 +55,9 @@ struct MultiAlgORDSampler{T,R,I,D} <: AbstractStreamSampler
     end
 end
 
+function StreamSampler{T}(rng::AbstractRNG, iter, wfunc::Function, n, W, ::AlgORDWSWR) where T
+    return MultiAlgWeightedORDSampler{T}(rng, iter, wfunc, n, W)
+end
 function StreamSampler{T}(rng::AbstractRNG, iter, n, N, ::AlgD) where T
     return MultiAlgORDSampler{T}(rng, iter, min(n, N), SeqSampleIter(rng, N, min(n, N)))
 end

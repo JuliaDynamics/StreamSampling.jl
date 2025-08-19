@@ -19,7 +19,7 @@ using StatsBase
 
 export fit!, merge!, value, ordvalue, nobs, itsample
 export AbstractReservoirSampler, ReservoirSampler, StreamSampler
-export AlgL, AlgR, AlgRSWRSKIP, AlgARes, AlgAExpJ, AlgWRSWRSKIP, AlgD, AlgORDSWR
+export AlgL, AlgR, AlgRSWRSKIP, AlgARes, AlgAExpJ, AlgWRSWRSKIP, AlgD, AlgORDSWR, AlgORDWSWR
 
 struct ImmutSampler end
 struct MutSampler end
@@ -33,24 +33,6 @@ abstract type AbstractWeightedReservoirSampler <: AbstractReservoirSampler end
 
 abstract type StreamAlgorithm end
 abstract type ReservoirAlgorithm <: StreamAlgorithm end
-
-"""
-Implements random stream sampling without replacement. To be used with [`StreamSampler`](@ref)
-or [`itsample`](@ref).
-
-Adapted from algorithm D described in "An Efficient Algorithm for Sequential Random Sampling,
-J. S. Vitter, 1987".
-"""
-struct AlgD <: StreamAlgorithm end
-
-"""
-Implements random stream sampling with replacement. To be used with [`StreamSampler`](@ref)
-or [`itsample`](@ref).
-
-Adapted from algorithm 4 described in "Generating Sorted Lists of Random Numbers, J. L. Bentley
-et al., 1980".
-"""
-struct AlgORDSWR <: StreamAlgorithm end
 
 """
 Implements random reservoir sampling without replacement. To be used with [`ReservoirSampler`](@ref)
@@ -103,6 +85,32 @@ Adapted from algorithm WRSWR-SKIP described in "Investigating Methods for Weight
 Replacement, A. Meligrana, 2024".
 """
 struct AlgWRSWRSKIP <: ReservoirAlgorithm end
+
+"""
+Implements random stream sampling without replacement. To be used with [`StreamSampler`](@ref)
+or [`itsample`](@ref).
+
+Adapted from algorithm D described in "An Efficient Algorithm for Sequential Random Sampling,
+J. S. Vitter, 1987".
+"""
+struct AlgD <: StreamAlgorithm end
+
+"""
+Implements random stream sampling with replacement. To be used with [`StreamSampler`](@ref)
+or [`itsample`](@ref).
+
+Adapted from algorithm 4 described in "Generating Sorted Lists of Random Numbers, J. L. Bentley
+et al., 1980".
+"""
+struct AlgORDSWR <: StreamAlgorithm end
+
+"""
+Implements weighted random stream sampling with replacement. To be used with [`StreamSampler`](@ref).
+
+Adapted from algorithm 3 described in "An asymptotically optimal, online algorithm for weighted random
+sampling with replacement, M. Startek, 2016".
+"""
+struct AlgORDWSWR <: StreamAlgorithm end
 
 include("SamplingUtils.jl")
 include("SamplingInterface.jl")
