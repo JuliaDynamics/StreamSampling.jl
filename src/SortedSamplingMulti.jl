@@ -24,9 +24,9 @@ end
         end
         return (el, (el, w, state_el, curx, i-1))
     end
+    return nothing
 end
 @inline function Base.iterate(s::MultiAlgWeightedORDSampler, state)
-    state[end] == 0 && return nothing
     el, w, state_el, curx, n = state
     for i in n:-1:1
         curx += (1-exp(-randexp(s.rng)/i))*(1-curx)
@@ -38,6 +38,7 @@ end
         end
         return (el, (el, w, state_el, curx, i-1))
     end
+    return nothing
 end
 
 Base.IteratorEltype(::MultiAlgWeightedORDSampler) = Base.HasEltype()
