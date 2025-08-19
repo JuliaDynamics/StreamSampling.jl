@@ -31,4 +31,5 @@ AlgAExpJ
 AlgWRSWRSKIP
 AlgD
 AlgORDSWR
+AlgORDWSWR
 ```
