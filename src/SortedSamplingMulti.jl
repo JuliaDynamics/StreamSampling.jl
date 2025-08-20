@@ -62,6 +62,9 @@ end
 function StreamSampler{T}(rng::AbstractRNG, iter, n, N, ::AlgD) where T
     return MultiAlgORDSampler{T}(rng, iter, min(n, N), SeqSampleIter(rng, N, min(n, N)))
 end
+function StreamSampler{T}(rng::AbstractRNG, iter, n, N, ::AlgHiddenShuffle) where T
+    return MultiAlgORDSampler{T}(rng, iter, min(n, N), SeqIterHiddenShuffleSampler(rng, N, min(n, N)))
+end
 function StreamSampler{T}(rng::AbstractRNG, iter, n, N, ::AlgORDSWR) where T
     return MultiAlgORDSampler{T}(rng, iter, n, SeqIterWRSampler(rng, N, n))
 end

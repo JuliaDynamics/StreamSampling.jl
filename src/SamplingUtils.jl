@@ -103,7 +103,7 @@ end
             top -= 1
         end
 
-        if log(y) < (n-1)*(log(N)-log(N-X))
+        if log(y) < (n-1)*(log(N/(N-X)))
             vprime = exp(-randexp(rng)/(n-1))
             break
         end
@@ -141,6 +141,80 @@ Base.IteratorEltype(::SeqSampleIter) = Base.HasEltype()
 Base.eltype(::SeqSampleIter) = Int
 Base.IteratorSize(::SeqSampleIter) = Base.HasLength()
 Base.length(s::SeqSampleIter) = s.n
+
+struct SeqIterHiddenShuffleSampler{R}
+    rng::R
+    N::Int
+    n::Int
+    function SeqIterHiddenShuffleSampler(rng::R, N, n) where R
+        new{R}(rng, N, n)
+    end
+end
+
+@inline function Base.iterate(it::SeqIterHiddenShuffleSampler)
+    rng, N, n = it.rng, it.N, it.n
+    H, i, a, k = n, 0, 1.0, n
+    while i < n
+        q = 1.0 - (N - n) / (N - i)
+        i += floor(Int, -randexp(rng)/log1p(-q))
+        p_i = 1.0 - (N - n) / (N - i)
+        if i < n && rand(rng) < p_i / q
+            H -= 1
+        end
+        i += 1
+    end
+    L = n - H
+    while H > 0
+        S_old = n + floor(Int, a * (N - n))
+        a *= exp(-randexp(rng)/H)
+        S = n + floor(Int, a * (N - n))
+        H -= 1
+        if S < S_old
+            return (N - S, (a, L, H, k))
+        else
+            L += 1
+        end
+    end
+    if L > 0
+        return draw_lowitems(rng, N, a, L, H, k)
+    end
+end
+@inline function Base.iterate(it::SeqIterHiddenShuffleSampler, state)
+    rng, N, n = it.rng, it.N, it.n
+    a, L, H, k = state
+    while H > 0
+        S_old = n + floor(Int, a * (N - n))
+        a = a * exp(-randexp(rng)/H)
+        S = n + floor(Int, a * (N - n))
+        H -= 1
+        if S < S_old
+            return (N - S, (a, L, H, k))
+        else
+            L += 1
+        end
+    end
+    if L > 0
+        return draw_lowitems(rng, N, a, L, H, k)
+    end
+end
+
+@inline function draw_lowitems(rng, N, a, L, H, k)
+    u = rand(rng)
+    s = 0
+    F = L / k
+    while F < u && s < (k - L)
+        F = 1.0 - (1.0 - L/(k - s - 1)) * (1.0 - F)
+        s += 1
+    end
+    L -= 1
+    k -= s + 1
+    return (N - k, (a, L, H, k))
+end
+
+Base.IteratorEltype(::SeqIterHiddenShuffleSampler) = Base.HasEltype()
+Base.eltype(::SeqIterHiddenShuffleSampler) = Int
+Base.IteratorSize(::SeqIterHiddenShuffleSampler) = Base.HasLength()
+Base.length(s::SeqIterHiddenShuffleSampler) = s.n
 
 function fshuffle!(rng::AbstractRNG, vec::AbstractVector)
     for i in 2:length(vec)

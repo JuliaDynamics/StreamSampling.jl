@@ -17,9 +17,10 @@ using OnlineStatsBase
 using Random
 using StatsBase
 
-export fit!, merge!, value, ordvalue, nobs, itsample
-export AbstractReservoirSampler, ReservoirSampler, StreamSampler
-export AlgL, AlgR, AlgRSWRSKIP, AlgARes, AlgAExpJ, AlgWRSWRSKIP, AlgD, AlgORDSWR, AlgORDWSWR
+export fit!, merge!, combine, value, ordvalue, nobs, itsample
+export AbstractReservoirSampler, ReservoirSampler, StreamSampler, SequentialSampler
+export AlgL, AlgR, AlgRSWRSKIP, AlgARes, AlgAExpJ, AlgWRSWRSKIP, AlgD, AlgHiddenShuffle, 
+       AlgORDSWR, AlgORDWSWR
 
 struct ImmutSampler end
 struct MutSampler end
@@ -63,8 +64,8 @@ struct AlgRSWRSKIP <: ReservoirAlgorithm end
 Implements weighted random reservoir sampling without replacement. To be used with [`ReservoirSampler`](@ref)
 or [`itsample`](@ref).
 
-Adapted from algorithm A-Res described in "Weighted random sampling with a reservoir, P. S. Efraimidis
-et al., 2006".
+Adapted from algorithm A-Res described in "Weighted random sampling with a reservoir, P. S. Efraimidis,
+P. G. Spirakis, 2006".
 """
 struct AlgARes <: ReservoirAlgorithm end
 
@@ -73,7 +74,7 @@ Implements weighted random reservoir sampling without replacement. To be used wi
 or [`itsample`](@ref).
 
 Adapted from algorithm A-ExpJ described in "Weighted random sampling with a reservoir, P. S. Efraimidis
-et al., 2006".
+P. G. Spirakis, 2006".
 """
 struct AlgAExpJ <: ReservoirAlgorithm end
 
@@ -96,11 +97,20 @@ J. S. Vitter, 1987".
 struct AlgD <: StreamAlgorithm end
 
 """
+Implements random stream sampling without replacement. To be used with [`StreamSampler`](@ref)
+or [`itsample`](@ref).
+
+Adapted from algorithm HiddenShuffle described in "Sequential Random Sampling Revisited: Hidden Shuffle Method,
+M. Shekelyan, G. Cormode, 2021".
+"""
+struct AlgHiddenShuffle <: StreamAlgorithm end
+
+"""
 Implements random stream sampling with replacement. To be used with [`StreamSampler`](@ref)
 or [`itsample`](@ref).
 
-Adapted from algorithm 4 described in "Generating Sorted Lists of Random Numbers, J. L. Bentley
-et al., 1980".
+Adapted from algorithm 4 described in "Generating Sorted Lists of Random Numbers, J. L. Bentley,
+J. B. Saxe, 1980".
 """
 struct AlgORDSWR <: StreamAlgorithm end
 

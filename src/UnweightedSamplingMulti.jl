@@ -216,7 +216,7 @@ function Base.merge(ss::MultiAlgLSampler...)
     error("To Be Implemented")
 end
 function Base.merge(ss::MultiAlgRSWRSKIPSampler...)
-    newvalue = reduce_samples(TypeUnion(), ss...)
+    newvalue = reduce_samples(get_ps(ss...), [s.rng for s in ss], TypeUnion(), value.(ss)...)
     skip_k = sum(getfield(s, :skip_k) for s in ss)
     seen_k = sum(getfield(s, :seen_k) for s in ss)
     n = minimum(s.n for s in ss)
@@ -231,7 +231,7 @@ function Base.merge!(ss::MultiAlgLSampler...)
 end
 function Base.merge!(s1::MultiAlgRSWRSKIPSampler{<:Nothing}, ss::MultiAlgRSWRSKIPSampler...)
     s1.n > minimum(s.n for s in ss) && error("The size of the mutated reservoir should be the minimum size between all merged reservoir")
-    newvalue = reduce_samples(TypeS(), s1, ss...)
+    newvalue = reduce_samples(get_ps(s1, ss...), [s1.rng, [s.rng for s in ss]...], TypeS(), value(s1), value.(ss)...)
     for i in 1:length(newvalue)
         @inbounds s1.value[i] = newvalue[i]
     end

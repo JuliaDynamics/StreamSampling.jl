@@ -11,6 +11,7 @@ using StreamSampling
 
 @testset "StreamSampling.jl Tests" begin
     include("package_sanity_tests.jl")
+    include("basic_tests.jl")
     include("unweighted_sampling_single_tests.jl")
     include("unweighted_sampling_multi_tests.jl")
     include("weighted_sampling_single_tests.jl")

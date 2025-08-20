@@ -5,6 +5,7 @@
 ```@docs
 ReservoirSampler
 StreamSampler
+SequentialSampler
 ```
 
 ## Methods
@@ -13,6 +14,7 @@ StreamSampler
 fit!
 merge!
 merge
+combine
 empty!
 value
 ordvalue
@@ -30,6 +32,7 @@ AlgARes
 AlgAExpJ
 AlgWRSWRSKIP
 AlgD
+AlgHiddenShuffle
 AlgORDSWR
 AlgORDWSWR
 ```

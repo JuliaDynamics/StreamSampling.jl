@@ -90,7 +90,7 @@ function Base.empty!(::AbstractReservoirSampler)
 end
 
 """
-    Base.merge!(rs::AbstractReservoirSampler, rs_others::AbstractReservoirSampler...)
+    Base.merge!(rs::AbstractReservoirSampler...)
 
 Updates the first reservoir sampler by merging its value with the values
 of the other samplers. The number of elements after merging will be
@@ -101,7 +101,7 @@ function Base.merge!(::AbstractReservoirSampler)
 end
 
 """
-    Base.merge(rs_all::AbstractReservoirSampler...)
+    Base.merge(rs::AbstractReservoirSampler...)
 
 Creates a new reservoir sampler by merging the values
 of the samplers passed. The number of elements in the new
@@ -111,6 +111,17 @@ reservoirs.
 function OnlineStatsBase.merge(::AbstractReservoirSampler)
     error("Abstract Version")
 end
+
+"""
+    combine([rng], samples::AbstractArray, weights::AbstractArray)
+
+Combines different stream samples in a single one. The number of 
+elements in the new sampler will be the minimum number of elements
+in the samples. `weights` should contain the weight of each stream,
+which in the unweighted case coincides with the length of the streams.
+"""
+combine(ss::AbstractArray, ns::AbstractArray) = combine(Random.default_rng(), ss, ns)
+combine(rng, ss::AbstractArray, ns::AbstractArray) = reduce_samples(ns./sum(ns), rng, TypeUnion(), ss...)
 
 """
     Base.size(rs::AbstractReservoirSampler)
@@ -160,6 +171,32 @@ end
 function StreamSampler{T}(rng::AbstractRNG, iter, n, N, method::StreamAlgorithm = AlgD()) where T
     return StreamSampler{T}(rng, iter, n, N, method)
 end
+
+"""
+    SequentialSampler([rng], n, N, method = AlgD())
+
+Initializes a sequential sampler, which can then be iterated over
+to return `n` ordered indices between 1 and `N`, respecting the sampling
+scheme of the selected method, which can be `AlgD()`, `AlgHiddenShuffle()`
+or `AlgORDSWR()`.
+"""
+struct SequentialSampler{S}
+    s::S
+    SequentialSampler(n, N) = SequentialSampler(Random.default_rng(), n, N, AlgD())
+    SequentialSampler(n, N, alg) = SequentialSampler(Random.default_rng(), n, N, alg)
+    SequentialSampler(rng::AbstractRNG, n, N) = SequentialSampler(rng, n, N, AlgD())
+    function SequentialSampler(rng, n, N, ::AlgD)
+        return new{SeqSampleIter{typeof(rng)}}(SeqSampleIter(rng, N, n))
+    end
+    function SequentialSampler(rng, n, N, ::AlgHiddenShuffle)
+        return new{SeqIterHiddenShuffleSampler{typeof(rng)}}(SeqIterHiddenShuffleSampler(rng, N, n))
+    end
+    function SequentialSampler(rng, n, N, ::AlgORDSWR)
+        return new{SeqIterWRSampler{typeof(rng)}}(SeqIterWRSampler(rng, N, n))
+    end
+end
+Base.iterate(s::SequentialSampler) = iterate(s.s)
+Base.iterate(s::SequentialSampler, state) = iterate(s.s, state)
 
 """
     itsample([rng], iter, method = AlgRSWRSKIP())

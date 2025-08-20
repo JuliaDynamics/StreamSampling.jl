@@ -189,7 +189,7 @@ end
 extract_T(::DataStructures.BinaryHeap{T}) where T = T
 
 function Base.merge(ss::MultiAlgAResSampler...)
-    newvalue = reduce_samples(TypeUnion(), ss...)
+    newvalue = reduce_samples(TypeUnion(), [s.value for s in ss]...)
     newheap = BinaryHeap(Base.By(last, DataStructures.FasterForward()), newvalue)
     seen_k = sum(getfield(s, :seen_k) for s in ss)
     n = minimum(s.n for s in ss)
@@ -197,7 +197,7 @@ function Base.merge(ss::MultiAlgAResSampler...)
     return s
 end
 function Base.merge(ss::MultiAlgAExpJSampler...)
-    newvalue = reduce_samples(TypeUnion(), ss...)
+    newvalue = reduce_samples(TypeUnion(), [s.value for s in ss]...)
     newheap = BinaryHeap(Base.By(last, DataStructures.FasterForward()), newvalue)
     seen_k = sum(getfield(s, :seen_k) for s in ss)
     state = sum(getfield(s, :state) for s in ss)
@@ -207,7 +207,7 @@ function Base.merge(ss::MultiAlgAExpJSampler...)
     return s
 end
 function Base.merge(ss::MultiAlgWRSWRSKIPSampler...)
-    newvalue = reduce_samples(TypeUnion(), ss...)
+    newvalue = reduce_samples(get_ps(ss...), [s.rng for s in ss], TypeUnion(), value.(ss)...)
     skip_w = sum(getfield(s, :skip_w) for s in ss)
     state = sum(getfield(s, :state) for s in ss)
     seen_k = sum(getfield(s, :seen_k) for s in ss)
@@ -220,7 +220,7 @@ function Base.merge!(s1::MultiAlgAResSampler, ss::MultiAlgAResSampler...)
     length(typeof(s1.value.valtree).parameters) == 3 && error("Merging ordered reservoirs is not possible")
     s1.n > minimum(s.n for s in ss) && error("The size of the mutated reservoir should be the minimum size between all merged reservoir")
     empty!(s1.value.valtree)
-    newvalue = reduce_samples(TypeS(), s1, ss...)
+    newvalue = reduce_samples(TypeS(), s1.value, [s.value for s in ss]...)
     for e in newvalue
         push!(s1.value, e[1] => e[2])
     end
@@ -231,7 +231,7 @@ function Base.merge!(s1::MultiAlgAExpJSampler, ss::MultiAlgAExpJSampler...)
     length(typeof(s1.value.valtree).parameters) == 3 && error("Merging ordered reservoirs is not possible")
     s1.n > minimum(s.n for s in ss) && error("The size of the mutated reservoir should be the minimum size between all merged reservoir")
     empty!(s1.value.valtree)
-    newvalue = reduce_samples(TypeS(), s1, ss...)
+    newvalue = reduce_samples(TypeS(), s1.value, [s.value for s in ss]...)
     for e in newvalue
         push!(s1.value, e[1] => e[2])
     end
@@ -242,7 +242,7 @@ function Base.merge!(s1::MultiAlgAExpJSampler, ss::MultiAlgAExpJSampler...)
 end
 function Base.merge!(s1::MultiAlgWRSWRSKIPSampler{<:Nothing}, ss::MultiAlgWRSWRSKIPSampler...)
     s1.n > minimum(s.n for s in ss) && error("The size of the mutated reservoir should be the minimum size between all merged reservoir")
-    newvalue = reduce_samples(TypeS(), s1, ss...)
+    newvalue = reduce_samples(get_ps(s1, ss...), [s1.rng, [s.rng for s in ss]...], TypeS(), value(s1), value.(ss)...)
     for i in 1:length(newvalue)
         @inbounds s1.value[i] = newvalue[i]
     end
