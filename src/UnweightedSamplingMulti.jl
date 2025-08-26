@@ -210,10 +210,18 @@ is_ordered(s::MultiOrdAlgRSWRSKIPSampler) = true
 is_ordered(s::MultiAlgRSWRSKIPSampler) = false
 
 function Base.merge(ss::MultiAlgRSampler...)
-    error("To Be Implemented")
+    newvalue = reduce_samples(get_ps(ss...), [s.rng for s in ss], TypeUnion(), value.(ss)...)
+    seen_k = sum(getfield(s, :seen_k) for s in ss)
+    n = minimum(s.n for s in ss)
+    return MultiAlgRSampler_Mut(n, seen_k, ss[1].rng, newvalue, nothing)
 end
 function Base.merge(ss::MultiAlgLSampler...)
-    error("To Be Implemented")
+    newvalue = reduce_samples(get_ps(ss...), [s.rng for s in ss], TypeUnion(), value.(ss)...)
+    state = sum(getfield(s, :state) for s in ss)
+    skip_k = sum(getfield(s, :skip_k) for s in ss)
+    seen_k = sum(getfield(s, :seen_k) for s in ss)
+    n = minimum(s.n for s in ss)
+    return MultiAlgLSampler_Mut(n, state, skip_k, seen_k, ss[1].rng, newvalue, nothing)
 end
 function Base.merge(ss::MultiAlgRSWRSKIPSampler...)
     newvalue = reduce_samples(get_ps(ss...), [s.rng for s in ss], TypeUnion(), value.(ss)...)
@@ -228,6 +236,26 @@ function Base.merge!(ss::MultiAlgRSampler...)
 end
 function Base.merge!(ss::MultiAlgLSampler...)
     error("To Be Implemented")
+end
+function Base.merge!(s1::MultiAlgRSampler{<:Nothing}, ss::MultiAlgRSampler...)
+    s1.n > minimum(s.n for s in ss) && error("The size of the mutated reservoir should be the minimum size between all merged reservoir")
+    newvalue = reduce_samples(get_ps(s1, ss...), [s1.rng, [s.rng for s in ss]...], TypeS(), value(s1), value.(ss)...)
+    for i in 1:length(newvalue)
+        @inbounds s1.value[i] = newvalue[i]
+    end
+    s1.seen_k += sum(getfield(s, :seen_k) for s in ss)
+    return s1
+end
+function Base.merge!(s1::MultiAlgLSampler{<:Nothing}, ss::MultiAlgLSampler...)
+    s1.n > minimum(s.n for s in ss) && error("The size of the mutated reservoir should be the minimum size between all merged reservoir")
+    newvalue = reduce_samples(get_ps(s1, ss...), [s1.rng, [s.rng for s in ss]...], TypeS(), value(s1), value.(ss)...)
+    for i in 1:length(newvalue)
+        @inbounds s1.value[i] = newvalue[i]
+    end
+    s1.state += sum(getfield(s, :state) for s in ss)
+    s1.skip_k += sum(getfield(s, :skip_k) for s in ss)
+    s1.seen_k += sum(getfield(s, :seen_k) for s in ss)
+    return s1
 end
 function Base.merge!(s1::MultiAlgRSWRSKIPSampler{<:Nothing}, ss::MultiAlgRSWRSKIPSampler...)
     s1.n > minimum(s.n for s in ss) && error("The size of the mutated reservoir should be the minimum size between all merged reservoir")

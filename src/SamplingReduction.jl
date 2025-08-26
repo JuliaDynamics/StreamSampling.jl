@@ -31,6 +31,16 @@ function get_ps(ss::MultiAlgWRSWRSKIPSampler...)
     sum_w = sum(getfield(s, :state) for s in ss)
     return [s.state/sum_w for s in ss]
 end
+function get_ps(ss::MultiAlgRSampler...)
+    sum_w = sum(getfield(s, :seen_k) for s in ss)
+    sum_w == 0 && return [1.0/length(ss) for _ in ss]  # Handle empty case
+    return [s.seen_k/sum_w for s in ss]
+end
+function get_ps(ss::MultiAlgLSampler...)
+    sum_w = sum(getfield(s, :seen_k) for s in ss)
+    sum_w == 0 && return [1.0/length(ss) for _ in ss]  # Handle empty case
+    return [s.seen_k/sum_w for s in ss]
+end
 
 get_type_rs(::TypeS, s1::T, ss::T...) where {T} = eltype(s1)
 function get_type_rs(::TypeUnion, s1::T, ss::T...) where {T}

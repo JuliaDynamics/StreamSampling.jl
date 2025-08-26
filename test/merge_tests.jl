@@ -1,4 +1,6 @@
 
+using StreamSampling, StableRNGs, HypothesisTests, Random, Test
+
 @testset "merge/merge! tests" begin
     rng = StableRNG(43)
     iters = (1:2, 3:10)
@@ -27,6 +29,24 @@
         chisq_test = ChisqTest(count_est, ps_exact)
         @test pvalue(chisq_test) > 0.05
     end
+    
+    # Test basic merge functionality for AlgR and AlgL
+    for alg in [AlgR(), AlgL()]
+        s1 = ReservoirSampler{Int}(rng, 2, alg)
+        s2 = ReservoirSampler{Int}(rng, 2, alg)
+        
+        # Test empty merge
+        s_merged_empty = merge(s1, s2)
+        @test length(value(s_merged_empty)) == 0
+        
+        # Test merge! for empty
+        s_copy = ReservoirSampler{Int}(rng, 2, alg)
+        s_other = ReservoirSampler{Int}(rng, 2, alg)
+        s_merged_empty_mut = merge!(s_copy, s_other)
+        @test s_merged_empty_mut === s_copy
+        @test length(value(s_merged_empty_mut)) == 0
+    end
+    
     s1 = ReservoirSampler{Int}(rng, 2, AlgRSWRSKIP())
     s2 = ReservoirSampler{Int}(rng, 2, AlgRSWRSKIP())
     s_all = (s1, s2)
