@@ -197,6 +197,10 @@ struct SequentialSampler{S}
 end
 Base.iterate(s::SequentialSampler) = iterate(s.s)
 Base.iterate(s::SequentialSampler, state) = iterate(s.s, state)
+Base.IteratorEltype(::SequentialSampler) = Base.HasEltype()
+Base.eltype(::SequentialSampler) = Int
+Base.IteratorSize(::SequentialSampler) = Base.HasLength()
+Base.length(s::SequentialSampler) = s.s.n
 
 """
     itsample([rng], iter, method = AlgRSWRSKIP())
