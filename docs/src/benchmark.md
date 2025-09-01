@@ -5,7 +5,7 @@
 Using these sampling techniques can bring down considerably the memory usage of the program, 
 but there are cases where they are also more time efficient:
 
-<img width="1200" height="900" alt="comparison_stream_algs" src="https://github.com/user-attachments/assets/afc281ff-a969-4ced-9c68-9e0ec2974d9c" />
+![](https://github.com/user-attachments/assets/f92becdb-09bd-40c6-8f05-580c0229e83e)
 
 The iterator used is a filtered generator which creates an integer range between `1` and `10^8`. The filtering step is performed to make the
 benchmark more accurately mimic a somewhat realistic iterator, on which the methods could be actually used in practice.
