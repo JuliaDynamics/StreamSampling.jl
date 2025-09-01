@@ -1,6 +1,6 @@
 
 @testset "merge/merge! tests" begin
-    rng = StableRNG(43)
+    rng = StableRNG(44)
     iters = (1:2, 3:10)
     reps = 10^5
     size = 2
