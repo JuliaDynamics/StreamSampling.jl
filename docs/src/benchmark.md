@@ -21,7 +21,7 @@ We also tried to evaluate the performance of the procedures on persistent data. 
 performance of weighted sampling with replacement from 100 GB of data in the arrow format stored on
 disk:
 
-![comparison_ondisk_algs](https://github.com/user-attachments/assets/622c5d03-07f2-428c-9bb5-6d6fcc629bec)
+![comparison_ondisk_algs](https://github.com/user-attachments/assets/a6bc09a0-12c9-4a7b-9cc7-0e25edf35eba)
 
 the "chunks" method uses `StatsBase.sample` along with the merging methods of this package to sample
 subsequent chunks of the stored data and then recombine the samples. The other methods employ the

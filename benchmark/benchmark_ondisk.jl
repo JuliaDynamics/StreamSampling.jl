@@ -51,13 +51,13 @@ function psample_file_pop(data, rngs, n)
 		        push!(samples, s)
 		        push!(weights, Wtot)
 		        if length(samples) == 10
-		        	samples = [combine(rngs[j], samples, weights),]
+		        	samples = [combine(rngs, samples, weights),]
 		        	weights = [sum(weights),]
 		        end
 	    	end
 	    end
     end
-    return combine(rngs[1], samples, weights)
+    return combine(rngs, samples, weights)
 end
 
 function sample_file_rs(data, rng, n, alg)
@@ -97,7 +97,7 @@ function psample_file_st(data, rngs, n, alg)
         samples[i] = collect(StreamSampler{dtype}(rngs[i], @view(data[c]), wf, n, W, alg))
         weights[i] = W
     end
-    return combine(rngs[1], samples, weights)
+    return combine(rngs, samples, weights)
 end
 
 filename = "random_data.arrow"
@@ -117,10 +117,15 @@ precompile(sample_file_st, typeof.((data, rng, n, AlgORDWSWR())))
 precompile(psample_file_st, typeof.((data, rngs, n, AlgORDWSWR())))
 
 times = []
-for n in (totaltpl ÷ 100000, totaltpl ÷ 10000, totaltpl ÷ 1000)
-    t1 = @elapsed sample_file_pop(data, rng, n);
-    t2 = @elapsed psample_file_pop(data, rngs, n);
+for n in (totaltpl ÷ 100000, totaltpl ÷ 10000, totaltpl ÷ 1000, totaltpl ÷ 100)
 
+    if n != totaltpl ÷ 100
+        t1 = @elapsed sample_file_pop(data, rng, n);
+        t2 = @elapsed psample_file_pop(data, rngs, n);
+    else
+        t1 = nothing
+        t2 = nothing
+    end
     t3 = @elapsed sample_file_st(data, rng, n, AlgORDWSWR());
     t4 = @elapsed psample_file_st(data, rngs, n, AlgORDWSWR());
 
@@ -133,9 +138,9 @@ times = hcat(times...)
 
 using CairoMakie
 
-x = 1:3
-xtick_positions = [1,2,3]
-xtick_labels = ["0.001%","0.01%","0.1%"]
+x = 1:4
+xtick_positions = [1,2,3,4]
+xtick_labels = ["0.001%","0.01%","0.1%","1%"]
 
 algonames = ["chunks", "chunks (4 threads)", "stream", "stream (4 threads)",
              "reservoir", "reservoir (4 threads)",]
@@ -147,21 +152,21 @@ ax = Axis(fig[1, 1]; xlabel = "sample size", ylabel = "time (s)",
           xticks = (xtick_positions, xtick_labels), 
           xgridstyle = :dot, ygridstyle = :dot,
           xticklabelsize = 10, yticklabelsize = 10,
-          xlabelsize = 12, ylabelsize = 12,
+          xlabelsize = 12, ylabelsize = 12
 )
 
 for i in 1:size(times, 1)
-    scatterlines!(ax, x, times[i, :];
+    scatterlines!(ax, x, [x == nothing ? Inf : x for x in times[i, :]];
                   label = algonames[i],
                   linestyle = (:dash, :dense),
                   marker = markers[i],
-                  markersize = 8,
-                  linewidth = 2)
+                  markersize = 13,
+                  linewidth = 2,)
 end
 
-
+ylims!(low=0, high = 250)
 fig[2, 1] = Legend(fig, ax, framevisible = false, orientation = :horizontal, 
                    halign = :center, nbanks=2, fontsize=10)
 
 fig
-save("comparison_ondisk_algs.pdf", fig)
+save("comparison_ondisk_algs.svg", fig)
