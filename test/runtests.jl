@@ -16,6 +16,7 @@ using StreamSampling
     include("unweighted_sampling_multi_tests.jl")
     include("weighted_sampling_single_tests.jl")
     include("weighted_sampling_multi_tests.jl")
+    include("sequential_sampling_tests.jl")
     include("merge_tests.jl")
     include("empty_tests.jl")
     include("benchmark_tests.jl")
