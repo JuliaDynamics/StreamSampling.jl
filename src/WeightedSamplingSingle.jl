@@ -49,9 +49,9 @@ function Base.merge(ss::SingleAlgWRSWRSKIPSampler...)
     ns = [s.total_w for s in ss]
     n_tot = sum(ns)
     ps = cumsum(ns ./ n_tot)
-    r = rand(s1.rng)
-    value = ss[findfirst(p -> r < p, ps)].value
-    return typeof(s1)(sum(s.seen_k for s in ss), sum(s.total_w for s in ss), sum(s.skip_w for s in ss), 
+    r = rand(ss[1].rng)
+    value = ss[findfirst(p -> r < p, ps)].rvalue
+    return typeof(ss[1])(sum(s.seen_k for s in ss), sum(s.total_w for s in ss), sum(s.skip_w for s in ss), 
                       ss[1].rng, value)
 end
 

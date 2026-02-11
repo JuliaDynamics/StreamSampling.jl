@@ -44,9 +44,9 @@ function Base.merge(ss::SingleAlgRSWRSKIPSampler...)
     ns = [nobs(s) for s in ss]
     n_tot = sum(ns)
     ps = cumsum(ns ./ n_tot)
-    r = rand(s1.rng)
-    value = ss[findfirst(p -> r < p, ps)].value
-    return typeof(s1)(n_tot, sum(s.skip_k for s in ss), ss[1].rng, value)
+    r = rand(ss[1].rng)
+    value = ss[findfirst(p -> r < p, ps)].rvalue
+    return typeof(ss[1])(n_tot, sum(s.skip_k for s in ss), ss[1].rng, value)
 end
 
 function Base.merge!(s1::SingleAlgRSWRSKIPSampler_Mut, ss::SingleAlgRSWRSKIPSampler_Mut...)
