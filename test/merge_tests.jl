@@ -43,4 +43,53 @@
         m == AlgRSWRSKIP() ? fit!(s2, 2) : fit!(s2, 2, 1.0)
         @test value(merge!(s1, s2)) in (1, 2)
     end
+
+    iters = (1:10, 11:30)
+    reps = 10000
+    for m in (AlgRSWRSKIP(),)
+        count_s1 = 0
+        for _ in 1:reps
+            s1 = ReservoirSampler{Int}(rng, m)
+            s2 = ReservoirSampler{Int}(rng, m)
+            for x in iters[1] fit!(s1, x) end
+            for x in iters[2] fit!(s2, x) end
+            s_merged = merge(s1, s2)
+            if value(s_merged) <= 10
+                count_s1 += 1
+            end
+        end
+        chisq_test = ChisqTest([count_s1, reps - count_s1], [1/3, 2/3])
+        @test pvalue(chisq_test) > 0.05
+    end
+
+    for m in (AlgWRSWRSKIP(),)
+        count_s1 = 0
+        for _ in 1:reps
+            s1 = ReservoirSampler{Int}(rng, m)
+            s2 = ReservoirSampler{Int}(rng, m)
+            for x in iters[1] fit!(s1, x, 1.0) end
+            for x in iters[2] fit!(s2, x, 1.0) end
+            s_merged = merge(s1, s2)
+            if value(s_merged) <= 10
+                count_s1 += 1
+            end
+        end
+        chisq_test = ChisqTest([count_s1, reps - count_s1], [1/3, 2/3])
+        @test pvalue(chisq_test) > 0.05
+        
+        rng = StableRNG(45)
+        count_s1 = 0
+        for _ in 1:reps
+            s1 = ReservoirSampler{Int}(rng, m)
+            s2 = ReservoirSampler{Int}(rng, m)
+            fit!(s1, 1, 10.0)
+            fit!(s2, 2, 20.0)
+            s_merged = merge(s1, s2)
+            if value(s_merged) == 1
+                count_s1 += 1
+            end
+         end
+         chisq_test = ChisqTest([count_s1, reps - count_s1], [1/3, 2/3])
+         @test pvalue(chisq_test) > 0.05
+    end
 end
