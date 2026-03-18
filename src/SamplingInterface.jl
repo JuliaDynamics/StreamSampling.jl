@@ -195,13 +195,6 @@ SequentialSampler(n::Integer, N::Integer) = SequentialSampler(Random.default_rng
 SequentialSampler(n::Integer, N::Integer, alg) = SequentialSampler(Random.default_rng(), n, N, alg)
 SequentialSampler(rng::AbstractRNG, n::Integer, N::Integer) = SequentialSampler(rng, n, N, AlgD())
 
-Base.iterate(s::SequentialSampler) = iterate(s.s)
-Base.iterate(s::SequentialSampler, state) = iterate(s.s, state)
-Base.IteratorEltype(::SequentialSampler) = Base.HasEltype()
-Base.eltype(::SequentialSampler) = Int
-Base.IteratorSize(::SequentialSampler) = Base.HasLength()
-Base.length(s::SequentialSampler) = s.s.n
-
 """
     itsample([rng], iter, method = AlgRSWRSKIP())
     itsample([rng], iter, wfunc, method = AlgWRSWRSKIP())
