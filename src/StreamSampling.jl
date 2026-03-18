@@ -18,7 +18,7 @@ using Random
 using StatsBase
 
 export fit!, merge!, combine, value, ordvalue, nobs, itsample
-export AbstractReservoirSampler, ReservoirSampler, StreamSampler, SequentialSampler
+export AbstractReservoirSampler, ReservoirSampler, SequentialSampler, SequentialSampler
 export AlgL, AlgR, AlgRSWRSKIP, AlgARes, AlgAExpJ, AlgWRSWRSKIP, AlgD, AlgHiddenShuffle, 
        AlgORDSWR, AlgORDWSWR
 
@@ -28,7 +28,7 @@ struct MutSampler end
 struct Ord end
 struct Unord end
 
-abstract type AbstractStreamSampler end
+abstract type AbstractSequentialSampler end
 abstract type AbstractReservoirSampler <: OnlineStat{Any} end
 abstract type AbstractWeightedReservoirSampler <: AbstractReservoirSampler end
 
@@ -88,7 +88,7 @@ Replacement, A. Meligrana, 2024".
 struct AlgWRSWRSKIP <: ReservoirAlgorithm end
 
 """
-Implements random stream sampling without replacement. To be used with [`StreamSampler`](@ref)
+Implements random stream sampling without replacement. To be used with [`SequentialSampler`](@ref)
 or [`itsample`](@ref).
 
 Adapted from algorithm D described in "An Efficient Algorithm for Sequential Random Sampling,
@@ -97,7 +97,7 @@ J. S. Vitter, 1987".
 struct AlgD <: StreamAlgorithm end
 
 """
-Implements random stream sampling without replacement. To be used with [`StreamSampler`](@ref)
+Implements random stream sampling without replacement. To be used with [`SequentialSampler`](@ref)
 or [`itsample`](@ref).
 
 Adapted from algorithm HiddenShuffle described in "Sequential Random Sampling Revisited: Hidden Shuffle Method,
@@ -106,7 +106,7 @@ M. Shekelyan, G. Cormode, 2021".
 struct AlgHiddenShuffle <: StreamAlgorithm end
 
 """
-Implements random stream sampling with replacement. To be used with [`StreamSampler`](@ref)
+Implements random stream sampling with replacement. To be used with [`SequentialSampler`](@ref)
 or [`itsample`](@ref).
 
 Adapted from algorithm 4 described in "Generating Sorted Lists of Random Numbers, J. L. Bentley,
@@ -115,7 +115,7 @@ J. B. Saxe, 1980".
 struct AlgORDSWR <: StreamAlgorithm end
 
 """
-Implements weighted random stream sampling with replacement. To be used with [`StreamSampler`](@ref).
+Implements weighted random stream sampling with replacement. To be used with [`SequentialSampler`](@ref).
 
 Adapted from algorithm 3 described in "An asymptotically optimal, online algorithm for weighted random
 sampling with replacement, M. Startek, 2016".

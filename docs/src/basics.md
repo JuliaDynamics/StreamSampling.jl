@@ -1,7 +1,8 @@
 
 # Overview of the functionalities
 
-The `itsample` function allows to consume all the stream at once and return the sample collected:
+The `itsample` function allows to consume all the stream at once and return the sample
+collected:
 
 ```@example 1
 using StreamSampling
@@ -11,8 +12,8 @@ st = 1:100;
 itsample(st, 5)
 ```
 
-In some cases, one needs to control the updates the `ReservoirSampler` will be subject to. In this case
-you can simply use the `fit!` function to update the reservoir:
+In some cases, one needs to control the updates the `ReservoirSampler` will be subject to.
+In this case, you can simply use the `fit!` function to update the reservoir:
 
 ```@example 1
 st = 1:100;
@@ -26,13 +27,13 @@ end
 value(rs)
 ```
 
-If the total number of elements in the stream is known beforehand and the sampling is unweighted, it is
-also possible to iterate over a `StreamSampler` like so
+If the total number of elements in the stream is known beforehand and the sampling
+is unweighted, it is also possible to iterate over a `SequentialSampler` like so
 
 ```@example 1
 st = 1:100;
 
-ss = StreamSampler{Int}(st, 5, 100);
+ss = SequentialSampler{Int}(st, 5, 100);
 
 r = Int[];
 
@@ -43,6 +44,6 @@ end
 r
 ```
 
-The advantage of `StreamSampler` iterators in respect to `ReservoirSampler` is that they require `O(1)`
-memory if not collected, while reservoir techniques require `O(k)` memory where `k` is the number
-of elements in the sample.
+The advantage of `SequentialSampler` iterators in respect to `ReservoirSampler`
+is that they require `O(1)` memory if not collected, while reservoir techniques
+require `O(k)` memory where `k` is the number of elements in the sample.

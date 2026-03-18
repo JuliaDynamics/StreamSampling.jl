@@ -46,7 +46,7 @@ Base.eltype(::MultiAlgWeightedORDSampler{T}) where T = T
 Base.IteratorSize(::MultiAlgWeightedORDSampler) = Base.HasLength()
 Base.length(s::MultiAlgWeightedORDSampler) = s.n
 
-struct MultiAlgORDSampler{T,R,I,D} <: AbstractStreamSampler
+struct MultiAlgORDSampler{T,R,I,D} <: AbstractSequentialSampler
     rng::R
     it::I
     n::Int
@@ -56,16 +56,16 @@ struct MultiAlgORDSampler{T,R,I,D} <: AbstractStreamSampler
     end
 end
 
-function StreamSampler{T}(rng::AbstractRNG, iter, wfunc::Function, n, W, ::AlgORDWSWR) where T
+function SequentialSampler{T}(rng::AbstractRNG, iter, wfunc::Function, n, W, ::AlgORDWSWR) where T
     return MultiAlgWeightedORDSampler{T}(rng, iter, wfunc, n, W)
 end
-function StreamSampler{T}(rng::AbstractRNG, iter, n, N, ::AlgD) where T
+function SequentialSampler{T}(rng::AbstractRNG, iter, n, N, ::AlgD) where T
     return MultiAlgORDSampler{T}(rng, iter, min(n, N), SeqSampleIter(rng, N, min(n, N)))
 end
-function StreamSampler{T}(rng::AbstractRNG, iter, n, N, ::AlgHiddenShuffle) where T
+function SequentialSampler{T}(rng::AbstractRNG, iter, n, N, ::AlgHiddenShuffle) where T
     return MultiAlgORDSampler{T}(rng, iter, min(n, N), SeqIterHiddenShuffleSampler(rng, N, min(n, N)))
 end
-function StreamSampler{T}(rng::AbstractRNG, iter, n, N, ::AlgORDSWR) where T
+function SequentialSampler{T}(rng::AbstractRNG, iter, n, N, ::AlgORDSWR) where T
     return MultiAlgORDSampler{T}(rng, iter, n, SeqIterWRSampler(rng, N, n))
 end
 

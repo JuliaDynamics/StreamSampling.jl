@@ -115,9 +115,9 @@ end
 """
     combine([rng], samples::AbstractArray, weights::AbstractArray)
 
-Combines different stream samples in a single one. The number of 
+Combines different sequential samples in a single one. The number of 
 elements in the new sampler will be the minimum number of elements
-in the samples. `weights` should contain the weight of each stream,
+in the samples. `weights` should contain the total weight of each stream,
 which in the unweighted case coincides with the length of the streams.
 """
 combine(ss::AbstractArray, ns::AbstractArray) = combine(Random.default_rng(), ss, ns)
@@ -131,67 +131,69 @@ Returns the maximum number of elements that are stored in the reservoir.
 Base.size(rs::AbstractReservoirSampler) = rs.n
 
 """
-    StreamSampler{T}([rng], iter, n, [N], method = AlgD())
+    SequentialSampler{T}([rng], iter, n, [N], method = AlgD())
 
-Initializes a stream sampler, which can then be iterated over
+Initializes a sequential sampler, which can then be iterated over
 to return the sampling elements of the iterable `iter` which
 is assumed to have a `eltype` of `T`. The methods implemented in
-[`StreamSampler`](@ref) require the knowledge of the total number
+[`SequentialSampler`](@ref) require the knowledge of the total number
 of elements in the stream `N`, if not provided it is assumed to be
 available by calling `length(iter)`.
 
 -----
 
-    StreamSampler{T}([rng], iter, wfunc, n, W, method = AlgORDWSWR())
+    SequentialSampler{T}([rng], iter, wfunc, n, W, method = AlgORDWSWR())
 
-Initializes a weigthed stream sampler, which can then be iterated over
+Initializes a weigthed sequential sampler, which can then be iterated over
 to return the sampling elements of the iterable `iter` which
 is assumed to have a `eltype` of `T`. The methods implemented in
-[`StreamSampler`](@ref) for weighted streams require the knowledge
+[`SequentialSampler`](@ref) for weighted streams require the knowledge
 of the total weight of the stream `W` and a weight function `wfunc`
-specifying how to map an element to its weight. 
-"""
-struct StreamSampler{T} 1 === 1 end
+specifying how to map an element to its weight.
 
-function StreamSampler{T}(iter, wfunc::Function, n, W, method::StreamAlgorithm = AlgORDWSWR()) where T
-    return StreamSampler{T}(Random.default_rng(), iter, wfunc, n, W, method)
-end
-function StreamSampler{T}(rng::AbstractRNG, iter, wfunc::Function, n, W, method::StreamAlgorithm = AlgORDWSWR()) where T
-    return StreamSampler{T}(rng, iter, wfunc, n, W, method)
-end
-function StreamSampler{T}(iter, n, N, method::StreamAlgorithm = AlgD()) where T
-    return StreamSampler{T}(Random.default_rng(), iter, n, N, method)
-end
-function StreamSampler{T}(iter, n, method::StreamAlgorithm = AlgD()) where T
-    return StreamSampler{T}(Random.default_rng(), iter, n, length(iter), method)
-end
-function StreamSampler{T}(rng::AbstractRNG, iter, n, method::StreamAlgorithm = AlgD()) where T
-    return StreamSampler{T}(rng, iter, n, length(iter), method)
-end
-function StreamSampler{T}(rng::AbstractRNG, iter, n, N, method::StreamAlgorithm = AlgD()) where T
-    return StreamSampler{T}(rng, iter, n, N, method)
-end
+-----
 
-"""
-    SequentialSampler([rng], n, N, method = AlgD())
+    SequentialSampler([rng], n::Integer, N::Integer, method = AlgD())
 
 Initializes a sequential sampler, which can then be iterated over
 to return `n` ordered indices between 1 and `N`, respecting the sampling
 scheme of the selected method, which can be `AlgD()`, `AlgHiddenShuffle()`
 or `AlgORDSWR()`.
+
 """
+struct SequentialSampler{T} 1 === 1 end
+
+function SequentialSampler{T}(iter, wfunc::Function, n, W, method::StreamAlgorithm = AlgORDWSWR()) where T
+    return SequentialSampler{T}(Random.default_rng(), iter, wfunc, n, W, method)
+end
+function SequentialSampler{T}(rng::AbstractRNG, iter, wfunc::Function, n, W, method::StreamAlgorithm = AlgORDWSWR()) where T
+    return SequentialSampler{T}(rng, iter, wfunc, n, W, method)
+end
+function SequentialSampler{T}(iter, n, N, method::StreamAlgorithm = AlgD()) where T
+    return SequentialSampler{T}(Random.default_rng(), iter, n, N, method)
+end
+function SequentialSampler{T}(iter, n, method::StreamAlgorithm = AlgD()) where T
+    return SequentialSampler{T}(Random.default_rng(), iter, n, length(iter), method)
+end
+function SequentialSampler{T}(rng::AbstractRNG, iter, n, method::StreamAlgorithm = AlgD()) where T
+    return SequentialSampler{T}(rng, iter, n, length(iter), method)
+end
+function SequentialSampler{T}(rng::AbstractRNG, iter, n, N, method::StreamAlgorithm = AlgD()) where T
+    return SequentialSampler{T}(rng, iter, n, N, method)
+end
+
 struct SequentialSampler{S}
     s::S
-    SequentialSampler(n, N) = SequentialSampler(Random.default_rng(), n, N, AlgD())
-    SequentialSampler(n, N, alg) = SequentialSampler(Random.default_rng(), n, N, alg)
-    SequentialSampler(rng::AbstractRNG, n, N) = SequentialSampler(rng, n, N, AlgD())
-    function SequentialSampler(rng, n, N, ::AlgD)
+    SequentialSampler(n::Integer, N::Integer) = SequentialSampler(Random.default_rng(), n, N, AlgD())
+    SequentialSampler(n::Integer, N::Integer, alg) = SequentialSampler(Random.default_rng(), n, N, alg)
+    SequentialSampler(rng::AbstractRNG, n::Integer, N::Integer) = SequentialSampler(rng, n, N, AlgD())
+    function SequentialSampler(rng, n::Integer, N::Integer, ::AlgD)
         return new{SeqSampleIter{typeof(rng)}}(SeqSampleIter(rng, N, n))
     end
-    function SequentialSampler(rng, n, N, ::AlgHiddenShuffle)
+    function SequentialSampler(rng, n::Integer, N::Integer, ::AlgHiddenShuffle)
         return new{SeqIterHiddenShuffleSampler{typeof(rng)}}(SeqIterHiddenShuffleSampler(rng, N, n))
     end
-    function SequentialSampler(rng, n, N, ::AlgORDSWR)
+    function SequentialSampler(rng, n::Integer, N::Integer, ::AlgORDSWR)
         return new{SeqIterWRSampler{typeof(rng)}}(SeqIterWRSampler(rng, N, n))
     end
 end
@@ -255,7 +257,7 @@ Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, n::Int, me
         return update_all!(s, iter, ordered)
     else
         m = method isa AlgL || method isa AlgR || method isa AlgD ? AlgD() : AlgORDSWR()
-        s = collect(StreamSampler{iter_type}(rng, iter, n, length(iter), m))
+        s = collect(SequentialSampler{iter_type}(rng, iter, n, length(iter), m))
         return ordered ? s : fshuffle!(rng, s)
     end
 end

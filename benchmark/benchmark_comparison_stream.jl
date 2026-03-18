@@ -29,9 +29,9 @@ end
 function strsamplesum(rng, stream, wf, n, alg, W=nothing)
     W == nothing && (W = sum(wf(x) for x in stream))
     st = if alg in (AlgD(), AlgORDSWR())
-        StreamSampler{Int}(rng, stream, n, W, alg)
+        SequentialSampler{Int}(rng, stream, n, W, alg)
     else
-        StreamSampler{Int}(rng, stream, w, n, W, alg)
+        SequentialSampler{Int}(rng, stream, w, n, W, alg)
     end
     return sum(st)
 end
@@ -96,11 +96,11 @@ end
 
 using CairoMakie
 
-f = Figure(fontsize = 9,);
+f = Figure(fontsize = 9, size = (600, 600));
 axs = [Axis(f[i, j], yscale = log10, xscale = log10, xgridstyle = :dot,
-          ygridstyle = :dot) for i in 1:4 for j in 1:2];
+          ygridstyle = :dot, titlesize=13, xlabelsize=10, ylabelsize=10) for i in 1:4 for j in 1:2];
 
-labels = ("population", "reservoir", "stream", "stream - one pass" )
+labels = ("population", "reservoir", "sequential", "sequential - one pass" )
 
 markers = (:circle, :rect, :utriangle, :xcross)
 a, b = 0, 0
@@ -126,8 +126,14 @@ for j in 1:8
     j in (1, 2, 5, 6) && hidexdecorations!(axs[j], grid = false)
 end
 
-for i in 1:8
-    axs[i].yticks = LogTicks(WilkinsonTicks(4, k_min=4, k_max=6))
+for i in (1, 2, 5, 6)
+    axs[i].yticks = ([1e1, 1e2, 1e3, 1e4, 1e5], ["10¹", "10²", "10³", "10⁴", "10⁵"])
+    ylims!(axs[i], 1e1, 1e5)
+end
+
+for i in (3, 4, 7, 8)
+    axs[i].yticks = ([1e-1, 1e0, 1e1, 1e2, 1e3, 1e4], ["10⁻¹", "10⁰", "10¹", "10²", "10³", "10⁴"])
+    ylims!(axs[i], 1e-1, 1e4)
 end
 
 linkyaxes!((axs[i] for i in [1,2,5,6])...)
@@ -140,12 +146,8 @@ for i in [3,4]
     axs[i].xticklabelsvisible = false
 end
 
-
 f[5, 1] = Legend(f, axs[1], framevisible = false, orientation = :horizontal, 
-        halign = :center, padding=(248,0,0,0))
-
-Label(f[0, :], "Performance of Sampling Algorithms on Iterators", fontsize = 13,
-    font=:bold)
+        halign = :center, padding=(248,0,0,0), labelsize=10)
 
 f
 

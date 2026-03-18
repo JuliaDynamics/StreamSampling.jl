@@ -4,7 +4,6 @@
 
 ```@docs
 ReservoirSampler
-StreamSampler
 SequentialSampler
 ```
 
