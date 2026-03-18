@@ -182,21 +182,19 @@ function SequentialSampler{T}(rng::AbstractRNG, iter, n, N, method::StreamAlgori
     return SequentialSampler{T}(rng, iter, n, N, method)
 end
 
-struct SequentialSampler{S}
-    s::S
-    SequentialSampler(n::Integer, N::Integer) = SequentialSampler(Random.default_rng(), n, N, AlgD())
-    SequentialSampler(n::Integer, N::Integer, alg) = SequentialSampler(Random.default_rng(), n, N, alg)
-    SequentialSampler(rng::AbstractRNG, n::Integer, N::Integer) = SequentialSampler(rng, n, N, AlgD())
-    function SequentialSampler(rng, n::Integer, N::Integer, ::AlgD)
-        return new{SeqSampleIter{typeof(rng)}}(SeqSampleIter(rng, N, n))
-    end
-    function SequentialSampler(rng, n::Integer, N::Integer, ::AlgHiddenShuffle)
-        return new{SeqIterHiddenShuffleSampler{typeof(rng)}}(SeqIterHiddenShuffleSampler(rng, N, n))
-    end
-    function SequentialSampler(rng, n::Integer, N::Integer, ::AlgORDSWR)
-        return new{SeqIterWRSampler{typeof(rng)}}(SeqIterWRSampler(rng, N, n))
-    end
+function SequentialSampler(rng, n::Integer, N::Integer, ::AlgD)
+    return SeqSampleIter(rng, N, n)
 end
+function SequentialSampler(rng, n::Integer, N::Integer, ::AlgHiddenShuffle)
+    return SeqIterHiddenShuffleSampler(rng, N, n)
+end
+function SequentialSampler(rng, n::Integer, N::Integer, ::AlgORDSWR)
+    return SeqIterWRSampler(rng, N, n)
+end
+SequentialSampler(n::Integer, N::Integer) = SequentialSampler(Random.default_rng(), n, N, AlgD())
+SequentialSampler(n::Integer, N::Integer, alg) = SequentialSampler(Random.default_rng(), n, N, alg)
+SequentialSampler(rng::AbstractRNG, n::Integer, N::Integer) = SequentialSampler(rng, n, N, AlgD())
+
 Base.iterate(s::SequentialSampler) = iterate(s.s)
 Base.iterate(s::SequentialSampler, state) = iterate(s.s, state)
 Base.IteratorEltype(::SequentialSampler) = Base.HasEltype()
