@@ -18,7 +18,7 @@ function reduce_samples(ps::AbstractArray, rngs, t::Union{TypeS,TypeUnion}, ss::
     Threads.@threads for i in 1:nt
         s = ss[i]
         vi = Vector{T}(undef, ns[i])
-        @inbounds for (q, j) in enumerate(SequentialSampler(extract_rng(rngs, i), 
+        @inbounds for (q, j) in enumerate(SequentialSampler(extract_rng(rngs, 1), 
                                           ns[i], length(s), AlgHiddenShuffle()))
             vi[q] = s[j]
         end

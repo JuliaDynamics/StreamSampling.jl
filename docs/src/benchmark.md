@@ -11,7 +11,7 @@ The iterator used is a filtered generator which creates an integer range between
 benchmark more accurately mimic a somewhat realistic iterator, on which the methods could be actually used in practice.
 
 The “population” methods use `StatsBase.sample` and consider collecting the iterator in memory as part of the benchmark. The reservoir and stream
-methods use instead `ReservoirSampler` and `StreamSampler` of this package.
+methods use instead `ReservoirSampler` and `SequentialSampler` of this package.
 
 The code to reproduce the results is at [StreamSampling.jl/benchmark/benchmark_comparison_stream.jl](https://github.com/JuliaDynamics/StreamSampling.jl/blob/main/benchmark/benchmark_comparison_stream.jl).
 

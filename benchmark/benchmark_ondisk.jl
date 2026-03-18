@@ -10,6 +10,11 @@ const totaltpl = 10^11÷32 #100GB!
 const chunktpl = totaltpl ÷ 100
 const numchunks = ceil(Int, totaltpl / chunktpl)
 
+function drop_page_cache()
+    run(`sync`)
+    run(`sudo sh -c "echo 3 > /proc/sys/vm/drop_caches"`)
+end
+
 function generate_file(filename)
     for i in 1:numchunks
         starttpl, endtpl = (i-1)*chunktpl+1, min(i*chunktpl, totaltpl)
@@ -83,7 +88,7 @@ wf(d) = d[end]
 function sample_file_st(data, rng, n, alg)
     W = sum(x[end] for x in data)
     s = Vector{dtype}(undef, n)
-    @inbounds for (i, d) in enumerate(StreamSampler{dtype}(rng, data, wf, n, W, alg))
+    @inbounds for (i, d) in enumerate(SequentialSampler{dtype}(rng, data, wf, n, W, alg))
         s[i] = d
     end
     return s
@@ -93,8 +98,7 @@ function psample_file_st(data, rngs, n, alg)
     weights = Vector{Float64}(undef, Threads.nthreads())
     Threads.@threads for (i,c) in enumerate(chunks(1:length(data), n=Threads.nthreads()))
         W = sum((@inbounds data[j][end]) for j in c)
-        st_data = ((@inbounds data[j]) for j in c)
-        samples[i] = collect(StreamSampler{dtype}(rngs[i], @view(data[c]), wf, n, W, alg))
+        samples[i] = collect(SequentialSampler{dtype}(rngs[i], @view(data[c]), wf, n, W, alg))
         weights[i] = W
     end
     return combine(rngs, samples, weights)
@@ -117,22 +121,35 @@ precompile(sample_file_st, typeof.((data, rng, n, AlgORDWSWR())))
 precompile(psample_file_st, typeof.((data, rngs, n, AlgORDWSWR())))
 
 times = []
+drop_page_cache()
 for n in (totaltpl ÷ 100000, totaltpl ÷ 10000, totaltpl ÷ 1000, totaltpl ÷ 100)
+
 
     if n != totaltpl ÷ 100
         t1 = @elapsed sample_file_pop(data, rng, n);
+        drop_page_cache()
+
         t2 = @elapsed psample_file_pop(data, rngs, n);
+        drop_page_cache()
     else
         t1 = nothing
         t2 = nothing
     end
+
     t3 = @elapsed sample_file_st(data, rng, n, AlgORDWSWR());
+    drop_page_cache()
+
     t4 = @elapsed psample_file_st(data, rngs, n, AlgORDWSWR());
+    drop_page_cache()
 
     t5 = @elapsed sample_file_rs(data, rng, n, AlgWRSWRSKIP());
+    drop_page_cache()
+
     t6 = @elapsed psample_file_rs(data, rngs, n, AlgWRSWRSKIP());
+    drop_page_cache()
 
     push!(times, [t1, t2, t3, t4, t5, t6])
+    println(times)
 end
 times = hcat(times...) 
 
@@ -142,17 +159,18 @@ x = 1:4
 xtick_positions = [1,2,3,4]
 xtick_labels = ["0.001%","0.01%","0.1%","1%"]
 
-algonames = ["chunks", "chunks (4 threads)", "stream", "stream (4 threads)",
+algonames = ["chunks", "chunks (4 threads)", "sequential", "sequential (4 threads)",
              "reservoir", "reservoir (4 threads)",]
 markers = [:circle, :rect, :utriangle, :hexagon, :diamond, :xcross]
 
 fig = Figure();
 ax = Axis(fig[1, 1]; xlabel = "sample size", ylabel = "time (s)", 
-          title = "Sampling Performance on Persistent Data",
-          xticks = (xtick_positions, xtick_labels), 
+          title = "Sampling Performance from On-Disk Data", titlesize = 16,
+          xticks = (xtick_positions, xtick_labels),
+          yticks = 0:50:300,
           xgridstyle = :dot, ygridstyle = :dot,
-          xticklabelsize = 10, yticklabelsize = 10,
-          xlabelsize = 12, ylabelsize = 12
+          xticklabelsize = 11, yticklabelsize = 11,
+          xlabelsize = 14, ylabelsize = 14
 )
 
 for i in 1:size(times, 1)
@@ -164,9 +182,9 @@ for i in 1:size(times, 1)
                   linewidth = 2,)
 end
 
-ylims!(low=0, high = 250)
+ylims!(low=0, high = 300)
 fig[2, 1] = Legend(fig, ax, framevisible = false, orientation = :horizontal, 
                    halign = :center, nbanks=2, fontsize=10)
 
 fig
-save("comparison_ondisk_algs.svg", fig)
+save("comparison_ondisk_algs.pdf", fig)

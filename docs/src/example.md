@@ -125,12 +125,11 @@ rngs = [Xoshiro(i) for i in 1:Threads.nthreads()]
  5.868995 seconds (175.91 k allocations: 3.288 GiB, 6.44% gc time, 64714 lock conflicts)
 ```
 
-As you can see, the speed-up is not linear in the number of threads for an hdf5 file. This is
-mainly due to the fact that accessing the chunks is single-threaded, so one would need to use
-`MPI.jl` as  explained at [HDF5.jl/stable/mpi/](https://juliaio.github.io/HDF5.jl/stable/mpi/) to
-improve the multi-threading performance. Though, we are already sampling at 500MB/s, which is not bad!
-Using `Arrow.jl` gives an even better performance, and a scalability which is better than
-linear somehow, reaching a 2GB/s sampling speed!
+As you can see, the speed-up is not linear in the number of threads for an hdf5 file.
+This is mainly due to the fact that accessing the chunks is single-threaded, so one would
+need to use `MPI.jl` as  explained at [HDF5.jl/stable/mpi/](https://juliaio.github.io/HDF5.jl/stable/mpi/) to improve the multi-threading performance. Though, we are already sampling at 500MB/s,
+which is not bad! Using `Arrow.jl` gives an even better performance, and a scalability which
+is better than linear somehow, reaching a 2GB/s sampling speed!
 
 ## Monitoring
 
