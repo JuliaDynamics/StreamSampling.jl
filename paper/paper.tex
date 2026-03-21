@@ -13,9 +13,7 @@
 {\let \thefootnote \relax \footnotetext{*Email: \texttt{adriano.meligrana@diag.uniroma1.it}}}
 
 \begin{abstract}
-
-\texttt{StreamSampling.jl} is a Julia library designed to provide general and efficient methods for sampling from data streams in a single pass, even when the total number of items is unknown. In this paper, we describe the capabilities of the library and its advantages over traditional sampling procedures, such as maintaining a small, constant memory footprint and avoiding the need to fully materialize the stream in memory. Furthermore, we provide empirical benchmarks comparing online sampling methods against standard approaches, demonstrating performance and memory improvements. Finally, we illustrate the practical utility of these algorithms by dynamically sampling from persistent data stored on disk without loading the entire dataset.
-
+StreamSampling.jl is a Julia library designed to provide general and efficient methods for sampling from data streams in a single pass, even when the total number of items is unknown. In this paper, we describe the capabilities of the library and its advantages over traditional sampling procedures, such as maintaining a small, constant memory footprint and avoiding the need to fully materialize the stream in memory. Furthermore, we provide empirical benchmarks comparing online sampling methods against standard approaches, demonstrating performance and memory improvements.
 \end{abstract}
 
 \section{Introduction}
