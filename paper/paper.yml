@@ -1,5 +1,4 @@
-title: "StreamSampling.jl: Efficient Sampling from Data Streams in
-Julia"
+title: "StreamSampling.jl: Efficient Sampling from Data Streams in Julia"
 keywords:
   - Julia
   - Reservoir Sampling
@@ -13,5 +12,5 @@ authors:
 affiliations:
   - name: Sapienza University of Rome
     index: 1
-date: 13 March 2026
+date: 21 March 2026
 bibliography: ref.bib
