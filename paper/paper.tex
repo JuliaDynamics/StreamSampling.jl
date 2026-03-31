@@ -24,7 +24,7 @@ Reservoir sampling algorithms maintain a sample of a fixed size $K$, which is dy
 
 Sequential sampling algorithms, by contrast, are typically used when either the total number of elements in the stream ($N$) or the exact total weight ($W_N$) is known in advance \cite{vitter1987efficient, shekelyan2021sequential}. These methods return an ordered sample of the stream, without keeping track of previous sampled elements. A sequential algorithm can compute, from a single random variate, how many elements to skip over before the next selection, without the need to keep a reservoir. This can make sequential methods more efficient than reservoir methods when prior knowledge of $N$ or $W_N$ is available. \texttt{StreamSampling.jl} provides a comprehensive native Julia suite of algorithms covering both categories. However, a fundamental advantage of reservoir methods over sequential methods is that they maintain a representative sample in memory at all times, even when only a portion of the $N$ elements have been processed, a property that sequential methods lack by design.
 
-\section{Related Work}
+\section{Statement of Need}
 
 Online sampling techniques have been implemented across a range of programming languages and frameworks, typically addressing specific use cases rather than providing a unified suite of algorithms. For instance, eBay's \texttt{tsv-utils} provide the \texttt{tsv-sample} command-line tool, which supports simple random sampling and weighted reservoir sampling over tabular streams, as well as Bernoulli sampling and distinct sampling for streaming scenarios. In the POSIX environment, the GNU Coreutils \texttt{shuf} binary \cite{gnucoreutilsshuf} implements unweighted reservoir sampling when the \texttt{-n} option is used to extract a fixed number of lines from potentially unbounded inputs, without needing to know the total line count in advance.
 
@@ -63,7 +63,7 @@ AlgORDWSWR & \cite{startek2016asymptotically} & Sequential & With & True & $\mat
 \hline
 \end{tabular}%
 }
-\caption{Sampling algorithms implemented in \texttt{StreamSampling.jl} ($N$=population size, $K$=sample size, $W_N$=total weight). $^*$The expected $\mathcal{O}(K \log(N/K))$ complexity for \texttt{AlgAExpJ} holds when weights are drawn i.i.d. from a fixed distribution \cite{efraimidis2006weighted}.}
+\caption{Sampling algorithms implemented in \texttt{StreamSampling.jl} ($N$=population size, $K$=sample size, $W_N$=total weight). $^*$The expected $\mathcal{O}(K \log(N/K))$ complexity for \texttt{AlgAExpJ} holds when weights are independent and identically distributed (i.i.d.) draws \cite{efraimidis2006weighted}.}
 \label{tab:methods}
 \end{table}
 
