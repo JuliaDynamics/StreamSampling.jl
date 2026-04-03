@@ -20,6 +20,29 @@ This has some advantages over other sampling procedures:
 
 For information about the available functionalities consult the [documentation](https://juliadynamics.github.io/StreamSampling.jl/stable/).
 
+## Installation
+
+To install the package you can do
+
+```julia
+julia> ]
+(@v1.xx) pkg> add StreamSampling
+```
+
+or
+
+```julia
+julia> using Pkg
+julia> Pkg.add("StreamSampling")
+```
+
+If you want to install the latest source that is not registered yet, you can instead do
+
+```julia
+julia> using Pkg
+julia> Pkg.develop("StreamSampling")
+```
+
 ## Contributing
 
 Contributions are welcome! If you encounter any issues, have suggestions for improvements, or would like to add new 
