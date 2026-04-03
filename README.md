@@ -43,7 +43,13 @@ julia> using Pkg
 julia> Pkg.develop("StreamSampling")
 ```
 
+## Seek Support
+
+If you have general questions, need help using the package, or want to brainstorm new ideas, please use the [Discussions](https://github.com/JuliaDynamics/StreamSampling.jl/discussions) section.
+
 ## Contributing
 
-Contributions are welcome! If you encounter any issues, have suggestions for improvements, or would like to add new 
-features, feel free to open an issue or submit a pull request.
+Contributions are welcome!
+
+- If you encounter a bug or have a concrete feature proposal, feel free to open an issue.
+- If you'd like to contribute to the codebase, we'd love to see your pull requests!
