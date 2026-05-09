@@ -32,6 +32,16 @@ In the Big Data domain, Apache DataFu \cite{sumbaly2013datafu} provides User-Def
 
 Compared to these alternatives, \texttt{StreamSampling.jl} provides a comprehensive suite of sampling methodologies directly within the Julia programming language \cite{bezanson2017julia}, covering both reservoir and sequential paradigms, with and without replacement, and with or without weights. This makes it the only package, to the author's knowledge, that offers such breadth in a single, self-contained library. Furthermore, its design follows Julia's standard iterable protocol and is compatible with the \texttt{OnlineStats.jl} \cite{day2020onlinestats} API, enabling excellent integration with existing Julia data pipelines.
 
+\section{Research Impact Statement}
+
+Although \texttt{StreamSampling.jl} is a recent package, we believe the work already shows credible near-term scholarly significance. First, the benchmark results reported in Section~\ref{sec:benchmarks} show that stream-native sampling can reduce both runtime and memory consumption relative to \texttt{StatsBase.sample} by avoiding full materialization of the population. These gains make iterator-based sampling practical in settings where population-based methods incur substantial allocation overhead.
+
+Second, the out-of-core experiment in Section~\ref{sec:applications} demonstrates usefulness beyond synthetic iterator benchmarks. On a 100 GB Arrow dataset, the stream-based methods remain feasible at scales where the chunked \texttt{StatsBase.sample} baseline is slower and eventually fails due to out-of-memory errors.
+
+Third, the package serves as a software vehicle for recent research results, since its implementation of \texttt{AlgWRSWRSKIP} is tied to a recent publication in the field \cite{meligrana2026weighted}.
+
+Taken together, these results provide evidence that the library already transfers current data-stream sampling research into practical Julia workflows and is positioned for near-term use in statistical computing and large-scale data analysis.
+
 \section{Implemented Methods}
 
 \texttt{StreamSampling.jl} categorizes its implemented methods along three main axes: the underlying logic (reservoir vs. sequential), the sampling scheme (with vs. without replacement), and the inclusion probabilities (weighted vs. unweighted).
@@ -41,8 +51,7 @@ In the sequential sampling domain, methods like \texttt{AlgD} \cite{vitter1987ef
 
 Notably absent from this set is a weighted sequential method without replacement. This is a fundamental mathematical impossibility when the only prior information over the unobserved elements is the total remaining weight of the stream $W_N$, which is what it is usually assumed to be known for weighted sequential sampling algorithms. In sampling with replacement, every draw is independent and the inclusion probability of any item, that is, the probability that it will appear in the final sample is proportional to its weight over $W_N$, so $W_N$ alone is sufficient. In sampling without replacement, however, selecting an item alters the inclusion probabilities of all subsequent items. To correctly compute the inclusion probability of the next item, one needs to know the individual weights of all remaining elements in the stream, not merely their sum: different configurations of individual weights can yield the same total $W_N$ but require different inclusion probabilities. Knowing only $W_N$ therefore leaves the per-element inclusion probabilities undetermined, making it impossible to draw a correctly weighted sample without replacement in a sequential single pass.
 
-Table \ref{tab:methods} summarizes the algorithms implemented in the package along with their time and space complexities:
-
+\vspace{-10pt}
 \begin{table}[h]
 \centering
 \resizebox{\columnwidth}{!}{%
@@ -66,72 +75,112 @@ AlgORDWSWR & \cite{startek2016asymptotically} & Sequential & With & True & $\mat
 \caption{Sampling algorithms implemented in \texttt{StreamSampling.jl} ($N$=population size, $K$=sample size, $W_N$=total weight). $^*$The expected $\mathcal{O}(K \log(N/K))$ complexity for \texttt{AlgAExpJ} holds when weights are independent and identically distributed (i.i.d.) draws \cite{efraimidis2006weighted}.}
 \label{tab:methods}
 \end{table}
+\vspace{-5pt}
+
+Table \ref{tab:methods} summarizes the algorithms implemented in the package along with their time and space complexities.
 
 It is important to clarify that the \textit{Time} complexity metric strictly evaluates the running time in terms of the number of random variates that must be generated to obtain a sample of size $K$ from a (possibly weighted) population of size $N$.
- 
-\section{Sampling API}
+
+\section{Software Design}
+
+The software design has two goals: integration with existing Julia streaming workflows and efficient support for the different sampling algorithms implemented by the package. For reservoir samplers, this led to an interface aligned with \texttt{OnlineStats.jl} \cite{day2020onlinestats}. Rather than introducing a package-specific stateful API, reservoir samplers support \texttt{fit!}, \texttt{value}, and \texttt{merge!}. This makes them composable with existing online and streaming workflows. The use of \texttt{fit!} and \texttt{value} for reservoir sampling has previously been proposed in \cite{efraimidis2015weighted}, while mergeable reservoirs have been discussed in \cite{cormode2011}. The latter operation is particularly important for parallel and distributed sampling workflows.
+
+Reservoir samplers naturally fit the \texttt{OnlineStats.jl} model because they maintain a state that is updated as observations arrive and can later be queried or merged. Sequential samplers, however, have a different computational structure and therefore follow Julia's iterator protocol instead.
+
+The implementation also balances performance with flexibility by providing most reservoir samplers in both mutable and immutable forms. These variants are generated from a shared definition using \texttt{HybridStructs.jl}. The mutable variants are easier to work with for workflows in which surrounding code requires storing references of the sampler object. Empirical testing showed that the immutable variants are generally more performant, and they are therefore retained for cases where more speed is required.
+
+The internal data structures to store the sample are chosen to match the operations required by each algorithm. Weighted sampling without replacement, as implemented by \texttt{AlgARes} and \texttt{AlgAExpJ}, repeatedly compares candidate priorities with the current minimum retained priority to choose if an element needs to be sampled. For this reason, the sample is stored in a binary heap, as is usually recommended \cite{efraimidis2006weighted, efraimidis2015weighted}. This allows the current top-$K$ priorities to be maintained efficiently and also simplifies merging, at the cost of the ordering overhead introduced by the heap. In contrast, the unweighted algorithms and the weighted algorithms with replacement maintain fixed sample slots in flat arrays. This simpler representation allows these algorithms to outperform the heap-based implementations, as shown in Figure~\ref{fig:bench_iter}.
+
+\subsection{Package Interface}
 
 The interface of \texttt{StreamSampling.jl} relies on two main samplers, each made for its sampling domain: \texttt{ReservoirSampler} and \texttt{SequentialSampler}. The package also provides \texttt{itsample}, which, similarly to \texttt{StatsBase.sample}, returns an \texttt{Array}, but, by using stream methods, it can be applied to any iterator.
 
-\subsection{Reservoir Samplers}
+\subsubsection{Reservoir Samplers}
 
-Following the \texttt{OnlineStats.jl} \cite{day2020onlinestats}, the \texttt{ReservoirSampler} API exposes three main core operations:
+As previously described, the \texttt{ReservoirSampler} API exposes three main core operations:
 
 \begin{itemize}
     \item \texttt{fit!(sampler, item, [weight])}: Processes a new element from the stream and updates the sample accordingly.
     \item \texttt{value(sampler)}: Returns the current in-memory sample.
-    \item \texttt{merge!(sampler1, sampler2, ...)}: Combines multiple reservoir samplers, each typically operating on a different partition of the stream, into a single statistically consistent reservoir. This enables parallel and distributed sampling workflows \cite{cormode2011}.
+    \item \texttt{merge!(sampler1, sampler2, ...)}: Combines multiple reservoir samplers, each typically operating on a different partition of the stream, into a single statistically consistent reservoir.
 \end{itemize}
 
-\subsection{Sequential Samplers}
+\subsubsection{Sequential Samplers}
 
 Instead of maintaining an in-memory reservoir, \texttt{SequentialSampler} wraps an input iterable together with the required population size (or total weight) and conforms to Julia's standard \texttt{iterate} protocol. Rather than processing each element via \texttt{fit!}, the sampler computes skip lengths on the fly and emits selected elements directly as the iterator is consumed, without any intermediate collection.
 
 For parallel workflows, \texttt{SequentialSampler} provides a \texttt{combine(samples, weights)} function. Similarly to \texttt{merge!}, \texttt{combine} merges samples taken from different partitions into a single globally correct sample by re-weighting each local sample proportionally to its partition's share of the total weight, ensuring that the final output has the correct global inclusion probabilities.
 
+\subsubsection{Iterator-Based Sampling Interface}
+
+\texttt{itsample} provides a convenience layer that dispatches between stream-oriented and length-aware implementations using iterator traits. When \texttt{Base.IteratorSize(iter)} is \texttt{Base.SizeUnknown}, it selects reservoir methods that remain valid on a one-pass stream. When the iterable has a known length, it can instead switch to sequential methods that exploit that additional information. Users who need exact control over the selected algorithm or who need to update the sample incrementally should instantiate \texttt{ReservoirSampler} or \texttt{SequentialSampler} directly.
+
 \subsection{Example Usage}
 
-The following minimal examples illustrate typical usage of both interfaces. Notice that, in both cases, the iterator is never materialized in memory:
+The following minimal examples illustrate typical usage of the interface. Notice that, in all cases, the iterator is never materialized in memory:
 
 \lstset{numbers=left, numberstyle=\tiny\color{gray}, numbersep=6pt,
         caption=\relax, captionpos=b}
 
 \begin{lstlisting}[
 language = Julia,
-numbers=left,
+numbers=none,
 label={lst:reservoir},
-caption={Reservoir sampling of $K=10$ elements from an iterator of unknown size.}
+caption={Reservoir sampling without replacement of $K=10$ elements from an iterator of unknown size.}
 ]
 using StreamSampling
 
+stream = 1:10^8
 K = 10
-sampler = ReservoirSampler(Int, K)
-for x in 1:10^8
+alg = AlgL()
+sampler = ReservoirSampler{Int}(K, alg)
+for x in stream
     fit!(sampler, x) # O(1) per element
 end
 
-sample = value(sampler) # Vector{Int} of length 10
+# returns a vector of length 10
+sample = value(sampler)
 \end{lstlisting}
 
 \vspace{-15pt}
 
 \begin{lstlisting}[
 language = Julia,
-numbers=left,
+numbers=none,
 label={lst:sequential},
-caption={Sequential sampling of $K=10$ elements when the population size $N$ is known.}
+caption={Sequential sampling without replacement of $K=10$ elements when the population size $N$ is known.}
 ]
 using StreamSampling
 
+stream = 1:10^8
 K, N = 10, 10^8
-for x in SequentialSampler(1:10^8, K, N)
+alg = AlgD()
+sampler = SequentialSampler{Int}(stream, K, N, alg)
+for x in sampler
     println(x) # sampled element emitted on the fly
 end
 \end{lstlisting}
 
+\vspace{-15pt}
+
+
+\begin{lstlisting}[
+language = Julia,
+numbers=none,
+label={lst:itsample},
+caption={Sampling without replacement of $K=10$ elements with the \texttt{itsample} convenience layer.}
+]
+using StreamSampling
+
+# returns a vector of length 10
+itsample(1:10^8, 10)
+\end{lstlisting}
+
+
 The reservoir sampler maintains a buffer of exactly $K$ elements throughout and is valid even when $N$ is unknown. The sequential sampler holds no buffer at all; it skips directly to each selected element using the precomputed population size $N$.
 
 \section{Benchmarks}
+\label{sec:benchmarks}
 
 Several benchmarks were conducted to evaluate the performance of the reservoir and sequential sampling implementations\footnotemark{}. All benchmarks were run on a machine with an AMD Ryzen 5 5600H (6 cores) and 16GB of RAM, running Ubuntu 24.04 LTS and Julia 1.12.
 
@@ -155,16 +204,13 @@ The population baseline forces full iterator materialization, resulting in the h
 \footnotetext{The benchmarks and applications described are available at \url{https://github.com/JuliaDynamics/StreamSampling.jl/tree/main/benchmark}.}
 
 \section{Applications}
+\label{sec:applications}
 
 The algorithms provided by \texttt{StreamSampling.jl} can be applied across various data-intensive domains including approximate query processing, online log monitoring, querying massive network analytics feeds, and sensor data sub-sampling where unbounded observations naturally prohibit offline computational constraints \cite{cormode2011, wolfrath2022}.
 
 A direct application is efficient sampling from persistent data\footnotemark[\value{footnote}]. To demonstrate the usefulness of the algorithms presented earlier in this setting, we performed an experiment to sample from 100 GB of weighted tabular data stored on disk in the Arrow format (a columnar binary format enabling efficient I/O without full deserialization). As a baseline, a chunking approach which loads and samples each chunk with \texttt{StatsBase.sample} and eventually recombines the partial samples is provided. Reservoir techniques process the elements in a continuous single pass which can allow them to outperform the chunking approach. Sequential methods are similarly applicable; however, they require two passes, one to compute the aggregate total weight $W_N$, and a second pass to extract the sample.
 
-The out-of-core experiment was conducted on the same machine and in the same environment described earlier for the iterator benchmarks. In addition, it should be noted that a 512 GB KIOXIA KXG60ZNV SSD was used as persistent storage. File I/O was performed via \texttt{Arrow.jl} and OS page-cache effects were mitigated by dropping the page cache between runs. Execution times are single-trial measurements.
-
-Figure \ref{fig:bench_disk} presents execution times for extracting a weighted sample with replacement from the 100 GB Arrow file with the different methods:
-
-\vspace{-10pt}
+\vspace{-15pt}
 \begin{figure}[h]
 \centering
 \includegraphics[width=\columnwidth]{comparison_ondisk_algs.pdf}
@@ -173,13 +219,23 @@ Figure \ref{fig:bench_disk} presents execution times for extracting a weighted s
 \end{figure}
 \vspace{-5pt}
 
+The out-of-core experiment was conducted on the same machine and in the same environment described earlier for the iterator benchmarks. In addition, it should be noted that a 512 GB KIOXIA KXG60ZNV SSD was used as persistent storage. File I/O was performed via \texttt{Arrow.jl} and OS page-cache effects were mitigated by dropping the page cache between runs. Execution times are single-trial measurements.
+
+Figure \ref{fig:bench_disk} presents execution times for extracting a weighted sample with replacement from the 100 GB Arrow file with the different methods.
+
 The baseline chunked \texttt{StatsBase.sample} strategy exhibits the highest execution times across all tested configurations. The single-threaded chunks approach requires between 260 and 280 seconds, while the 4-thread version improves this to approximately 195 seconds. Furthermore, both chunk configurations fail due to out-of-memory errors before completing the 1\% sample size extraction.
 
 In contrast, the reservoir and sequential methods (which use \texttt{AlgWRSWRSKIP} and \texttt{AlgORDWSWR} respectively) successfully process the largest sample sizes while requiring substantially lower execution times. For single-threaded execution, the reservoir method is the most efficient, operating in the 135–155 second range and outperforming the single-threaded sequential method, which remains flat at approximately 210 seconds. However, the sequential method demonstrates superior parallel scaling in comparison to the reservoir method.
 
+
+
 \section{Conclusion}
 
 \texttt{StreamSampling.jl} introduces a comprehensive suite of algorithms covering both reservoir and sequential paradigms, filling a gap in the Julia ecosystem. The ability to sample from any Julia iterator without materializing it in memory extends the reach of random sampling to contexts such as lazy data pipelines and large on-disk datasets. Future work may aim to extend the library to support other sampling algorithms. This includes implementing methods where the sample size is only guaranteed in expectation, such as Bernoulli and Poisson sampling. Furthermore, we plan to introduce sliding window sampling techniques \cite{braverman2012optimal} as well as stratified reservoir algorithms \cite{lee2010stratified}. Finally, we aim to integrate the package algorithms into the broader Julia ecosystem, specifically by improving the poly-algorithm implementation of \texttt{StatsBase.sample} to dispatch to these methods under favorable circumstances.
+
+\section{AI Usage Disclosure}
+
+During the preparation of this work, the author used some AI tools for the purpose of proofreading and improving readability. On the software side, these have also been used to add tests to improve code coverage. The author reviewed and edited the content as needed and takes full responsibility for the final content of the publication.
 
 \balance
 \bibliographystyle{juliacon}
