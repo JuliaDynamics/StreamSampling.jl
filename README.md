@@ -4,7 +4,7 @@
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadynamics.github.io/StreamSampling.jl/stable/)
 [![codecov](https://codecov.io/gh/JuliaDynamics/StreamSampling.jl/graph/badge.svg?token=F8W0MC53Z0)](https://codecov.io/gh/JuliaDynamics/StreamSampling.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
-[![DOI](https://zenodo.org/badge/692407431.svg)](https://zenodo.org/doi/10.5281/zenodo.12826684)
+[![DOI](https://proceedings.juliacon.org/papers/10.21105/jcon.00202/status.svg)](https://doi.org/10.21105/jcon.00202)
 
 The scope of this package is to provide general methods to sample from any stream in a single pass through the data, even when 
 the number of items contained in the stream is unknown.
@@ -53,3 +53,22 @@ Contributions are welcome!
 
 - If you encounter a bug or have a concrete feature proposal, feel free to open an issue.
 - If you'd like to contribute to the codebase, we'd love to see your pull requests!
+
+## Citation
+
+If you use this package in a publication, or simply want to refer to it, please cite the paper below:
+
+```
+@article{Meligrana2026,
+    doi = {10.21105/jcon.00202},
+    url = {https://doi.org/10.21105/jcon.00202},
+    year = {2026},
+    publisher = {The Open Journal},
+    volume = {8},
+    number = {83},
+    pages = {202},
+    author = {Adriano Meligrana},
+    title = {StreamSampling.jl: Efficient Sampling from Data Streams in Julia},
+    journal = {Proceedings of the JuliaCon Conferences},
+}
+```
