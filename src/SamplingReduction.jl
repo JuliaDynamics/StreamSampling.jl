@@ -3,19 +3,19 @@ const SMWR = Union{MultiAlgRSWRSKIPSampler, MultiAlgWRSWRSKIPSampler}
 const SMWOWR = Union{MultiAlgAResSampler, MultiAlgAExpJSampler}
 
 reduce_samples(t) = error()
-function reduce_samples(t::Union{TypeS,TypeUnion}, ss::BinaryHeap...)
-    nt = length(ss)
-    n = minimum(length.(ss))
-    lkeys = sort(reduce(vcat, [s.valtree for s in ss]), by=(x->x[end]), rev=true)[1:n]
-    return lkeys
+function reduce_samples(t::Union{TypeS,TypeUnion}, n::Integer, ss::BinaryHeap...)
+    lkeys = sort(reduce(vcat, [s.valtree for s in ss]), by=(x->x[end]), rev=true)
+    return lkeys[1:min(n, length(lkeys))]
 end
 function reduce_samples(ps::AbstractArray, rngs, t::Union{TypeS,TypeUnion}, ss::AbstractArray...)
+    return reduce_samples(ps, rngs, t, minimum(length.(ss)), ss...)
+end
+function reduce_samples(ps::AbstractArray, rngs, t::Union{TypeS,TypeUnion}, n::Integer, ss::AbstractArray...)
     nt = length(ss)
     T = get_type_rs(t, ss...)
     v = Vector{Vector{T}}(undef, nt)
-    n = minimum(length.(ss))
     ns = rand(extract_rng(rngs, 1), Multinomial(n, ps))
-    Threads.@threads for i in 1:nt
+    for i in 1:nt
         s = ss[i]
         vi = Vector{T}(undef, ns[i])
         @inbounds for (q, j) in enumerate(SequentialSampler(extract_rng(rngs, 1), 

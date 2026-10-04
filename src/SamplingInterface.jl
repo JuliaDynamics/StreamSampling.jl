@@ -223,10 +223,10 @@ function itsample(iter, method = AlgRSWRSKIP(); iter_type = infer_eltype(iter))
     return itsample(Random.default_rng(), iter, method; iter_type)
 end
 function itsample(iter, n::Int, method = AlgL(); iter_type = infer_eltype(iter), ordered = false)
-    return itsample(Random.default_rng(), iter, n, method; ordered)
+    return itsample(Random.default_rng(), iter, n, method; iter_type, ordered)
 end
 function itsample(iter, wv::Function, method = AlgWRSWRSKIP(); iter_type = infer_eltype(iter))
-    return itsample(Random.default_rng(), iter, wv, method)
+    return itsample(Random.default_rng(), iter, wv, method; iter_type)
 end
 function itsample(iter, wv::Function, n::Int, method = AlgAExpJ(); iter_type = infer_eltype(iter), 
         ordered = false)
@@ -247,7 +247,7 @@ Base.@constprop :aggressive function itsample(rng::AbstractRNG, iter, n::Int, me
         s = ReservoirSampler{iter_type,Float64}(rng, n, method, ImmutSampler(), ordered ? Ord() : Unord())
         return update_all!(s, iter, ordered)
     else
-        m = method isa AlgL || method isa AlgR || method isa AlgD ? AlgD() : AlgORDSWR()
+        m = method isa Union{AlgL, AlgR, AlgD} ? AlgD() : method isa AlgHiddenShuffle ? method : AlgORDSWR()
         s = collect(SequentialSampler{iter_type}(rng, iter, n, length(iter), m))
         return ordered ? s : fshuffle!(rng, s)
     end

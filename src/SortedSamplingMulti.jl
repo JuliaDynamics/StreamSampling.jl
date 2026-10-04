@@ -71,7 +71,9 @@ end
 
 @inline function Base.iterate(s::MultiAlgORDSampler)
     indices, iter = s.inds, s.it
-    curr_idx, state_idx = iterate(indices)::Tuple
+    it_indices = iterate(indices)
+    it_indices === nothing && return nothing
+    curr_idx, state_idx = it_indices
     el, state_el = iterate(iter)::Tuple
     for _ in 1:curr_idx-1
         el, state_el = iterate(iter, state_el)::Tuple

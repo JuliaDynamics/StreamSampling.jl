@@ -25,3 +25,7 @@ Manifest.toml
 
 benchmark/Manifest.toml
 benchmark/random_data.arrow
+
+# Clickstream dataset used by comparison/benchmark_clickstream.jl (download from https://dumps.wikimedia.org/other/clickstream/2024-12/)
+comparison/clickstream-*.tsv
+comparison/clickstream-*.tsv.gz

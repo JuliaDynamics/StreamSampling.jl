@@ -78,7 +78,7 @@ macro quantile_fast(k)
     append!(block.args, firstv.args)
     for i in 2:k
         nextv = quote
-            $(esc(:s)) *= ($(esc(:n)) - $i) * $(esc(:p))
+            $(esc(:s)) *= ($(esc(:n)) - $(i - 1)) * $(esc(:p))
             $(esc(:q)) *= 1. - $(esc(:p))
             $(esc(:x)) += $(esc(:s)) / ($(esc(:q)) * $(factorial(i)))
             $(esc(:x)) > $(esc(:nt)) && return $i
@@ -98,7 +98,7 @@ end
 
 function get(s::AlgWRSWRSKIPSampler)
 	if s.seen_k < s.n
-		return sample(s.rng, s.value[1:s.seen_k], Weights(s.weigths[1:s.seen_k]), s.n)
+		return sample(s.rng, s.value[1:s.seen_k], Weights(diff([0.0; s.weights[1:s.seen_k]])), s.n)
 	else 
 		return s.value
 	end
@@ -253,16 +253,16 @@ function get(s::AlgWRAExpJSampler{<:BinaryHeap{Pair{T, Tuple{Float64,Float64}}}}
     m = 2
     @inbounds for j in 2:s.n
         i = rand(s.rng, sampler)
-        if i <= j-1
+        if i < m
             out[j] = kvs[i][1]
         else
             out[j] = kvs[m][1]
+            if m < s.n
+                sampler[m] = kvs[m][2][2]
+                Wnew -= kvs[m][2][2]
+                sampler[m+1] = Wnew
+            end
             m += 1
-        end
-        if j < s.n
-            sampler[j] = kvs[j][2][2]
-            Wnew -= kvs[j][2][2]
-            sampler[j+1] = Wnew
         end
     end
     return out
