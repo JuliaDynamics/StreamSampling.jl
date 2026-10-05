@@ -162,3 +162,34 @@ end
         @test_throws "Merging ordered reservoirs is not possible" merge!(s1, s2)
     end
 end
+
+@testset "merge/merge! below the reservoir size" begin
+    rng = StableRNG(56)
+    reps = 10^5
+    # weights equal to the elements, so that misplaced weights are detected
+    fitx!(s, m, x) = m isa AlgWRSWRSKIP ? fit!(s, x, Float64(x)) : fit!(s, x)
+    for m in (AlgRSWRSKIP(), AlgWRSWRSKIP()), f in (merge, merge!), N in (4, 6, 10)
+        counts = zeros(Int, N)
+        for _ in 1:reps
+            s1, s2 = ReservoirSampler{Int}(rng, 6, m), ReservoirSampler{Int}(rng, 6, m)
+            for x in 1:2 fitx!(s1, m, x) end
+            for x in 3:4 fitx!(s2, m, x) end
+            s = f(s1, s2)
+            for x in 5:N fitx!(s, m, x) end
+            for x in value(s) counts[x] += 1 end
+        end
+        ps = m isa AlgWRSWRSKIP ? collect(1:N) ./ sum(1:N) : fill(1/N, N)
+        @test pvalue(ChisqTest(counts, ps)) > 0.001
+    end
+    for m in (AlgRSWRSKIP(), AlgWRSWRSKIP()), f in (merge, merge!)
+        s = f(ReservoirSampler{Int}(rng, 3, m), ReservoirSampler{Int}(rng, 3, m))
+        @test isempty(value(s))
+        fitx!(s, m, 1)
+        @test value(s) == [1, 1, 1]
+        s1, s2 = ReservoirSampler{Int}(rng, 3, m), ReservoirSampler{Int}(rng, 3, m)
+        for x in 1:5 fitx!(s1, m, x) end
+        s = empty!(f(s1, s2))
+        fitx!(s, m, 1)
+        @test value(s) == [1, 1, 1]
+    end
+end

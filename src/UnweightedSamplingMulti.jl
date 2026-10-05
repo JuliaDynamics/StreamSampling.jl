@@ -217,8 +217,13 @@ function Base.merge(ss::MultiAlgLSampler...)
 end
 function Base.merge(ss::MultiAlgRSWRSKIPSampler...)
     n = minimum(s.n for s in ss)
-    newvalue = reduce_samples(get_ps(ss...), [s.rng for s in ss], TypeUnion(), n, value.(ss)...)
     seen_k = sum(getfield(s, :seen_k) for s in ss)
+    if seen_k < n
+        newvalue = Vector{get_type_rs(TypeUnion(), (s.value for s in ss)...)}(undef, n)
+        append_unfilled!(newvalue, 0, ss...)
+        return MultiAlgRSWRSKIPSampler_Mut(n, 0, seen_k, ss[1].rng, newvalue, nothing)
+    end
+    newvalue = reduce_samples(get_ps(ss...), [s.rng for s in ss], TypeUnion(), n, value.(ss)...)
     s = MultiAlgRSWRSKIPSampler_Mut(n, 0, seen_k, ss[1].rng, newvalue, nothing)
     return recompute_skip!(s, n)
 end
@@ -231,12 +236,17 @@ function Base.merge!(ss::MultiAlgLSampler...)
 end
 function Base.merge!(s1::MultiAlgRSWRSKIPSampler{<:Nothing}, ss::MultiAlgRSWRSKIPSampler...)
     s1.n > minimum(s.n for s in ss) && error("The size of the mutated reservoir should be the minimum size between all merged reservoir")
-    newvalue = reduce_samples(get_ps(s1, ss...), [s1.rng, [s.rng for s in ss]...], TypeS(), s1.n, value(s1), value.(ss)...)
-    for i in 1:length(newvalue)
-        @inbounds s1.value[i] = newvalue[i]
+    seen_k = s1.seen_k + sum(getfield(s, :seen_k) for s in ss)
+    if seen_k < s1.n
+        append_unfilled!(s1.value, s1.seen_k, ss...)
+    else
+        newvalue = reduce_samples(get_ps(s1, ss...), [s1.rng, [s.rng for s in ss]...], TypeS(), s1.n, value(s1), value.(ss)...)
+        for i in 1:length(newvalue)
+            @inbounds s1.value[i] = newvalue[i]
+        end
     end
-    s1.seen_k += sum(getfield(s, :seen_k) for s in ss)
-    recompute_skip!(s1, s1.n)
+    s1.seen_k = seen_k
+    seen_k >= s1.n && recompute_skip!(s1, s1.n)
     return s1
 end
 

@@ -27,6 +27,29 @@ function reduce_samples(ps::AbstractArray, rngs, t::Union{TypeS,TypeUnion}, n::I
     return reduce(vcat, v)
 end
 
+# reservoirs which together saw fewer than n elements are all still filling up, so
+# they hold their elements as seen and merging them amounts to concatenating these
+function append_unfilled!(value, k, ss::MultiAlgRSWRSKIPSampler...)
+    for s in ss
+        @inbounds for i in 1:s.seen_k
+            value[k+i] = s.value[i]
+        end
+        k += s.seen_k
+    end
+    return value
+end
+function append_unfilled!(value, weights, k, w, ss::MultiAlgWRSWRSKIPSampler...)
+    for s in ss
+        @inbounds for i in 1:s.seen_k
+            value[k+i] = s.value[i]
+            weights[k+i] = w + s.weights[i]
+        end
+        k += s.seen_k
+        w += s.state
+    end
+    return value
+end
+
 extract_rng(v::AbstractArray, i) = v[i]
 extract_rng(v::AbstractRNG, i) = v
 
