@@ -43,6 +43,7 @@ struct SeqSampleIter{R}
 end
 
 @inline function Base.iterate(it::SeqSampleIter)
+    it.n == 0 && return nothing
     i = 0
     q1 = it.N - it.n + 1
     q2 = q1 / it.N

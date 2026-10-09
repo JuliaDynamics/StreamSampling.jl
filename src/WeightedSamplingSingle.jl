@@ -51,8 +51,7 @@ function Base.merge(ss::SingleAlgWRSWRSKIPSampler...)
     ps = cumsum(ns ./ n_tot)
     r = rand(ss[1].rng)
     value = ss[findfirst(p -> r < p, ps)].rvalue
-    return typeof(ss[1])(sum(s.seen_k for s in ss), sum(s.total_w for s in ss), sum(s.skip_w for s in ss), 
-                      ss[1].rng, value)
+    return typeof(ss[1])(sum(s.seen_k for s in ss), n_tot, n_tot/rand(ss[1].rng), ss[1].rng, value)
 end
 
 function Base.merge!(s1::SingleAlgWRSWRSKIPSampler_Mut, ss::SingleAlgWRSWRSKIPSampler_Mut...)
@@ -65,8 +64,8 @@ function Base.merge!(s1::SingleAlgWRSWRSKIPSampler_Mut, ss::SingleAlgWRSWRSKIPSa
         s1.rvalue = RefVal_Immut(ss[i-1].rvalue.value)
     end
     s1.seen_k += sum(s.seen_k for s in ss)
-    s1.skip_w += sum(s.skip_w for s in ss)
     s1.total_w += sum(s.total_w for s in ss)
+    s1.skip_w = s1.total_w/rand(s1.rng)
     return s1
 end
 

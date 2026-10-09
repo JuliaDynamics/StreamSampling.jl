@@ -84,3 +84,30 @@
         end
     end
 end
+
+@testset "Unweighted skip sampling with n >= 4" begin
+    rng = StableRNG(49)
+    # slots replaced at a skip event follow a Binomial(n, p) conditioned on being positive
+    for (n, p) in ((4, 0.25), (8, 0.4), (20, 0.1))
+        d = Binomial(n, p)
+        reps = 10^6
+        kmax = findlast(k -> reps * pdf(d, k) / ccdf(d, 0) >= 100, 1:n)
+        counts = zeros(Int, kmax)
+        for _ in 1:reps
+            counts[min(StreamSampling.choose(rng, n, p), kmax)] += 1
+        end
+        ps = [[pdf(d, k) for k in 1:kmax-1]; ccdf(d, kmax-1)] ./ ccdf(d, 0)
+        @test pvalue(ChisqTest(counts, ps)) > 0.001
+    end
+    # each slot of a with-replacement reservoir is an independent uniform draw
+    N, n, reps = 20, 10, 10^5
+    for ordered in (false, true)
+        counts = zeros(Int, N)
+        for _ in 1:reps
+            rs = ReservoirSampler{Int}(rng, n, AlgRSWRSKIP(); ordered)
+            for x in 1:N fit!(rs, x) end
+            for x in value(rs) counts[x] += 1 end
+        end
+        @test pvalue(ChisqTest(counts, fill(1/N, N))) > 0.001
+    end
+end

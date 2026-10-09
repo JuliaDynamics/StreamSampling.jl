@@ -137,7 +137,7 @@ end
                 while s.weights[j] < curx * s.state
                     j += 1
                 end
-                newvalues[i] = s.value[j]
+                newvalues[n-i+1] = s.value[j]
             end
             s.value .= newvalues
             s = @inline recompute_skip!(s, n)
@@ -189,38 +189,43 @@ end
 extract_T(::DataStructures.BinaryHeap{T}) where T = T
 
 function Base.merge(ss::MultiAlgAResSampler...)
-    newvalue = reduce_samples(TypeUnion(), [s.value for s in ss]...)
+    n = minimum(s.n for s in ss)
+    newvalue = reduce_samples(TypeUnion(), n, [s.value for s in ss]...)
     newheap = BinaryHeap(Base.By(last, DataStructures.FasterForward()), newvalue)
     seen_k = sum(getfield(s, :seen_k) for s in ss)
-    n = minimum(s.n for s in ss)
     s = MultiAlgAResSampler_Mut(seen_k, n, ss[1].rng, newheap)
     return s
 end
 function Base.merge(ss::MultiAlgAExpJSampler...)
-    newvalue = reduce_samples(TypeUnion(), [s.value for s in ss]...)
+    n = minimum(s.n for s in ss)
+    newvalue = reduce_samples(TypeUnion(), n, [s.value for s in ss]...)
     newheap = BinaryHeap(Base.By(last, DataStructures.FasterForward()), newvalue)
     seen_k = sum(getfield(s, :seen_k) for s in ss)
-    state = sum(getfield(s, :state) for s in ss)
-    min_priority = minimum(getfield(s, :min_priority) for s in ss)
-    n = minimum(s.n for s in ss)
-    s = MultiAlgAExpJSampler_Mut(state, min_priority, seen_k, n, ss[1].rng, newheap)
+    z = zero(ss[1].state)
+    s = MultiAlgAExpJSampler_Mut(z, z, seen_k, n, ss[1].rng, newheap)
+    seen_k >= n && recompute_skip!(s)
     return s
 end
 function Base.merge(ss::MultiAlgWRSWRSKIPSampler...)
-    newvalue = reduce_samples(get_ps(ss...), [s.rng for s in ss], TypeUnion(), value.(ss)...)
-    skip_w = sum(getfield(s, :skip_w) for s in ss)
+    n = minimum(s.n for s in ss)
     state = sum(getfield(s, :state) for s in ss)
     seen_k = sum(getfield(s, :seen_k) for s in ss)
-    n = minimum(s.n for s in ss)
-    s = MultiAlgWRSWRSKIPSampler_Mut(n, state, skip_w, seen_k, ss[1].rng, Memory{Float64}(undef,0), newvalue, nothing)
-    return s
+    weights = Memory{typeof(state)}(undef, n)
+    if seen_k < n
+        newvalue = Vector{get_type_rs(TypeUnion(), (s.value for s in ss)...)}(undef, n)
+        append_unfilled!(newvalue, weights, 0, zero(state), ss...)
+        return MultiAlgWRSWRSKIPSampler_Mut(n, state, zero(state), seen_k, ss[1].rng, weights, newvalue, nothing)
+    end
+    newvalue = reduce_samples(get_ps(ss...), [s.rng for s in ss], TypeUnion(), n, value.(ss)...)
+    s = MultiAlgWRSWRSKIPSampler_Mut(n, state, zero(state), seen_k, ss[1].rng, weights, newvalue, nothing)
+    return recompute_skip!(s, n)
 end
 
 function Base.merge!(s1::MultiAlgAResSampler, ss::MultiAlgAResSampler...)
-    length(typeof(s1.value.valtree).parameters) == 3 && error("Merging ordered reservoirs is not possible")
+    eltype(s1.value.valtree) <: Tuple && error("Merging ordered reservoirs is not possible")
     s1.n > minimum(s.n for s in ss) && error("The size of the mutated reservoir should be the minimum size between all merged reservoir")
+    newvalue = reduce_samples(TypeS(), s1.n, s1.value, [s.value for s in ss]...)
     empty!(s1.value.valtree)
-    newvalue = reduce_samples(TypeS(), s1.value, [s.value for s in ss]...)
     for e in newvalue
         push!(s1.value, e[1] => e[2])
     end
@@ -228,27 +233,31 @@ function Base.merge!(s1::MultiAlgAResSampler, ss::MultiAlgAResSampler...)
     return s1
 end
 function Base.merge!(s1::MultiAlgAExpJSampler, ss::MultiAlgAExpJSampler...)
-    length(typeof(s1.value.valtree).parameters) == 3 && error("Merging ordered reservoirs is not possible")
+    eltype(s1.value.valtree) <: Tuple && error("Merging ordered reservoirs is not possible")
     s1.n > minimum(s.n for s in ss) && error("The size of the mutated reservoir should be the minimum size between all merged reservoir")
+    newvalue = reduce_samples(TypeS(), s1.n, s1.value, [s.value for s in ss]...)
     empty!(s1.value.valtree)
-    newvalue = reduce_samples(TypeS(), s1.value, [s.value for s in ss]...)
     for e in newvalue
         push!(s1.value, e[1] => e[2])
     end
     s1.seen_k += sum(getfield(s, :seen_k) for s in ss)
-    s1.state += sum(getfield(s, :state) for s in ss)
-    s1.min_priority = min(s1.min_priority, minimum(getfield(s, :min_priority) for s in ss))
+    s1.seen_k >= s1.n && recompute_skip!(s1)
     return s1
 end
 function Base.merge!(s1::MultiAlgWRSWRSKIPSampler{<:Nothing}, ss::MultiAlgWRSWRSKIPSampler...)
     s1.n > minimum(s.n for s in ss) && error("The size of the mutated reservoir should be the minimum size between all merged reservoir")
-    newvalue = reduce_samples(get_ps(s1, ss...), [s1.rng, [s.rng for s in ss]...], TypeS(), value(s1), value.(ss)...)
-    for i in 1:length(newvalue)
-        @inbounds s1.value[i] = newvalue[i]
+    seen_k = s1.seen_k + sum(getfield(s, :seen_k) for s in ss)
+    if seen_k < s1.n
+        append_unfilled!(s1.value, s1.weights, s1.seen_k, s1.state, ss...)
+    else
+        newvalue = reduce_samples(get_ps(s1, ss...), [s1.rng, [s.rng for s in ss]...], TypeS(), s1.n, value(s1), value.(ss)...)
+        for i in 1:length(newvalue)
+            @inbounds s1.value[i] = newvalue[i]
+        end
     end
-    s1.skip_w += sum(getfield(s, :skip_w) for s in ss)
     s1.state += sum(getfield(s, :state) for s in ss)
-    s1.seen_k += sum(getfield(s, :seen_k) for s in ss)
+    s1.seen_k = seen_k
+    seen_k >= s1.n && recompute_skip!(s1, s1.n)
     return s1
 end
 

@@ -78,7 +78,7 @@ end
         weight2(el) = el <= 5 ? 1.0 : 2.0
         weight3(el) = el <= 5 ? 1.0 : 2.0
         wfuncs = (weight2, weight3)
-        rngs = (StableRNG(41), StableRNG(42))
+        rngs = (StableRNG(57), StableRNG(58))
         iters = (a:b, Iterators.filter(x -> x != b+1, a:b+1))
         sizes = (1, 2)
         for it in iters
@@ -115,5 +115,36 @@ end
                 end
             end
         end
+    end
+end
+
+@testset "Weighted skip sampling with n >= 4" begin
+    rng = StableRNG(51)
+    # each slot of a with-replacement reservoir is an independent weighted draw
+    N, n, reps = 20, 10, 10^5
+    w = collect(1.0:N)
+    for ordered in (false, true)
+        counts = zeros(Int, N)
+        for _ in 1:reps
+            rs = ReservoirSampler{Int}(rng, n, AlgWRSWRSKIP(); ordered)
+            for x in 1:N fit!(rs, x, w[x]) end
+            for x in value(rs) counts[x] += 1 end
+        end
+        @test pvalue(ChisqTest(counts, w ./ sum(w))) > 0.001
+    end
+end
+
+@testset "Weighted ordered values follow the stream order" begin
+    rng = StableRNG(52)
+    stream = [50, 10, 40, 20, 30, 60, 0]
+    pos = Dict(x => i for (i, x) in enumerate(stream))
+    for method in (AlgARes(), AlgAExpJ(), AlgWRSWRSKIP()), n in (4, 7, 10)
+        in_order = true
+        for _ in 1:1000
+            rs = ReservoirSampler{Int}(rng, n, method; ordered = true)
+            for x in stream fit!(rs, x, 1.0) end
+            in_order &= issorted(ordvalue(rs), by = x -> pos[x])
+        end
+        @test in_order
     end
 end
