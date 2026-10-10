@@ -13,20 +13,20 @@ julia&gt; Pkg.develop(&quot;StreamSampling&quot;)</code></pre><p><strong>Seek Su
     author = {Adriano Meligrana},
     title = {StreamSampling.jl: Efficient Sampling from Data Streams in Julia},
     journal = {Proceedings of the JuliaCon Conferences},
-}</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaDynamics/StreamSampling.jl/blob/69cc82a4a979853c6e54249dc02e75d8e701a8b8/src/StreamSampling.jl#L4-L79">source</a></section></details></article><h2 id="Installation"><a class="docs-heading-anchor" href="#Installation">Installation</a><a id="Installation-1"></a><a class="docs-heading-anchor-permalink" href="#Installation" title="Permalink"></a></h2><pre><code class="language-julia hljs">using Pkg
+}</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaDynamics/StreamSampling.jl/blob/1258a7dc9c51ef8bd8c58758b76df367736b2027/src/StreamSampling.jl#L4-L79">source</a></section></details></article><h2 id="Installation"><a class="docs-heading-anchor" href="#Installation">Installation</a><a id="Installation-1"></a><a class="docs-heading-anchor-permalink" href="#Installation" title="Permalink"></a></h2><pre><code class="language-julia hljs">using Pkg
 Pkg.add(&quot;StreamSampling&quot;)</code></pre><h2 id="Reproducibility"><a class="docs-heading-anchor" href="#Reproducibility">Reproducibility</a><a id="Reproducibility-1"></a><a class="docs-heading-anchor-permalink" href="#Reproducibility" title="Permalink"></a></h2><details><summary>The documentation of StreamSampling.jl was built using these direct dependencies,</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Status `~/work/StreamSampling.jl/StreamSampling.jl/docs/Project.toml`
   [6e4b80f9] BenchmarkTools v1.8.0
   [e30172f5] Documenter v1.19.0
-  [ff63dad9] StreamSampling v0.8.2 `~/work/StreamSampling.jl/StreamSampling.jl`
+  [ff63dad9] StreamSampling v0.8.3 `~/work/StreamSampling.jl/StreamSampling.jl`
   [9a3f8284] Random v1.11.0</code></pre></details><details><summary>and using this machine and Julia version.</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Julia Version 1.13.1
 Commit 96ca370cf0e (2026-09-25 19:34 UTC)
 Build Info:
   Official https://julialang.org release
 Platform Info:
   OS: Linux (x86_64-linux-gnu)
-  CPU: 4 × AMD EPYC 9V45 96-Core Processor
+  CPU: 4 × AMD EPYC 9V74 80-Core Processor
   WORD_SIZE: 64
-  LLVM: libLLVM-20.1.8 (ORCJIT, znver5)
+  LLVM: libLLVM-20.1.8 (ORCJIT, znver4)
   GC: Built with stock GC
 Threads: 2 default, 1 interactive, 2 GC (on 4 virtual cores)</code></pre></details><details><summary>A more complete overview of all dependencies and their versions is also provided.</summary><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Status `~/work/StreamSampling.jl/StreamSampling.jl/docs/Manifest.toml`
   [a4c015fc] ANSIColoredPrinters v0.0.1
@@ -44,7 +44,7 @@ Threads: 2 default, 1 interactive, 2 GC (on 4 virtual cores)</code></pre></detai
   [31c24e10] Distributions v0.25.131
   [ffbed154] DocStringExtensions v0.9.5
   [e30172f5] Documenter v1.19.0
-  [1a297f60] FillArrays v1.17.1
+  [1a297f60] FillArrays v1.18.0
   [a0844989] Gamma v1.2.0
   [d7ba0133] Git v1.5.0
   [49057fa9] HybridStructs v0.2.1
@@ -77,7 +77,7 @@ Threads: 2 default, 1 interactive, 2 GC (on 4 virtual cores)</code></pre></detai
   [82ae8749] StatsAPI v1.8.0
   [2913bbd2] StatsBase v0.34.13
   [4c63d2b9] StatsFuns v2.2.1
-  [ff63dad9] StreamSampling v0.8.2 `~/work/StreamSampling.jl/StreamSampling.jl`
+  [ff63dad9] StreamSampling v0.8.3 `~/work/StreamSampling.jl/StreamSampling.jl`
   [ec057cc2] StructUtils v2.9.2
   [3bb67fe8] TranscodingStreams v0.11.3
   [2e619515] Expat_jll v2.8.4+0
@@ -132,4 +132,4 @@ Threads: 2 default, 1 interactive, 2 GC (on 4 virtual cores)</code></pre></detai
   [3161d3a3] Zstd_jll v1.5.7+1
   [8e850b90] libblastrampoline_jll v5.15.0+0
   [8e850ede] nghttp2_jll v1.67.1+0
-  [3f19e933] p7zip_jll v17.8.2+0</code></pre></details><p>You can also download the <a href="https://github.com/StreamSampling/StreamSampling.jl/tree/gh-pages/v0.8.2/assets/Manifest.toml">manifest</a> file and the <a href="https://github.com/StreamSampling/StreamSampling.jl/tree/gh-pages/v0.8.2/assets/Project.toml">project</a> file.</p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="basics/">Basics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 9 October 2026 01:04">Friday 9 October 2026</span>. Using Julia version 1.13.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+  [3f19e933] p7zip_jll v17.8.2+0</code></pre></details><p>You can also download the <a href="https://github.com/StreamSampling/StreamSampling.jl/tree/gh-pages/v0.8.3/assets/Manifest.toml">manifest</a> file and the <a href="https://github.com/StreamSampling/StreamSampling.jl/tree/gh-pages/v0.8.3/assets/Project.toml">project</a> file.</p></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="basics/">Basics »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Saturday 10 October 2026 09:54">Saturday 10 October 2026</span>. Using Julia version 1.13.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
